@@ -38,7 +38,6 @@ object DataModule {
     private fun provideAppDatabase(context: Context): AppDatabase {
         return AppDatabase.getDatabase(context)
     }
-
     // DAOs
     private fun provideUserDao(db: AppDatabase) = db.userDao()
     private fun provideMaterialDao(db: AppDatabase) = db.materialDao()
