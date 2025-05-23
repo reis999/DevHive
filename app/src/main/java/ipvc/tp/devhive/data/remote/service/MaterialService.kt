@@ -7,7 +7,7 @@ import ipvc.tp.devhive.data.model.Material
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-class MaterialService(private val firestore: FirebaseFirestore) {
+class MaterialService(firestore: FirebaseFirestore) {
     private val materialsCollection = firestore.collection("materials")
 
     suspend fun getMaterialById(materialId: String): Material? {

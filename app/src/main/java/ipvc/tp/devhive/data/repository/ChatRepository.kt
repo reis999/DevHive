@@ -164,6 +164,7 @@ class ChatRepository(
                         if (!updatedParticipants.contains(userId)) {
                             updatedParticipants.add(userId)
                         }
+
                         val updatedChat = chat.copy(participantIds = updatedParticipants)
                         chatDao.updateChat(updatedChat)
                     }

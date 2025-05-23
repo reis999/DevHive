@@ -8,7 +8,7 @@ import ipvc.tp.devhive.data.model.Message
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-class ChatService(private val firestore: FirebaseFirestore) {
+class ChatService(firestore: FirebaseFirestore) {
     private val chatsCollection = firestore.collection("chats")
 
     suspend fun getChatById(chatId: String): Chat? {
@@ -124,7 +124,7 @@ class ChatService(private val firestore: FirebaseFirestore) {
                     mapOf(
                         "lastMessageAt" to newMessage.createdAt,
                         "lastMessagePreview" to newMessage.content.take(50),
-                        "messageCount" to com.google.firebase.firestore.FieldValue.increment(1)
+                        "unreadCount" to com.google.firebase.firestore.FieldValue.increment(1)
                     )
                 )
                 .await()

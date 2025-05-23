@@ -6,7 +6,7 @@ import ipvc.tp.devhive.data.model.User
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-class UserService(private val firestore: FirebaseFirestore) {
+class UserService(firestore: FirebaseFirestore) {
     private val usersCollection = firestore.collection("users")
 
     suspend fun getUserById(userId: String): User? {

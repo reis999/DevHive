@@ -14,5 +14,9 @@ data class StudyGroup(
     val admins: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
     val isPrivate: Boolean = false,
-    val joinCode: String = ""
+    val joinCode: String = "",
+    val maxMembers: Int = 100,
+    val lastMessageAt: Timestamp? = null,
+    val lastMessagePreview: String = "",
+    val messageCount: Int = 0
 )

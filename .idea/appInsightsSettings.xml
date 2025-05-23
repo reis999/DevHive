@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="ipvc.tp.devhive" />
+                  <option name="mobileSdkAppId" value="1:202349296779:android:1cb00d6660662d8f73688e" />
+                  <option name="projectId" value="devhive-1750a" />
+                  <option name="projectNumber" value="202349296779" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

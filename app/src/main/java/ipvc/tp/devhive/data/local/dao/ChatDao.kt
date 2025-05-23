@@ -12,7 +12,7 @@ import ipvc.tp.devhive.data.util.SyncStatus
 
 @Dao
 interface ChatDao {
-    @Query("SELECT * FROM chats WHERE :userId IN (participantIds)")
+    @Query("SELECT * FROM chats WHERE :userId IN (participant1Id) OR :userId IN (participant2Id)")
     fun getChatsByUser(userId: String): LiveData<List<ChatEntity>>
 
     @Query("SELECT * FROM chats WHERE id = :chatId")
