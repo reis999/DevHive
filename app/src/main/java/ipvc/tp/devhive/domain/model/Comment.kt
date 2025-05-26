@@ -8,11 +8,14 @@ import com.google.firebase.Timestamp
 data class Comment(
     val id: String,
     val materialId: String,
-    val userUid: String,
+    val userId: String,
+    val userName: String,
+    val userImageUrl: String,
     val content: String,
     val createdAt: Timestamp,
     val updatedAt: Timestamp,
     val likes: Int,
+    val liked: Boolean,
     val parentCommentId: String?,
     val attachments: List<Attachment>
 )
@@ -21,3 +24,4 @@ data class Attachment(
     val type: String,
     val url: String
 )
+

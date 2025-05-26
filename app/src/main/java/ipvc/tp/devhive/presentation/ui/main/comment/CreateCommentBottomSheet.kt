@@ -17,11 +17,13 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
         private const val ARG_MATERIAL_ID = "material_id"
+        private const val ARG_PARENT_COMMENT_ID = "parent_comment_id"
 
-        fun newInstance(materialId: String): CreateCommentBottomSheet {
+        fun newInstance(materialId: String, parentCommentId: String? = null): CreateCommentBottomSheet {
             val fragment = CreateCommentBottomSheet()
             val args = Bundle()
             args.putString(ARG_MATERIAL_ID, materialId)
+            parentCommentId?.let { args.putString(ARG_PARENT_COMMENT_ID, it) }
             fragment.arguments = args
             return fragment
         }
@@ -33,10 +35,14 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
     private lateinit var btnCancel: Button
 
     private var materialId: String = ""
+    private var parentCommentId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        materialId = arguments?.getString(ARG_MATERIAL_ID) ?: ""
+        arguments?.let {
+            materialId = it.getString(ARG_MATERIAL_ID) ?: ""
+            parentCommentId = it.getString(ARG_PARENT_COMMENT_ID)
+        }
     }
 
     override fun onCreateView(
@@ -50,16 +56,27 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inicializa as views
+        initializeViews(view)
+        initializeViewModel()
+        setupClickListeners()
+        observeEvents()
+
+        // Foca no campo de texto
+        etComment.requestFocus()
+    }
+
+    private fun initializeViews(view: View) {
         etComment = view.findViewById(R.id.et_comment)
         btnSubmit = view.findViewById(R.id.btn_submit)
         btnCancel = view.findViewById(R.id.btn_cancel)
+    }
 
-        // Inicializa o ViewModel
+    private fun initializeViewModel() {
         val factory = DevHiveApp.getViewModelFactories().commentViewModelFactory
         commentViewModel = ViewModelProvider(this, factory)[CommentViewModel::class.java]
+    }
 
-        // Configura os cliques
+    private fun setupClickListeners() {
         btnSubmit.setOnClickListener {
             submitComment()
         }
@@ -67,9 +84,32 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
         btnCancel.setOnClickListener {
             dismiss()
         }
+    }
 
-        // Foca no campo de texto
-        etComment.requestFocus()
+    private fun observeEvents() {
+        commentViewModel.commentEvent.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { commentEvent ->
+                when (commentEvent) {
+                    is ipvc.tp.devhive.presentation.viewmodel.comment.CommentEvent.CreateSuccess -> {
+                        Toast.makeText(
+                            requireContext(),
+                            R.string.comment_created_success,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        dismiss()
+                    }
+                    is ipvc.tp.devhive.presentation.viewmodel.comment.CommentEvent.CreateFailure -> {
+                        Toast.makeText(
+                            requireContext(),
+                            commentEvent.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        btnSubmit.isEnabled = true
+                    }
+                    else -> {}
+                }
+            }
+        }
     }
 
     private fun submitComment() {
@@ -85,9 +125,17 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
             return
         }
 
-        // Em uma implementação real, usaríamos commentViewModel.createComment()
-        // Para fins de demonstração, apenas mostramos uma mensagem de sucesso
-        Toast.makeText(requireContext(), R.string.comment_created_success, Toast.LENGTH_SHORT).show()
-        dismiss()
+        // Desabilita o botão para evitar múltiplos cliques
+        btnSubmit.isEnabled = false
+
+        // Simula o ID do usuário atual (em uma implementação real, viria do sistema de autenticação)
+        val currentUserId = "current_user_id"
+
+        commentViewModel.createComment(
+            materialId = materialId,
+            userUid = currentUserId,
+            content = commentText,
+            parentCommentId = parentCommentId
+        )
     }
 }

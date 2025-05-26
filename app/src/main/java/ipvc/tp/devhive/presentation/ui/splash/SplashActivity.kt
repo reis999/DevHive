@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModelProvider
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
@@ -35,7 +36,7 @@ class SplashActivity : AppCompatActivity() {
             }
         }
 
-        // Atraso para exibir a tela de splash
+        // Atraso para mostrar o ecra de splash
         Handler(Looper.getMainLooper()).postDelayed({
             // Se o estado de autenticação ainda não foi definido, verifica o primeiro lançamento
             if (authViewModel.authState.value !is AuthState.Authenticated) {
@@ -52,8 +53,8 @@ class SplashActivity : AppCompatActivity() {
             // Primeiro lançamento, mostra a introdução
             navigateToIntro()
 
-            // Marca como não sendo mais o primeiro lançamento
-            prefs.edit().putBoolean(KEY_FIRST_LAUNCH, false).apply()
+            // Marca como não primeiro lançamento
+            prefs.edit { putBoolean(KEY_FIRST_LAUNCH, false) }
         } else {
             // Não é o primeiro lançamento, vai para o login
             navigateToLogin()

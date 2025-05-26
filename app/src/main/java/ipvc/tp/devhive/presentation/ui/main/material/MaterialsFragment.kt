@@ -98,12 +98,12 @@ class MaterialsFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
         // Configura o SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                // Implementação da busca
+                // Implementação da pesquisa
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                // Filtra a lista à medida que o usuário digita
+                // Filtra a lista à medida que o utilizador escreve
                 return true
             }
         })
@@ -115,7 +115,7 @@ class MaterialsFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
     }
 
     override fun onMaterialClick(material: Material) {
-        // Abre a tela de detalhes do material
+        // Abre o ecra de detalhes do material
         val intent = Intent(requireContext(), MaterialDetailActivity::class.java)
         intent.putExtra(MaterialDetailActivity.EXTRA_MATERIAL_ID, material.id)
         startActivity(intent)

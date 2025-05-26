@@ -1,60 +1,43 @@
 package ipvc.tp.devhive.domain.usecase.chat
 
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.domain.repository.ChatRepository
 import java.util.Date
 import java.util.UUID
 
 /**
- * Caso de uso para criar um novo chat
+ * Caso de uso para criar um novo chat direto entre dois utilizadores
  */
-class CreateChatUseCase(private val chatRepository: ChatRepository) {
+class CreateChatUseCase(
+    private val chatRepository: ChatRepository
+) {
 
     suspend operator fun invoke(
-        name: String,
-        creatorUid: String,
-        isPrivate: Boolean,
-        initialParticipants: List<String> = emptyList()
+        currentUserId: String,
+        otherUserId: String
     ): Result<Chat> {
         // Validação de dados
-        if (name.isBlank()) {
-            return Result.failure(IllegalArgumentException("O nome do chat não pode estar vazio"))
+        if (currentUserId.isBlank() || otherUserId.isBlank()) {
+            return Result.failure(IllegalArgumentException("IDs de utilizador não podem estar vazios"))
+        }
+
+        if (currentUserId == otherUserId) {
+            return Result.failure(IllegalArgumentException("Não é possível criar um chat consigo mesmo"))
         }
 
         // Criação do chat
         val chatId = UUID.randomUUID().toString()
-        val now = Date()
-
-        // Gera um código de acesso aleatório para chats privados
-        val accessCode = if (isPrivate) {
-            (1..6).map { ('0'..'9').random() }.joinToString("")
-        } else {
-            ""
-        }
-
-        // Garante que o criador está na lista de participantes
-        val participants = initialParticipants.toMutableList()
-        if (!participants.contains(creatorUid)) {
-            participants.add(creatorUid)
-        }
+        val now = Timestamp(Date())
 
         val newChat = Chat(
             id = chatId,
-            name = name,
-            isPrivate = isPrivate,
-            accessCode = accessCode,
-            maxCapacity = 50,
-            participantIds = participants,
-            creatorUid = creatorUid,
+            participant1Id = currentUserId,
+            participant2Id = otherUserId,
             createdAt = now,
             updatedAt = now,
             lastMessageAt = now,
             lastMessagePreview = "",
-            unreadCount = 0,
-            recipientId = "",
-            recipientName = "",
-            recipientImageUrl = "",
-            recipientOnline = false,
             messageCount = 0
         )
 

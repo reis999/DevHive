@@ -17,7 +17,7 @@ class CreateCommentUseCase(
 
     suspend operator fun invoke(
         materialId: String,
-        userUid: String,
+        userId: String,
         content: String,
         parentCommentId: String? = null,
         attachments: List<Attachment> = emptyList()
@@ -27,6 +27,10 @@ class CreateCommentUseCase(
             return Result.failure(IllegalArgumentException("O conteúdo do comentário não pode estar vazio"))
         }
 
+        // Busca informações do utilizador
+        val user = userRepository.getUserById(userId)
+            ?: return Result.failure(IllegalArgumentException("Utilizador não encontrado"))
+
         // Criação do comentário
         val commentId = UUID.randomUUID().toString()
         val now = Date()
@@ -34,25 +38,26 @@ class CreateCommentUseCase(
         val newComment = Comment(
             id = commentId,
             materialId = materialId,
-            userUid = userUid,
+            userId = userId,
+            userName = user.name,
+            userImageUrl = user.profileImageUrl,
             content = content,
             createdAt = now,
             updatedAt = now,
             likes = 0,
+            liked = false,
             parentCommentId = parentCommentId,
             attachments = attachments
         )
 
-        // Atualiza as estatísticas de contribuição do usuário
-        val user = userRepository.getUserById(userUid)
-        if (user != null) {
-            val updatedStats = user.contributionStats.copy(
-                comments = user.contributionStats.comments + 1
-            )
-            val updatedUser = user.copy(contributionStats = updatedStats)
-            userRepository.updateUser(updatedUser)
-        }
+        // Atualiza as estatísticas de contribuição do utilizador
+        val updatedStats = user.contributionStats.copy(
+            comments = user.contributionStats.comments + 1
+        )
+        val updatedUser = user.copy(contributionStats = updatedStats)
+        userRepository.updateUser(updatedUser)
 
         return commentRepository.createComment(newComment)
     }
 }
+

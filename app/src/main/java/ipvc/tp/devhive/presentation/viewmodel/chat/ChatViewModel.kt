@@ -20,18 +20,14 @@ class ChatViewModel(
     private val _chatEvent = MutableLiveData<Event<ChatEvent>>()
     val chatEvent: LiveData<Event<ChatEvent>> = _chatEvent
 
-    fun createChat(
-        name: String,
-        creatorUid: String,
-        isPrivate: Boolean,
-        initialParticipants: List<String> = emptyList()
+    fun createDirectChat(
+        currentUserId: String,
+        otherUserId: String
     ) {
         viewModelScope.launch {
             val result = createChatUseCase(
-                name = name,
-                creatorUid = creatorUid,
-                isPrivate = isPrivate,
-                initialParticipants = initialParticipants
+                currentUserId = currentUserId,
+                otherUserId = otherUserId
             )
 
             result.fold(

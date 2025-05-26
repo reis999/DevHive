@@ -13,20 +13,55 @@ import ipvc.tp.devhive.domain.model.GroupMessage
 import ipvc.tp.devhive.presentation.util.DateFormatUtils
 import de.hdodenhof.circleimageview.CircleImageView
 
-class GroupMessageAdapter :
-    ListAdapter<GroupMessage, GroupMessageAdapter.GroupMessageViewHolder>(GroupMessageDiffCallback()) {
+class GroupMessageAdapter(
+    private val currentUserId: String
+) : ListAdapter<GroupMessage, RecyclerView.ViewHolder>(GroupMessageDiffCallback()) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupMessageViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_group_message, parent, false)
-        return GroupMessageViewHolder(view)
+    companion object {
+        private const val VIEW_TYPE_SENT = 1
+        private const val VIEW_TYPE_RECEIVED = 2
     }
 
-    override fun onBindViewHolder(holder: GroupMessageViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun getItemViewType(position: Int): Int {
+        val message = getItem(position)
+        return if (message.senderUid == currentUserId) {
+            VIEW_TYPE_SENT
+        } else {
+            VIEW_TYPE_RECEIVED
+        }
     }
 
-    inner class GroupMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == VIEW_TYPE_SENT) {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_group_message_sent, parent, false)
+            SentMessageViewHolder(view)
+        } else {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_group_message_received, parent, false)
+            ReceivedMessageViewHolder(view)
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val message = getItem(position)
+        when (holder) {
+            is SentMessageViewHolder -> holder.bind(message)
+            is ReceivedMessageViewHolder -> holder.bind(message)
+        }
+    }
+
+    inner class SentMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvMessageContent: TextView = itemView.findViewById(R.id.tv_message_content)
+        private val tvTimestamp: TextView = itemView.findViewById(R.id.tv_timestamp)
+
+        fun bind(message: GroupMessage) {
+            tvMessageContent.text = message.content
+            tvTimestamp.text = DateFormatUtils.getRelativeTimeSpan(message.createdAt)
+        }
+    }
+
+    inner class ReceivedMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivSenderAvatar: CircleImageView = itemView.findViewById(R.id.iv_sender_avatar)
         private val tvSenderName: TextView = itemView.findViewById(R.id.tv_sender_name)
         private val tvMessageContent: TextView = itemView.findViewById(R.id.tv_message_content)
@@ -35,7 +70,7 @@ class GroupMessageAdapter :
         fun bind(message: GroupMessage) {
             tvSenderName.text = message.senderName
             tvMessageContent.text = message.content
-            tvTimestamp.text = DateFormatUtils.getRelativeTimeSpan(message.createdAt.toDate())
+            tvTimestamp.text = DateFormatUtils.getRelativeTimeSpan(message.createdAt)
 
             // Carrega a imagem do remetente
             if (message.senderImageUrl.isNotEmpty()) {

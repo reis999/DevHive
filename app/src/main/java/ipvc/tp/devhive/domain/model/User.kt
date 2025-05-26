@@ -3,7 +3,7 @@ package ipvc.tp.devhive.domain.model
 import com.google.firebase.Timestamp
 
 /**
- * Modelo de domínio para representar um usuário na aplicação
+ * Modelo de domínio para representar um utilizador na aplicação
  */
 data class User(
     val id: String,

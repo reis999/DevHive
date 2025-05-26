@@ -99,8 +99,7 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
     private fun loadChatDetails() {
-        // Em uma implementação real, usaríamos chatViewModel.getChatById(chatId) ou createChat se não existir
-        // Para fins de demonstração, usamos dados simulados
+        // implementação real: usar chatViewModel.getChatById(chatId) ou createChat se não existir
         val mockChat = getMockChat()
         displayChatDetails(mockChat)
 
@@ -115,7 +114,7 @@ class ChatRoomActivity : AppCompatActivity() {
         tvOtherUserName.text = chat.otherParticipantName
         tvOtherUserStatus.text = if (chat.otherParticipantOnline) getString(R.string.online) else getString(R.string.offline)
 
-        // Carrega a imagem do outro usuário
+        // Carrega a imagem do outro utilizador
         if (chat.otherParticipantImageUrl.isNotEmpty()) {
             Glide.with(this)
                 .load(chat.otherParticipantImageUrl)
@@ -139,7 +138,7 @@ class ChatRoomActivity : AppCompatActivity() {
             return
         }
 
-        // Em uma implementação real, usaríamos chatViewModel.sendMessage(chatId, messageText)
+        // implementação real: usar chatViewModel.sendMessage(chatId, messageText)
         val newMessage = Message(
             id = "msg_" + System.currentTimeMillis(),
             chatId = chatId,

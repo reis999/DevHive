@@ -28,6 +28,7 @@ import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.Timestamp
 
 class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClickListener {
 
@@ -69,7 +70,15 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             return
         }
 
-        // Inicializa as views
+        initializeViews()
+        setupToolbar()
+        setupRecyclerView()
+        initializeViewModels()
+        loadMaterialDetails()
+        setupClickListeners()
+    }
+
+    private fun initializeViews() {
         toolbar = findViewById(R.id.toolbar)
         collapsingToolbar = findViewById(R.id.collapsing_toolbar)
         ivMaterialCover = findViewById(R.id.iv_material_cover)
@@ -84,36 +93,42 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         recyclerViewComments = findViewById(R.id.recycler_view_comments)
         tvNoComments = findViewById(R.id.tv_no_comments)
         fabAddComment = findViewById(R.id.fab_add_comment)
+    }
 
-        // Configura a toolbar
+    private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
 
-        // Configura o RecyclerView
+    private fun setupRecyclerView() {
         recyclerViewComments.layoutManager = LinearLayoutManager(this)
         recyclerViewComments.adapter = commentAdapter
+    }
 
-        // Inicializa os ViewModels
-        val materialFactory = DevHiveApp.getViewModelFactories().materialViewModelFactory
-        materialViewModel = ViewModelProvider(this, materialFactory)[MaterialViewModel::class.java]
+    private fun initializeViewModels() {
+        val viewModelFactories = DevHiveApp.getViewModelFactories()
 
-        val commentFactory = DevHiveApp.getViewModelFactories().commentViewModelFactory
-        commentViewModel = ViewModelProvider(this, commentFactory)[CommentViewModel::class.java]
+        materialViewModel = ViewModelProvider(
+            this,
+            viewModelFactories.materialViewModelFactory
+        )[MaterialViewModel::class.java]
 
-        // Carrega os detalhes do material
-        loadMaterialDetails()
+        commentViewModel = ViewModelProvider(
+            this,
+            viewModelFactories.commentViewModelFactory
+        )[CommentViewModel::class.java]
+    }
 
-        // Configura o FAB para adicionar comentário
+    private fun setupClickListeners() {
         fabAddComment.setOnClickListener {
             showAddCommentDialog()
         }
 
-        // Configura o clique no autor para ver o perfil
         val authorContainer = findViewById<View>(R.id.container_author)
         authorContainer.setOnClickListener {
             currentMaterial?.let {
                 val intent = Intent(this, UserProfileActivity::class.java)
-                intent.putExtra(UserProfileActivity.EXTRA_USER_ID, it.authorId)
+                intent.putExtra(UserProfileActivity.EXTRA_USER_ID, it.ownerUid)
                 startActivity(intent)
             }
         }
@@ -147,13 +162,11 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     }
 
     private fun loadMaterialDetails() {
-        // Em uma implementação real, usaríamos materialViewModel.getMaterialById(materialId)
-        // Para fins de demonstração, usamos dados simulados
+        // implementação real: usar materialViewModel.getMaterialById(materialId)
         val mockMaterial = getMockMaterial()
         displayMaterialDetails(mockMaterial)
 
         // Carrega os comentários do material
-        // Em uma implementação real, usaríamos commentViewModel.getCommentsByMaterial(materialId)
         val mockComments = getMockComments()
         displayComments(mockComments)
     }
@@ -164,9 +177,9 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         collapsingToolbar.title = material.title
 
         // Carrega a imagem de capa
-        if (material.coverImageUrl.isNotEmpty()) {
+        if (material.thumbnailUrl.isNotEmpty()) {
             Glide.with(this)
-                .load(material.coverImageUrl)
+                .load(material.thumbnailUrl)
                 .placeholder(R.drawable.material_placeholder)
                 .error(R.drawable.material_placeholder)
                 .into(ivMaterialCover)
@@ -183,7 +196,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         }
 
         tvAuthorName.text = material.authorName
-        tvUploadDate.text = DateFormatUtils.formatDate(material.createdAt)
+        tvUploadDate.text = DateFormatUtils.formatFullDate(material.createdAt.toDate())
         tvDescription.text = material.description
         tvDownloads.text = material.downloads.toString()
         tvViews.text = material.views.toString()
@@ -191,7 +204,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
 
         // Adiciona as tags
         chipGroupTags.removeAllViews()
-        material.tags.forEach { tag ->
+        material.categories.forEach { tag ->
             val chip = Chip(this)
             chip.text = tag
             chip.isClickable = true
@@ -227,7 +240,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             invalidateOptionsMenu()
 
             // Mostra mensagem de confirmação
-            val messageResId = if (newBookmarkState) R.string.material_bookmarked else R.string.material_unbookmarked
+            val messageResId = if (newBookmarkState) R.string.material_bookmarked else R.string.material_bookmark_removed
             Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
         }
     }
@@ -236,7 +249,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         // Simula o download do material
         Toast.makeText(this, R.string.downloading_material, Toast.LENGTH_SHORT).show()
 
-        // Em uma implementação real, usaríamos materialViewModel.downloadMaterial(materialId)
+        // implementação real: usar materialViewModel.downloadMaterial(materialId)
     }
 
     private fun shareMaterial() {
@@ -263,12 +276,13 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     }
 
     override fun onCommentLikeClick(comment: Comment, position: Int) {
-        // Alterna o estado de like do comentário
-        commentViewModel.likeComment(comment.id, !comment.liked)
+        // Simula o utilizador atual
+        val currentUserId = "current_user_id" // simulaçao
+        commentViewModel.likeComment(comment.id, currentUserId)
     }
 
     override fun onUserClick(userId: String) {
-        // Navega para o perfil do usuário
+        // Navega para o perfil do utilizador
         val intent = Intent(this, UserProfileActivity::class.java)
         intent.putExtra(UserProfileActivity.EXTRA_USER_ID, userId)
         startActivity(intent)
@@ -280,23 +294,24 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             id = materialId,
             title = "Introdução à Programação em Kotlin",
             description = "Este material apresenta os conceitos básicos da linguagem Kotlin, incluindo sintaxe, estruturas de controle, funções e classes. Ideal para iniciantes que desejam aprender a programar em Kotlin.",
-            authorId = "user123",
+            ownerUid = "user123",
             authorName = "David Reis",
             authorImageUrl = "",
-            coverImageUrl = "",
-            fileUrl = "",
-            fileType = "pdf",
+            thumbnailUrl = "",
+            contentUrl = "",
+            type = "pdf",
             fileSize = 2048,
-            tags = listOf("Kotlin", "Programação", "Iniciante"),
+            categories = listOf("Kotlin", "Programação", "Iniciante"),
             subject = "Programação",
-            institution = "Instituto Politécnico de Viana do Castelo",
-            course = "Engenharia Informática",
             downloads = 125,
             views = 342,
             likes = 78,
             bookmarked = false,
-            createdAt = java.util.Date(),
-            updatedAt = java.util.Date()
+            createdAt = Timestamp(java.util.Date()),
+            updatedAt = Timestamp(java.util.Date()),
+            isPublic = true,
+            rating = 4.5f,
+            reviewCount = 10
         )
     }
 
@@ -312,6 +327,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
                 content = "Excelente material! Muito bem explicado e fácil de entender.",
                 likes = 12,
                 liked = false,
+                parentCommentId = null,
+                attachments = emptyList(),
                 createdAt = java.util.Date(System.currentTimeMillis() - 86400000), // 1 dia atrás
                 updatedAt = java.util.Date(System.currentTimeMillis() - 86400000)
             ),
@@ -324,6 +341,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
                 content = "Ajudou-me muito a entender os conceitos básicos de Kotlin. Recomendo!",
                 likes = 8,
                 liked = true,
+                parentCommentId = null,
+                attachments = emptyList(),
                 createdAt = java.util.Date(System.currentTimeMillis() - 172800000), // 2 dias atrás
                 updatedAt = java.util.Date(System.currentTimeMillis() - 172800000)
             )

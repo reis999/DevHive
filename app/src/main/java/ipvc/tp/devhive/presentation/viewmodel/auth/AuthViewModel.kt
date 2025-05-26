@@ -23,13 +23,12 @@ class AuthViewModel(
     val authEvent: LiveData<Event<AuthEvent>> = _authEvent
 
     init {
-        // Verifica se o usuário já está autenticado
+        // Verifica se o utilizador já está autenticado
         checkAuthState()
     }
 
     private fun checkAuthState() {
         // Aqui seria implementada a verificação de autenticação com Firebase Auth
-        // Por enquanto, definimos como não autenticado
         _authState.value = AuthState.Unauthenticated
     }
 

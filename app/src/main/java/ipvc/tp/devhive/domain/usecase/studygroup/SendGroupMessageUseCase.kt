@@ -17,9 +17,9 @@ class SendGroupMessageUseCase(
         content: String,
         attachments: List<MessageAttachment> = emptyList()
     ): Result<GroupMessage> {
-        // Verifica se o usuário está logado
+        // Verifica se o utilizador está logado
         val currentUser = userRepository.getCurrentUser() ?: return Result.failure(
-            IllegalStateException("Usuário não está logado")
+            IllegalStateException("Utilizador não está logado")
         )
 
         // Verifica se o grupo existe
@@ -27,7 +27,7 @@ class SendGroupMessageUseCase(
             IllegalArgumentException("Grupo não encontrado")
         )
 
-        // Verifica se o usuário é membro do grupo
+        // Verifica se o utilizador é membro do grupo
         if (!group.members.contains(currentUser.id)) {
             return Result.failure(IllegalStateException("Você não é membro deste grupo"))
         }
@@ -38,7 +38,7 @@ class SendGroupMessageUseCase(
             studyGroupId = groupId,
             content = content,
             senderUid = currentUser.id,
-            senderName = currentUser.name ?: "Usuário",
+            senderName = currentUser.name ?: "Utilizador",
             senderImageUrl = currentUser.profileImageUrl ?: "",
             createdAt = Timestamp(Date()),
             attachments = attachments

@@ -27,43 +27,43 @@ import ipvc.tp.devhive.domain.usecase.sync.SyncDataUseCase
 object DomainModule {
 
     // Casos de uso de autenticação
-    fun provideRegisterUserUseCase(userRepository: UserRepository): RegisterUserUseCase {
+    private fun provideRegisterUserUseCase(userRepository: UserRepository): RegisterUserUseCase {
         return RegisterUserUseCase(userRepository)
     }
 
-    fun provideLoginUserUseCase(userRepository: UserRepository): LoginUserUseCase {
+    private fun provideLoginUserUseCase(userRepository: UserRepository): LoginUserUseCase {
         return LoginUserUseCase(userRepository)
     }
 
-    fun provideLogoutUserUseCase(userRepository: UserRepository): LogoutUserUseCase {
+    private fun provideLogoutUserUseCase(userRepository: UserRepository): LogoutUserUseCase {
         return LogoutUserUseCase(userRepository)
     }
 
     // Casos de uso de materiais
-    fun provideGetMaterialsUseCase(materialRepository: MaterialRepository): GetMaterialsUseCase {
+    private fun provideGetMaterialsUseCase(materialRepository: MaterialRepository): GetMaterialsUseCase {
         return GetMaterialsUseCase(materialRepository)
     }
 
-    fun provideCreateMaterialUseCase(
+    private fun provideCreateMaterialUseCase(
         materialRepository: MaterialRepository,
         userRepository: UserRepository
     ): CreateMaterialUseCase {
         return CreateMaterialUseCase(materialRepository, userRepository)
     }
 
-    fun provideToggleBookmarkUseCase(materialRepository: MaterialRepository): ToggleBookmarkUseCase {
+    private fun provideToggleBookmarkUseCase(materialRepository: MaterialRepository): ToggleBookmarkUseCase {
         return ToggleBookmarkUseCase(materialRepository)
     }
 
     // Casos de uso de comentários
-    fun provideCreateCommentUseCase(
+    private fun provideCreateCommentUseCase(
         commentRepository: CommentRepository,
         userRepository: UserRepository
     ): CreateCommentUseCase {
         return CreateCommentUseCase(commentRepository, userRepository)
     }
 
-    fun provideLikeCommentUseCase(
+    private fun provideLikeCommentUseCase(
         commentRepository: CommentRepository,
         userRepository: UserRepository
     ): LikeCommentUseCase {
@@ -71,30 +71,30 @@ object DomainModule {
     }
 
     // Casos de uso de chat
-    fun provideCreateChatUseCase(chatRepository: ChatRepository): CreateChatUseCase {
+    private fun provideCreateChatUseCase(chatRepository: ChatRepository): CreateChatUseCase {
         return CreateChatUseCase(chatRepository)
     }
 
-    fun provideSendMessageUseCase(chatRepository: ChatRepository): SendMessageUseCase {
+    private fun provideSendMessageUseCase(chatRepository: ChatRepository): SendMessageUseCase {
         return SendMessageUseCase(chatRepository)
     }
 
     // Casos de uso de grupos de estudo
-    fun provideCreateStudyGroupUseCase(
+    private fun provideCreateStudyGroupUseCase(
         studyGroupRepository: StudyGroupRepository,
         userRepository: UserRepository
     ): CreateStudyGroupUseCase {
         return CreateStudyGroupUseCase(studyGroupRepository, userRepository)
     }
 
-    fun provideJoinStudyGroupUseCase(
+    private fun provideJoinStudyGroupUseCase(
         studyGroupRepository: StudyGroupRepository,
         userRepository: UserRepository
     ): JoinStudyGroupUseCase {
         return JoinStudyGroupUseCase(studyGroupRepository, userRepository)
     }
 
-    fun provideSendGroupMessageUseCase(
+    private fun provideSendGroupMessageUseCase(
         studyGroupRepository: StudyGroupRepository,
         userRepository: UserRepository
     ): SendGroupMessageUseCase {
@@ -102,7 +102,7 @@ object DomainModule {
     }
 
     // Casos de uso de sincronização
-    fun provideSyncDataUseCase(
+    private fun provideSyncDataUseCase(
         userRepository: UserRepository,
         materialRepository: MaterialRepository,
         commentRepository: CommentRepository,

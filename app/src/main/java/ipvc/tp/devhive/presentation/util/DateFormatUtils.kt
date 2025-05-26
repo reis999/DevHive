@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.presentation.util
 
+import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -38,9 +39,9 @@ object DateFormatUtils {
     /**
      * Retorna uma string relativa para a data (ex: "há 5 minutos", "ontem", etc.)
      */
-    fun getRelativeTimeSpan(date: Date): String {
+    fun getRelativeTimeSpan(date: Timestamp): String {
         val now = Date()
-        val diffInMillis = now.time - date.time
+        val diffInMillis = now.time - date.toDate().time
 
         val diffInMinutes = TimeUnit.MILLISECONDS.toMinutes(diffInMillis)
         val diffInHours = TimeUnit.MILLISECONDS.toHours(diffInMillis)
@@ -51,7 +52,7 @@ object DateFormatUtils {
             diffInMinutes < 60 -> "há $diffInMinutes ${if (diffInMinutes == 1L) "minuto" else "minutos"}"
             diffInHours < 24 -> "há $diffInHours ${if (diffInHours == 1L) "hora" else "horas"}"
             diffInDays < 7 -> "há $diffInDays ${if (diffInDays == 1L) "dia" else "dias"}"
-            else -> formatDateOnly(date)
+            else -> formatDateOnly(date.toDate())
         }
     }
 }

@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.User
 
 /**
- * Interface de repositório para operações relacionadas a usuários
+ * Interface de repositório para operações relacionadas a utilizadores
  */
 interface UserRepository {
     suspend fun getUserById(userId: String): User?

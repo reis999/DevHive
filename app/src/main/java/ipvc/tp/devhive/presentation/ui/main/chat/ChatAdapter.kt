@@ -47,7 +47,7 @@ class ChatAdapter(private val listener: OnChatClickListener) :
         }
 
         fun bind(chat: Chat) {
-            tvChatName.text = chat.name
+            tvChatName.text = chat.otherParticipantName
             tvLastMessage.text = chat.lastMessagePreview
             tvTime.text = DateFormatUtils.getRelativeTimeSpan(chat.lastMessageAt)
 

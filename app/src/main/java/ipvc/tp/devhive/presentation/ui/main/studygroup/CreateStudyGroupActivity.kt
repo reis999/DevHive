@@ -107,7 +107,6 @@ class CreateStudyGroupActivity : AppCompatActivity() {
     }
 
     private fun createStudyGroup() {
-        // Valida os campos
         if (!validateFields()) {
             return
         }
@@ -121,27 +120,23 @@ class CreateStudyGroupActivity : AppCompatActivity() {
         val description = etDescription.text.toString().trim()
         val subject = actvSubject.text.toString().trim()
 
-        // Em uma implementação real, usaríamos studyGroupViewModel.createStudyGroup()
-        // Para fins de demonstração, simulamos a criação
+        // implementação real: usar studyGroupViewModel.createStudyGroup()
         simulateStudyGroupCreation(name, description, subject, tags)
     }
 
     private fun validateFields(): Boolean {
         var isValid = true
 
-        // Valida o nome
         if (etName.text.toString().trim().isEmpty()) {
             etName.error = getString(R.string.field_required)
             isValid = false
         }
 
-        // Valida a descrição
         if (etDescription.text.toString().trim().isEmpty()) {
             etDescription.error = getString(R.string.field_required)
             isValid = false
         }
 
-        // Valida a disciplina
         if (actvSubject.text.toString().trim().isEmpty()) {
             tilSubject.error = getString(R.string.field_required)
             isValid = false

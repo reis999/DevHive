@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import java.util.Date
 
 class ProfileViewModel : ViewModel() {
-    // LiveData para o perfil do usuário
+    // LiveData para o perfil do utilizador
     private val _userProfile = MutableLiveData<User>()
     val userProfile: LiveData<User> = _userProfile
 
@@ -23,18 +23,17 @@ class ProfileViewModel : ViewModel() {
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    // Carrega o perfil do usuário
+    // Carrega o perfil do utilizador
     fun loadUserProfile(userId: String) {
         _isLoading.value = true
 
-        // Em uma implementação real, buscaríamos os dados do repositório
+        // implementação real: buscar dados do repositório
         // Por enquanto, simulamos o carregamento
         viewModelScope.launch {
             try {
                 // Simula uma chamada de rede
                 kotlinx.coroutines.delay(1000)
 
-                // Simulamos um usuário
                 val user = User(
                     id = userId,
                     name = "Diogo Oliveira",
@@ -65,7 +64,7 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    // Atualiza o perfil do usuário
+    // Atualiza o perfil do utilizador
     fun updateProfile(
         name: String,
         bio: String,
@@ -74,8 +73,7 @@ class ProfileViewModel : ViewModel() {
     ) {
         _isLoading.value = true
 
-        // Em uma implementação real, atualizaríamos os dados no repositório
-        // Por enquanto, simulamos a atualização
+        // implementação real: atualizar dados no repositório
         viewModelScope.launch {
             try {
                 // Simula uma chamada de rede

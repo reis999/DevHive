@@ -11,11 +11,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ChatFragment : Fragment(), ChatAdapter.OnChatClickListener {
 
@@ -54,7 +54,7 @@ class ChatFragment : Fragment(), ChatAdapter.OnChatClickListener {
 
         // Configura o FAB para criar um novo chat
         fabAdd.setOnClickListener {
-            startActivity(Intent(requireContext(), CreateChatActivity::class.java))
+            startActivity(Intent(requireContext(), SelectUserActivity::class.java))
         }
 
         // Como não temos implementação completa, simulamos uma lista vazia
@@ -64,7 +64,7 @@ class ChatFragment : Fragment(), ChatAdapter.OnChatClickListener {
     }
 
     override fun onChatClick(chat: Chat) {
-        // Abre a tela de chat
+        // Abre o ecra de chat
         val intent = Intent(requireContext(), ChatRoomActivity::class.java)
         intent.putExtra(ChatRoomActivity.EXTRA_CHAT_ID, chat.id)
         startActivity(intent)

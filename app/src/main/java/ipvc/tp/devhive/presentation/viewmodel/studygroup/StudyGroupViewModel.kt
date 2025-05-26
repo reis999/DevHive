@@ -5,9 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
-import ipvc.tp.devhive.domain.model.StudyGroup
 import ipvc.tp.devhive.domain.model.GroupMessage
 import ipvc.tp.devhive.domain.model.MessageAttachment
+import ipvc.tp.devhive.domain.model.StudyGroup
 import ipvc.tp.devhive.domain.usecase.studygroup.CreateStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.JoinStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.SendGroupMessageUseCase
@@ -50,14 +50,12 @@ class StudyGroupViewModel(
     fun loadStudyGroups() {
         _isLoading.value = true
 
-        // Em uma implementação real, buscaríamos os dados do repositório
-        // Por enquanto, simulamos o carregamento
+        // implementação real: buscar dados do repositório
         viewModelScope.launch {
             try {
                 // Simula uma chamada de rede
                 kotlinx.coroutines.delay(1000)
 
-                // Simulamos uma lista vazia
                 _studyGroups.value = emptyList()
                 _isLoading.value = false
             } catch (e: Exception) {
@@ -71,14 +69,12 @@ class StudyGroupViewModel(
     fun loadStudyGroup(groupId: String) {
         _isLoading.value = true
 
-        // Em uma implementação real, buscaríamos os dados do repositório
-        // Por enquanto, simulamos o carregamento
+        // implementação real: buscar dados do repositório
         viewModelScope.launch {
             try {
                 // Simula uma chamada de rede
                 kotlinx.coroutines.delay(1000)
 
-                // Simulamos um grupo
                 val group = StudyGroup(
                     id = groupId,
                     name = "Grupo de Programação Java",
@@ -113,14 +109,12 @@ class StudyGroupViewModel(
     ) {
         _isLoading.value = true
 
-        // Em uma implementação real, salvaríamos os dados no repositório
-        // Por enquanto, simulamos a criação
+        // implementação real: salvar dados no repositório
         viewModelScope.launch {
             try {
                 // Simula uma chamada de rede
                 kotlinx.coroutines.delay(1000)
 
-                // Cria um novo grupo
                 val groupId = UUID.randomUUID().toString()
                 val now = Date()
                 val joinCode = if (isPrivate) {
@@ -144,7 +138,6 @@ class StudyGroupViewModel(
                     joinCode = joinCode
                 )
 
-                // Adiciona o novo grupo à lista atual
                 val currentGroups = _studyGroups.value ?: emptyList()
                 _studyGroups.value = currentGroups + newGroup
 
@@ -161,8 +154,7 @@ class StudyGroupViewModel(
     fun joinStudyGroup(groupId: String, userId: String, joinCode: String = "") {
         _isLoading.value = true
 
-        // Em uma implementação real, atualizaríamos os dados no repositório
-        // Por enquanto, simulamos a entrada
+        // implementação real: atualizar dados no repositório
         viewModelScope.launch {
             try {
                 // Simula uma chamada de rede
@@ -176,7 +168,7 @@ class StudyGroupViewModel(
                         throw Exception("Código de acesso inválido")
                     }
 
-                    // Adiciona o usuário à lista de membros
+                    // Adiciona o utilizador à lista de membros
                     val updatedMembers = currentGroup.members.toMutableList()
                     if (!updatedMembers.contains(userId)) {
                         updatedMembers.add(userId)
@@ -229,14 +221,14 @@ class StudyGroupViewModel(
 
     fun joinStudyGroup(groupId: String) {
         viewModelScope.launch {
-            val result = joinStudyGroupUseCase(groupId)
+            val result = joinStudyGroupUseCase.joinByGroupId(groupId)
             _joinStudyGroupResult.value = Event(result)
         }
     }
 
     fun joinStudyGroupByCode(joinCode: String) {
         viewModelScope.launch {
-            val result = joinStudyGroupUseCase(joinCode)
+            val result = joinStudyGroupUseCase.joinByJoinCode(joinCode)
             _joinStudyGroupResult.value = Event(result)
         }
     }

@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.domain.usecase.auth
 
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.domain.repository.UserRepository
 import java.util.Date
@@ -31,9 +32,9 @@ class RegisterUserUseCase(private val userRepository: UserRepository) {
             return Result.failure(IllegalArgumentException("Email inválido"))
         }
 
-        // Criação do usuário
+        // Criação do utilizador
         val userId = UUID.randomUUID().toString()
-        val now = Date()
+        val now = Timestamp(Date())
 
         val newUser = User(
             id = userId,

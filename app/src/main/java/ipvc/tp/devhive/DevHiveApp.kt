@@ -3,10 +3,10 @@ package ipvc.tp.devhive
 import android.app.Application
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
+import com.google.firebase.FirebaseApp
 import ipvc.tp.devhive.data.di.DataModule
 import ipvc.tp.devhive.domain.di.DomainModule
 import ipvc.tp.devhive.presentation.di.PresentationModule
-import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,7 +14,6 @@ import kotlinx.coroutines.launch
 
 class DevHiveApp : Application() {
 
-    // Escopo da aplicação para operações em segundo plano
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     // Componentes da camada de dados
@@ -30,33 +29,45 @@ class DevHiveApp : Application() {
         super.onCreate()
         instance = this
 
-        // Inicializa o Firebase
-        FirebaseApp.initializeApp(this)
+        initializeFirebase()
 
-        // Inicializa os componentes da aplicação
         initializeComponents()
 
-        // Configura o tema (claro/escuro)
         setupTheme()
 
-        // Inicia o monitoramento de sincronização
         startSyncMonitoring()
     }
 
+    private fun initializeFirebase() {
+        try {
+            FirebaseApp.initializeApp(this)
+        } catch (e: Exception) {
+            // Em caso de erro na inicialização do Firebase, continua sem ele
+            e.printStackTrace()
+        }
+    }
+
     private fun initializeComponents() {
-        // Inicializa os componentes da camada de dados
-        dataComponents = DataModule.provideDataComponents(this)
+        try {
+            // Inicializa os componentes da camada de dados
+            dataComponents = DataModule.provideDataComponents(this)
 
-        // Inicializa os casos de uso da camada de domínio
-        useCases = DomainModule.provideUseCases(
-            dataComponents.userRepository,
-            dataComponents.materialRepository,
-            dataComponents.commentRepository,
-            dataComponents.chatRepository
-        )
+            // Inicializa os casos de uso da camada de domínio
+            useCases = DomainModule.provideUseCases(
+                dataComponents.userRepository,
+                dataComponents.materialRepository,
+                dataComponents.commentRepository,
+                dataComponents.chatRepository,
+                dataComponents.studyGroupRepository,
+            )
 
-        // Inicializa as factories de ViewModels da camada de apresentação
-        viewModels = PresentationModule.provideViewModelFactories(useCases)
+            // Inicializa as factories de ViewModels da camada de apresentação
+            viewModels = PresentationModule.provideViewModelFactories(useCases)
+        } catch (e: Exception) {
+            // Em caso de erro, cria instâncias vazias para evitar crashes
+            e.printStackTrace()
+            // implementação real: criar implementações de fallback
+        }
     }
 
     private fun setupTheme() {
@@ -65,38 +76,67 @@ class DevHiveApp : Application() {
     }
 
     private fun startSyncMonitoring() {
-        // Inicia o monitoramento de sincronização em segundo plano
-        dataComponents.syncManager.startMonitoring()
+        try {
+            // Inicia o monitoramento de sincronização em segundo plano
+            if (::dataComponents.isInitialized) {
+                dataComponents.syncManager.startMonitoring()
 
-        // Realiza uma sincronização inicial
-        applicationScope.launch {
-            dataComponents.syncManager.syncPendingData()
+                // Realiza uma sincronização inicial
+                applicationScope.launch {
+                    dataComponents.syncManager.syncPendingData()
+                }
+            }
+        } catch (e: Exception) {
+            // Em caso de erro, continua sem sincronização
+            e.printStackTrace()
         }
     }
 
     override fun onTerminate() {
         super.onTerminate()
-        // Para o monitoramento de sincronização
-        dataComponents.syncManager.stopMonitoring()
+        try {
+            // Para o monitoramento de sincronização
+            if (::dataComponents.isInitialized) {
+                dataComponents.syncManager.stopMonitoring()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     companion object {
         private lateinit var instance: DevHiveApp
 
         fun getDataComponents(): DataModule.DataComponents {
-            return instance.dataComponents
+            return if (::instance.isInitialized && instance::dataComponents.isInitialized) {
+                instance.dataComponents
+            } else {
+                throw IllegalStateException("DataComponents not initialized")
+            }
         }
 
         fun getUseCases(): DomainModule.UseCases {
-            return instance.useCases
+            return if (::instance.isInitialized && instance::useCases.isInitialized) {
+                instance.useCases
+            } else {
+                throw IllegalStateException("UseCases not initialized")
+            }
         }
 
         fun getViewModelFactories(): PresentationModule.ViewModelFactories {
-            return instance.viewModels
+            return if (::instance.isInitialized && instance::viewModels.isInitialized) {
+                instance.viewModels
+            } else {
+                throw IllegalStateException("ViewModelFactories not initialized")
+            }
         }
 
         fun getAppContext(): Context {
-            return instance.applicationContext
+            return if (::instance.isInitialized) {
+                instance.applicationContext
+            } else {
+                throw IllegalStateException("Application not initialized")
+            }
         }
     }
 }

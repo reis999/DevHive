@@ -14,21 +14,24 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ipvc.tp.devhive.domain.repository.ChatRepository as DomainChatRepository
 
 class ChatRepository(
     private val chatDao: ChatDao,
     private val messageDao: MessageDao,
     private val chatService: ChatService,
     private val appScope: CoroutineScope
-) {
-    fun getChatsByUser(userId: String): LiveData<List<Chat>> {
+) : DomainChatRepository {
 
+    override fun getChatsByUser(userId: String): LiveData<List<ipvc.tp.devhive.domain.model.Chat>> {
+        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshChatsByUser(userId)
         }
 
+        // Retorna LiveData do banco local
         return chatDao.getChatsByUser(userId).map { entities ->
-            entities.map { ChatEntity.toChat(it) }
+            entities.map { ChatEntity.toChat(it).toDomainChat() }
         }
     }
 
@@ -43,33 +46,37 @@ class ChatRepository(
         }
     }
 
-    suspend fun getChatById(chatId: String): Chat? {
+    override suspend fun getChatById(chatId: String): ipvc.tp.devhive.domain.model.Chat? {
         return withContext(Dispatchers.IO) {
-
+            // Primeiro tenta obter do banco de dados local
             val localChat = chatDao.getChatById(chatId)
 
             if (localChat != null) {
-                ChatEntity.toChat(localChat)
+                ChatEntity.toChat(localChat).toDomainChat()
             } else {
-
+                // Se não encontrar localmente, busca do Firestore
                 val remoteChat = chatService.getChatById(chatId)
 
+                // Se encontrar remotamente, salva no banco local
                 if (remoteChat != null) {
                     chatDao.insertChat(ChatEntity.fromChat(remoteChat))
+                    remoteChat.toDomainChat()
+                } else {
+                    null
                 }
-
-                remoteChat
             }
         }
     }
 
-    fun observeChatById(chatId: String): LiveData<Chat?> {
+    override fun observeChatById(chatId: String): LiveData<ipvc.tp.devhive.domain.model.Chat?> {
+        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshChat(chatId)
         }
 
+        // Retorna LiveData do banco local
         return chatDao.observeChatById(chatId).map { entity ->
-            entity?.let { ChatEntity.toChat(it) }
+            entity?.let { ChatEntity.toChat(it).toDomainChat() }
         }
     }
 
@@ -82,58 +89,79 @@ class ChatRepository(
         }
     }
 
-    suspend fun createChat(chat: Chat): Result<Chat> {
+    override suspend fun createChat(chat: ipvc.tp.devhive.domain.model.Chat): Result<ipvc.tp.devhive.domain.model.Chat> {
         return withContext(Dispatchers.IO) {
             try {
-                val result = chatService.createChat(chat)
+                val dataChat = chat.toDataChat()
+                // Verifica se já existe um chat entre esses dois usuários
+                val existingChat = chatService.findChatBetweenUsers(dataChat.participant1Id, dataChat.participant2Id)
+                if (existingChat != null) {
+                    // Se já existe, retorna o chat existente
+                    chatDao.insertChat(ChatEntity.fromChat(existingChat))
+                    return@withContext Result.success(existingChat.toDomainChat())
+                }
+
+                // Tenta criar no Firestore
+                val result = chatService.createChat(dataChat)
 
                 if (result.isSuccess) {
+                    // Se sucesso, salva no banco local
                     val createdChat = result.getOrThrow()
                     chatDao.insertChat(ChatEntity.fromChat(createdChat))
-                    Result.success(createdChat)
+                    Result.success(createdChat.toDomainChat())
                 } else {
-                    val chatEntity = ChatEntity.fromChat(chat, SyncStatus.PENDING_UPLOAD)
+                    // Se falhar, salva localmente com status pendente
+                    val chatEntity = ChatEntity.fromChat(dataChat, SyncStatus.PENDING_UPLOAD)
                     chatDao.insertChat(chatEntity)
                     Result.success(chat)
                 }
             } catch (e: Exception) {
-                val chatEntity = ChatEntity.fromChat(chat, SyncStatus.PENDING_UPLOAD)
+                // Em caso de erro, salva localmente com status pendente
+                val chatEntity = ChatEntity.fromChat(chat.toDataChat(), SyncStatus.PENDING_UPLOAD)
                 chatDao.insertChat(chatEntity)
                 Result.failure(e)
             }
         }
     }
 
-    suspend fun updateChat(chat: Chat): Result<Chat> {
+    override suspend fun updateChat(chat: ipvc.tp.devhive.domain.model.Chat): Result<ipvc.tp.devhive.domain.model.Chat> {
         return withContext(Dispatchers.IO) {
             try {
-                val result = chatService.updateChat(chat)
+                val dataChat = chat.toDataChat()
+                // Tenta atualizar no Firestore
+                val result = chatService.updateChat(dataChat)
 
                 if (result.isSuccess) {
-                    chatDao.insertChat(ChatEntity.fromChat(chat))
+                    // Se sucesso, atualiza no banco local
+                    chatDao.insertChat(ChatEntity.fromChat(dataChat))
                     Result.success(chat)
                 } else {
-                    val chatEntity = ChatEntity.fromChat(chat, SyncStatus.PENDING_UPDATE)
+                    // Se falhar, atualiza localmente com status pendente
+                    val chatEntity = ChatEntity.fromChat(dataChat, SyncStatus.PENDING_UPDATE)
                     chatDao.insertChat(chatEntity)
                     Result.success(chat)
                 }
             } catch (e: Exception) {
-                val chatEntity = ChatEntity.fromChat(chat, SyncStatus.PENDING_UPDATE)
+                // Em caso de erro, atualiza localmente com status pendente
+                val chatEntity = ChatEntity.fromChat(chat.toDataChat(), SyncStatus.PENDING_UPDATE)
                 chatDao.insertChat(chatEntity)
                 Result.failure(e)
             }
         }
     }
 
-    suspend fun deleteChat(chatId: String): Result<Boolean> {
+    override suspend fun deleteChat(chatId: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
+                // Tenta deletar no Firestore
                 val result = chatService.deleteChat(chatId)
 
                 if (result.isSuccess) {
+                    // Se sucesso, remove do banco local
                     chatDao.deleteChatById(chatId)
                     Result.success(true)
                 } else {
+                    // Se falhar, marca como pendente de deleção
                     val chat = chatDao.getChatById(chatId)
                     if (chat != null) {
                         val updatedChat = chat.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -142,6 +170,7 @@ class ChatRepository(
                     Result.success(false)
                 }
             } catch (e: Exception) {
+                // Em caso de erro, marca como pendente de deleção
                 val chat = chatDao.getChatById(chatId)
                 if (chat != null) {
                     val updatedChat = chat.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -152,60 +181,15 @@ class ChatRepository(
         }
     }
 
-    suspend fun addParticipant(chatId: String, userId: String): Result<Boolean> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val result = chatService.addParticipant(chatId, userId)
-
-                if (result.isSuccess) {
-                    val chat = chatDao.getChatById(chatId)
-                    if (chat != null) {
-                        val updatedParticipants = chat.participantIds.toMutableList()
-                        if (!updatedParticipants.contains(userId)) {
-                            updatedParticipants.add(userId)
-                        }
-
-                        val updatedChat = chat.copy(participantIds = updatedParticipants)
-                        chatDao.updateChat(updatedChat)
-                    }
-                }
-
-                result
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-    }
-
-    suspend fun removeParticipant(chatId: String, userId: String): Result<Boolean> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val result = chatService.removeParticipant(chatId, userId)
-
-                if (result.isSuccess) {
-                    val chat = chatDao.getChatById(chatId)
-                    if (chat != null) {
-                        val updatedParticipants = chat.participantIds.toMutableList()
-                        updatedParticipants.remove(userId)
-                        val updatedChat = chat.copy(participantIds = updatedParticipants)
-                        chatDao.updateChat(updatedChat)
-                    }
-                }
-
-                result
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-    }
-
-    fun getMessagesByChatId(chatId: String): LiveData<List<Message>> {
+    override fun getMessagesByChatId(chatId: String): LiveData<List<ipvc.tp.devhive.domain.model.Message>> {
+        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshMessagesByChatId(chatId)
         }
 
+        // Retorna LiveData do banco local
         return messageDao.getMessagesByChatId(chatId).map { entities ->
-            entities.map { MessageEntity.toMessage(it) }
+            entities.map { MessageEntity.toMessage(it).toDomainMessage() }
         }
     }
 
@@ -220,29 +204,34 @@ class ChatRepository(
         }
     }
 
-    suspend fun sendMessage(chatId: String, message: Message): Result<Message> {
+    override suspend fun sendMessage(chatId: String, message: ipvc.tp.devhive.domain.model.Message): Result<ipvc.tp.devhive.domain.model.Message> {
         return withContext(Dispatchers.IO) {
             try {
-                val result = chatService.sendMessage(chatId, message)
+                val dataMessage = message.toDataMessage()
+                // Tenta enviar para o Firestore
+                val result = chatService.sendMessage(chatId, dataMessage)
 
                 if (result.isSuccess) {
+                    // Se sucesso, salva no banco local
                     val sentMessage = result.getOrThrow()
                     messageDao.insertMessage(MessageEntity.fromMessage(sentMessage))
-                    Result.success(sentMessage)
+                    Result.success(sentMessage.toDomainMessage())
                 } else {
-                    val messageEntity = MessageEntity.fromMessage(message, SyncStatus.PENDING_UPLOAD)
+                    // Se falhar, salva localmente com status pendente
+                    val messageEntity = MessageEntity.fromMessage(dataMessage, SyncStatus.PENDING_UPLOAD)
                     messageDao.insertMessage(messageEntity)
                     Result.success(message)
                 }
             } catch (e: Exception) {
-                val messageEntity = MessageEntity.fromMessage(message, SyncStatus.PENDING_UPLOAD)
+                // Em caso de erro, salva localmente com status pendente
+                val messageEntity = MessageEntity.fromMessage(message.toDataMessage(), SyncStatus.PENDING_UPLOAD)
                 messageDao.insertMessage(messageEntity)
                 Result.failure(e)
             }
         }
     }
 
-    suspend fun syncPendingChats() {
+    override suspend fun syncPendingChats() {
         withContext(Dispatchers.IO) {
             val unsyncedChats = chatDao.getUnsyncedChats()
 
@@ -273,7 +262,7 @@ class ChatRepository(
         }
     }
 
-    suspend fun syncPendingMessages() {
+    override suspend fun syncPendingMessages() {
         withContext(Dispatchers.IO) {
             val unsyncedMessages = messageDao.getUnsyncedMessages()
 
@@ -286,8 +275,72 @@ class ChatRepository(
                             messageDao.updateSyncStatus(messageEntity.id, SyncStatus.SYNCED)
                         }
                     }
+                    // Mensagens geralmente não são atualizadas ou excluídas, mas poderíamos implementar se necessário
                 }
             }
         }
+    }
+
+    // Funções de extensão para converter entre modelos data e domain
+    private fun Chat.toDomainChat(): ipvc.tp.devhive.domain.model.Chat {
+        return ipvc.tp.devhive.domain.model.Chat(
+            id = this.id,
+            participant1Id = this.participant1Id,
+            participant2Id = this.participant2Id,
+            lastMessagePreview = this.lastMessagePreview,
+            lastMessageAt = this.lastMessageAt,
+            unreadCount = this.unreadCount,
+            createdAt = this.createdAt,
+            updatedAt = this.updatedAt,
+            otherParticipantId = this.otherParticipantId,
+            otherParticipantName = this.otherParticipantName,
+            otherParticipantImageUrl = this.otherParticipantImageUrl,
+            messageCount = this.messageCount
+        )
+    }
+
+    private fun ipvc.tp.devhive.domain.model.Chat.toDataChat(): Chat {
+        return Chat(
+            id = this.id,
+            participant1Id = this.participant1Id,
+            participant2Id = this.participant2Id,
+            lastMessagePreview = this.lastMessagePreview,
+            lastMessageAt = this.lastMessageAt,
+            unreadCount = this.unreadCount,
+            createdAt = this.createdAt,
+            updatedAt = this.updatedAt,
+            otherParticipantId = this.otherParticipantId,
+            otherParticipantName = this.otherParticipantName,
+            otherParticipantImageUrl = this.otherParticipantImageUrl,
+            messageCount = this.messageCount
+        )
+    }
+
+    private fun Message.toDomainMessage(): ipvc.tp.devhive.domain.model.Message {
+        return ipvc.tp.devhive.domain.model.Message(
+            id = this.id,
+            chatId = this.chatId,
+            senderUid = this.senderUid,
+            content = this.content,
+            attachments = this.attachments,
+            createdAt = this.createdAt,
+            read = this.read,
+            syncStatus = this.syncStatus,
+            lastSync = this.lastSync
+        )
+    }
+
+    private fun ipvc.tp.devhive.domain.model.Message.toDataMessage(): Message {
+        return Message(
+            id = this.id,
+            chatId = this.chatId,
+            senderUid = this.senderUid,
+            content = this.content,
+            attachments = this.attachments,
+            createdAt = this.createdAt,
+            read = this.read,
+            syncStatus = this.syncStatus,
+            lastSync = this.lastSync
+        )
     }
 }

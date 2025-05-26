@@ -3,10 +3,9 @@ package ipvc.tp.devhive.domain.repository
 import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.domain.model.Message
-import kotlinx.coroutines.flow.Flow
 
 /**
- * Interface de repositório para operações relacionadas a chats e mensagens
+ * Interface de repositório para operações relacionadas a chats diretos entre dois usuários
  */
 interface ChatRepository {
     fun getChatsByUser(userId: String): LiveData<List<Chat>>
@@ -15,8 +14,6 @@ interface ChatRepository {
     suspend fun createChat(chat: Chat): Result<Chat>
     suspend fun updateChat(chat: Chat): Result<Chat>
     suspend fun deleteChat(chatId: String): Result<Boolean>
-    suspend fun addParticipant(chatId: String, userId: String): Result<Boolean>
-    suspend fun removeParticipant(chatId: String, userId: String): Result<Boolean>
     fun getMessagesByChatId(chatId: String): LiveData<List<Message>>
     suspend fun sendMessage(chatId: String, message: Message): Result<Message>
     suspend fun syncPendingChats()

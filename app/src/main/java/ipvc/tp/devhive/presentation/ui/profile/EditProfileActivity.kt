@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.User
@@ -115,8 +116,7 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
     private fun loadProfileData() {
-        // Em uma implementação real, usaríamos profileViewModel.getCurrentUser()
-        // Para fins de demonstração, usamos dados simulados
+        // implementação real: usar profileViewModel.getCurrentUser()
         val mockUser = getMockUser()
         displayUserData(mockUser)
     }
@@ -146,13 +146,13 @@ class EditProfileActivity : AppCompatActivity() {
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // Permissão não concedida, solicita ao usuário
+            // Permissão não concedida, pede ao utilizador
             if (ActivityCompat.shouldShowRequestPermissionRationale(
                     this,
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 )
             ) {
-                // Mostra uma explicação ao usuário
+                // Mostra uma explicação ao utilizador
                 Toast.makeText(
                     this,
                     R.string.permission_rationale,
@@ -160,7 +160,7 @@ class EditProfileActivity : AppCompatActivity() {
                 ).show()
             }
 
-            // Solicita a permissão
+            // Pede a permissão
             requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
         } else {
             // Permissão já concedida, abre a galeria
@@ -200,27 +200,23 @@ class EditProfileActivity : AppCompatActivity() {
         val institution = etInstitution.text.toString().trim()
         val course = etCourse.text.toString().trim()
 
-        // Em uma implementação real, usaríamos profileViewModel.updateProfile()
-        // Para fins de demonstração, simulamos a atualização
+        // implementação real: usar profileViewModel.updateProfile()
         simulateProfileUpdate(name, username, email, bio, institution, course)
     }
 
     private fun validateFields(): Boolean {
         var isValid = true
 
-        // Valida o nome
         if (etName.text.toString().trim().isEmpty()) {
             etName.error = getString(R.string.field_required)
             isValid = false
         }
 
-        // Valida o username
         if (etUsername.text.toString().trim().isEmpty()) {
             etUsername.error = getString(R.string.field_required)
             isValid = false
         }
 
-        // Valida o email
         val email = etEmail.text.toString().trim()
         if (email.isEmpty()) {
             etEmail.error = getString(R.string.field_required)
@@ -256,7 +252,6 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
     private fun getMockUser(): User {
-        // Simulamos um usuário para fins de demonstração
         return User(
             id = "user123",
             name = "David Reis",
@@ -266,8 +261,8 @@ class EditProfileActivity : AppCompatActivity() {
             bio = "Estudante de Engenharia Informática no IPVC. Interessado em desenvolvimento mobile e inteligência artificial.",
             institution = "Instituto Politécnico de Viana do Castelo",
             course = "Licenciatura em Engenharia Informática",
-            createdAt = java.util.Date(),
-            lastLogin = java.util.Date(),
+            createdAt = Timestamp(java.util.Date()),
+            lastLogin = Timestamp(java.util.Date()),
             isOnline = true,
             contributionStats = ipvc.tp.devhive.domain.model.ContributionStats(
                 materials = 12,

@@ -16,7 +16,7 @@ class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiff
     companion object {
         private const val VIEW_TYPE_MESSAGE_SENT = 1
         private const val VIEW_TYPE_MESSAGE_RECEIVED = 2
-        private const val CURRENT_USER_ID = "current_user_id" // Em uma implementação real, isso viria do AuthManager
+        private const val CURRENT_USER_ID = "current_user_id" // implementação real: obter do AuthManager
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -54,7 +54,7 @@ class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiff
 
         fun bind(message: Message) {
             tvMessage.text = message.content
-            tvTime.text = DateFormatUtils.formatFullDate(message.createdAt)
+            tvTime.text = DateFormatUtils.formatFullDate(message.createdAt.toDate())
         }
     }
 
@@ -64,7 +64,7 @@ class MessageAdapter : ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiff
 
         fun bind(message: Message) {
             tvMessage.text = message.content
-            tvTime.text = DateFormatUtils.formatFullDate(message.createdAt)
+            tvTime.text = DateFormatUtils.formatFullDate(message.createdAt.toDate())
         }
     }
 

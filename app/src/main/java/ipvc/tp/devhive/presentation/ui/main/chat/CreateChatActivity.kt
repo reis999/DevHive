@@ -90,8 +90,7 @@ class CreateChatActivity : AppCompatActivity() {
             return
         }
 
-        // Em uma implementação real, usaríamos chatViewModel.createChat()
-        // Para fins de demonstração, apenas mostramos uma mensagem de sucesso
+        // implementação real: usar chatViewModel.createChat()
         Toast.makeText(this, R.string.chat_created_success, Toast.LENGTH_SHORT).show()
         finish()
     }

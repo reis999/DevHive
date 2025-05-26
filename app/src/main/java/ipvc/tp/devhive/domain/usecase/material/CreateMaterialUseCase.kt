@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.domain.usecase.material
 
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.repository.MaterialRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
@@ -33,7 +34,7 @@ class CreateMaterialUseCase(
 
         // Criação do material
         val materialId = UUID.randomUUID().toString()
-        val now = Date()
+        val now = Timestamp(Date())
 
         val newMaterial = Material(
             id = materialId,
@@ -57,7 +58,7 @@ class CreateMaterialUseCase(
             reviewCount = 0
         )
 
-        // Atualiza as estatísticas de contribuição do usuário
+        // Atualiza as estatísticas de contribuição do utilizador
         val user = userRepository.getUserById(ownerUid)
         if (user != null) {
             val updatedStats = user.contributionStats.copy(

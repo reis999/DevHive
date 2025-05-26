@@ -54,10 +54,16 @@ class CommentAdapter(
                     .error(R.drawable.profile_placeholder)
                     .circleCrop()
                     .into(ivUserAvatar)
+            } else {
+                ivUserAvatar.setImageResource(R.drawable.profile_placeholder)
             }
 
             // Configura o ícone de like
-            val likeIcon = if (comment.liked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_outline
+            val likeIcon = if (comment.liked) {
+                R.drawable.ic_favorite_filled
+            } else {
+                R.drawable.ic_favorite_outline
+            }
             ivLike.setImageResource(likeIcon)
 
             // Configura os cliques
@@ -89,3 +95,4 @@ class CommentAdapter(
         }
     }
 }
+

@@ -3,6 +3,7 @@ package ipvc.tp.devhive.data.remote.service
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import ipvc.tp.devhive.data.model.User
+import ipvc.tp.devhive.data.util.FirebaseAuthHelper
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
@@ -57,6 +58,15 @@ class UserService(firestore: FirebaseFirestore) {
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    suspend fun getCurrentUser(): User? {
+        val currentUserId = FirebaseAuthHelper.getCurrentUserId()
+        return if (currentUserId != null) {
+            getUserById(currentUserId)
+        } else {
+            null
         }
     }
 }

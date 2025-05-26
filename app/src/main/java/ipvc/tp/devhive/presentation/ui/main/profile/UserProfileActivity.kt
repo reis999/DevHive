@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.presentation.ui.main.profile
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ImageView
@@ -15,8 +16,10 @@ import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
+import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 import com.google.android.material.tabs.TabLayout
+import com.google.firebase.Timestamp
 
 class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClickListener {
 
@@ -38,6 +41,7 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
 
     private val materialAdapter = MaterialAdapter(this)
     private var userId: String = ""
+    private var currentUser: User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +54,15 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
             return
         }
 
-        // Inicializa as views
+        initializeViews()
+        setupToolbar()
+        setupRecyclerView()
+        initializeViewModel()
+        setupTabs()
+        loadUserProfile()
+    }
+
+    private fun initializeViews() {
         toolbar = findViewById(R.id.toolbar)
         ivProfileImage = findViewById(R.id.iv_profile_image)
         tvUserName = findViewById(R.id.tv_user_name)
@@ -60,24 +72,21 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
         tvFollowingCount = findViewById(R.id.tv_following_count)
         tabLayout = findViewById(R.id.tab_layout)
         recyclerView = findViewById(R.id.recycler_view)
+    }
 
-        // Configura a toolbar
+    private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
 
-        // Configura o RecyclerView
+    private fun setupRecyclerView() {
         recyclerView.layoutManager = GridLayoutManager(this, 2)
         recyclerView.adapter = materialAdapter
+    }
 
-        // Inicializa o ViewModel
+    private fun initializeViewModel() {
         val factory = DevHiveApp.getViewModelFactories().profileViewModelFactory
         profileViewModel = ViewModelProvider(this, factory)[ProfileViewModel::class.java]
-
-        // Carrega os dados do usuário
-        loadUserProfile()
-
-        // Configura as tabs
-        setupTabs()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -91,21 +100,23 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     }
 
     private fun loadUserProfile() {
-        // Em uma implementação real, usaríamos profileViewModel.getUserById(userId)
-        // Para fins de demonstração, usamos dados simulados
+        // implementação real: usar profileViewModel.getUserById(userId)
         val mockUser = getMockUser()
         displayUserProfile(mockUser)
 
-        val mockMaterials = getMockUserMaterials()
-        materialAdapter.submitList(mockMaterials)
+        // Carrega os materiais do utilizador por padrão
+        loadUserMaterials()
     }
 
     private fun displayUserProfile(user: User) {
+        currentUser = user
         supportActionBar?.title = user.name
 
         tvUserName.text = user.name
-        tvUserBio.text = user.bio
-        tvMaterialCount.text = "12" // Em uma implementação real, viria do backend
+        tvUserBio.text = user.bio.ifEmpty { getString(R.string.no_bio) }
+
+        // implementação real: estes valores viriam do backend
+        tvMaterialCount.text = "12"
         tvFollowersCount.text = "156"
         tvFollowingCount.text = "89"
 
@@ -117,6 +128,8 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
                 .error(R.drawable.profile_placeholder)
                 .circleCrop()
                 .into(ivProfileImage)
+        } else {
+            ivProfileImage.setImageResource(R.drawable.profile_placeholder)
         }
     }
 
@@ -138,23 +151,29 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     }
 
     private fun loadUserMaterials() {
-        // Carrega os materiais do usuário
+        // implementação real: usar profileViewModel.getUserMaterials(userId)
         val mockMaterials = getMockUserMaterials()
         materialAdapter.submitList(mockMaterials)
     }
 
     private fun loadUserFavorites() {
-        // Carrega os materiais favoritos do usuário
+        // implementação real: usar profileViewModel.getUserFavorites(userId)
         val mockFavorites = getMockUserFavorites()
         materialAdapter.submitList(mockFavorites)
     }
 
     override fun onMaterialClick(material: Material) {
-        // Implementa a navegação para os detalhes do material
+        val intent = Intent(this, MaterialDetailActivity::class.java)
+        intent.putExtra(MaterialDetailActivity.EXTRA_MATERIAL_ID, material.id)
+        startActivity(intent)
     }
 
     override fun onBookmarkClick(material: Material, position: Int) {
-        // Implementa a ação de favoritar/desfavoritar
+        // implementação real: usar materialViewModel.toggleBookmark()
+        val updatedMaterial = material.copy(bookmarked = !material.bookmarked)
+        val currentList = materialAdapter.currentList.toMutableList()
+        currentList[position] = updatedMaterial
+        materialAdapter.submitList(currentList)
     }
 
     private fun getMockUser(): User {
@@ -167,25 +186,74 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
             profileImageUrl = "",
             institution = "Instituto Politécnico de Viana do Castelo",
             course = "Engenharia Informática",
-            createdAt = java.util.Date(),
-            lastLogin = java.util.Date(),
-            isOnline = false,
+            createdAt = Timestamp(java.util.Date()),
+            lastLogin = Timestamp(java.util.Date()),
+            isOnline = true,
             contributionStats = ipvc.tp.devhive.domain.model.ContributionStats(
-                materials = 2,
-                comments = 10,
-                likes = 5,
-                sessions = 3
+                materials = 4,
+                comments = 12,
+                likes = 8,
+                sessions = 4
             )
+
         )
     }
 
     private fun getMockUserMaterials(): List<Material> {
-        // Retorna uma lista simulada de materiais do usuário
-        return emptyList()
+        // implementação real: retornar materiais do utilizador
+        return listOf(
+            Material(
+                id = "material1",
+                title = "Guia de Kotlin",
+                description = "Guia completo sobre Kotlin",
+                ownerUid = userId,
+                authorName = "Ana Silva",
+                authorImageUrl = "",
+                thumbnailUrl = "",
+                contentUrl = "",
+                type = "pdf",
+                fileSize = 1024,
+                categories = listOf("Kotlin", "Programação"),
+                subject = "Programação",
+                downloads = 45,
+                views = 123,
+                likes = 28,
+                bookmarked = false,
+                createdAt = Timestamp(java.util.Date()),
+                updatedAt = Timestamp(java.util.Date()),
+                isPublic = true,
+                rating = 4.2f,
+                reviewCount = 15
+            )
+        )
     }
 
     private fun getMockUserFavorites(): List<Material> {
-        // Retorna uma lista simulada de materiais favoritos do usuário
-        return emptyList()
+        // implementação real: retornar materiais favoritos do utilizador
+        return listOf(
+            Material(
+                id = "material2",
+                title = "Android Development",
+                description = "Curso de desenvolvimento Android",
+                ownerUid = "other_user",
+                authorName = "João Santos",
+                authorImageUrl = "",
+                thumbnailUrl = "",
+                contentUrl = "",
+                type = "pdf",
+                fileSize = 2048,
+                categories = listOf("Android", "Mobile"),
+                subject = "Desenvolvimento Mobile",
+                downloads = 67,
+                views = 201,
+                likes = 42,
+                bookmarked = true,
+                createdAt = Timestamp(java.util.Date()),
+                updatedAt = Timestamp(java.util.Date()),
+                isPublic = true,
+                rating = 4.5f,
+                reviewCount = 30
+            )
+        )
     }
 }

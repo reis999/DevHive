@@ -31,7 +31,6 @@ import kotlinx.coroutines.SupervisorJob
  */
 object DataModule {
 
-    // Escopo da aplicação para operações em segundo plano
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     // Firestore
@@ -39,7 +38,7 @@ object DataModule {
         return FirebaseFirestore.getInstance()
     }
 
-    // Banco de dados local
+    // Base de Dados local
     private fun provideAppDatabase(context: Context): AppDatabase {
         return AppDatabase.getDatabase(context)
     }

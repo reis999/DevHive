@@ -30,6 +30,7 @@ import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.Timestamp
 
 class ProfileFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
 
@@ -198,8 +199,8 @@ class ProfileFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
             bio = "Estudante de Engenharia Informática no IPVC. Interessado em desenvolvimento mobile e inteligência artificial.",
             institution = "Instituto Politécnico de Viana do Castelo",
             course = "Licenciatura em Engenharia Informática",
-            createdAt = java.util.Date(),
-            lastLogin = java.util.Date(),
+            createdAt = Timestamp(java.util.Date()),
+            lastLogin = Timestamp(java.util.Date()),
             isOnline = true,
             contributionStats = ipvc.tp.devhive.domain.model.ContributionStats(
                 materials = 12,

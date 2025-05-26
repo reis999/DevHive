@@ -15,7 +15,7 @@ data class Chat(
     val lastMessagePreview: String,
     val messageCount: Int,
     // Campos derivados para facilitar o uso na UI
-    val otherParticipantId: String = "", // ID do outro participante (calculado baseado no usuário atual)
+    val otherParticipantId: String = "", // ID do outro participante (calculado baseado no utilizador atual)
     val otherParticipantName: String = "",
     val otherParticipantImageUrl: String = "",
     val otherParticipantOnline: Boolean = false,

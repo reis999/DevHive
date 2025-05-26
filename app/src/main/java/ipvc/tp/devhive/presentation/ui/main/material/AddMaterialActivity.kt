@@ -158,7 +158,7 @@ class AddMaterialActivity : AppCompatActivity() {
         actvSubject.setAdapter(subjectAdapter)
 
         // Configura o adapter para as instituições
-        // Em uma implementação real, estas informações viriam do banco de dados
+        // Eimplementação real: ir buscar a bd
         val institutions = arrayOf(
             "Instituto Politécnico de Viana do Castelo",
             "Universidade do Minho",
@@ -170,7 +170,7 @@ class AddMaterialActivity : AppCompatActivity() {
         actvInstitution.setAdapter(institutionAdapter)
 
         // Configura o adapter para os cursos
-        // Em uma implementação real, estas informações viriam do banco de dados
+        // implementação real: ir buscar a bd
         val courses = arrayOf(
             "Engenharia Informática",
             "Ciência da Computação",
@@ -188,13 +188,13 @@ class AddMaterialActivity : AppCompatActivity() {
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // Permissão não concedida, solicita ao usuário
+            // Permissão não concedida, pede ao utilizador
             if (ActivityCompat.shouldShowRequestPermissionRationale(
                     this,
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 )
             ) {
-                // Mostra uma explicação ao usuário
+                // Mostra uma explicação ao utilizador
                 Toast.makeText(
                     this,
                     R.string.permission_rationale,
@@ -202,7 +202,7 @@ class AddMaterialActivity : AppCompatActivity() {
                 ).show()
             }
 
-            // Solicita a permissão
+            // Pede a permissão
             requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
         } else {
             // Permissão já concedida, abre a galeria
@@ -234,7 +234,7 @@ class AddMaterialActivity : AppCompatActivity() {
     }
 
     private fun displaySelectedFile(uri: Uri) {
-        // Obtém o nome do arquivo
+        // Obtem o nome do ficheiro
         val fileName = getFileName(uri)
         btnSelectFile.text = fileName ?: getString(R.string.select_file)
     }
@@ -285,27 +285,24 @@ class AddMaterialActivity : AppCompatActivity() {
         val institution = actvInstitution.text.toString().trim()
         val course = actvCourse.text.toString().trim()
 
-        // Em uma implementação real, usaríamos materialViewModel.createMaterial()
-        // Para fins de demonstração, simulamos o upload
+        // implementação real: usar materialViewModel.createMaterial()
         simulateUpload(title, description, subject, institution, course, tags)
     }
 
+    // valida os campos
     private fun validateFields(): Boolean {
         var isValid = true
 
-        // Valida o título
         if (etTitle.text.toString().trim().isEmpty()) {
             etTitle.error = getString(R.string.field_required)
             isValid = false
         }
 
-        // Valida a descrição
         if (etDescription.text.toString().trim().isEmpty()) {
             etDescription.error = getString(R.string.field_required)
             isValid = false
         }
 
-        // Valida a disciplina
         if (actvSubject.text.toString().trim().isEmpty()) {
             tilSubject.error = getString(R.string.field_required)
             isValid = false
@@ -313,7 +310,6 @@ class AddMaterialActivity : AppCompatActivity() {
             tilSubject.error = null
         }
 
-        // Valida a instituição
         if (actvInstitution.text.toString().trim().isEmpty()) {
             tilInstitution.error = getString(R.string.field_required)
             isValid = false
@@ -321,7 +317,6 @@ class AddMaterialActivity : AppCompatActivity() {
             tilInstitution.error = null
         }
 
-        // Valida o curso
         if (actvCourse.text.toString().trim().isEmpty()) {
             tilCourse.error = getString(R.string.field_required)
             isValid = false
@@ -329,7 +324,6 @@ class AddMaterialActivity : AppCompatActivity() {
             tilCourse.error = null
         }
 
-        // Valida o arquivo
         if (selectedFileUri == null) {
             Toast.makeText(this, R.string.select_file_required, Toast.LENGTH_SHORT).show()
             isValid = false

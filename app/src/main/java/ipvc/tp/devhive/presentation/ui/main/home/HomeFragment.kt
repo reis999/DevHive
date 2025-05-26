@@ -97,8 +97,7 @@ class HomeFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
 
         // Configura o SwipeRefreshLayout para atualizar a lista
         swipeRefreshLayout.setOnRefreshListener {
-            // Aqui você pode recarregar os dados, por exemplo, chamando um método no ViewModel
-            // Por enquanto, apenas simulamos um recarregamento
+            // falta implementar a lógica para atualizar a lista e recarregar os dados, por exemplo, chamar um método no ViewModel
             swipeRefreshLayout.isRefreshing = false
         }
 
@@ -109,7 +108,7 @@ class HomeFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
     }
 
     override fun onMaterialClick(material: Material) {
-        // Abre a tela de detalhes do material
+        // Abre o ecra de detalhes do material
         val intent = android.content.Intent(requireContext(), MaterialDetailActivity::class.java)
         intent.putExtra(MaterialDetailActivity.EXTRA_MATERIAL_ID, material.id)
         startActivity(intent)

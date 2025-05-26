@@ -15,7 +15,7 @@ import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModelFact
 object PresentationModule {
 
     // ViewModelFactories
-    fun provideAuthViewModelFactory(useCases: DomainModule.UseCases): AuthViewModelFactory {
+    private fun provideAuthViewModelFactory(useCases: DomainModule.UseCases): AuthViewModelFactory {
         return AuthViewModelFactory(
             useCases.registerUser,
             useCases.loginUser,
@@ -23,7 +23,7 @@ object PresentationModule {
         )
     }
 
-    fun provideMaterialViewModelFactory(useCases: DomainModule.UseCases): MaterialViewModelFactory {
+    private fun provideMaterialViewModelFactory(useCases: DomainModule.UseCases): MaterialViewModelFactory {
         return MaterialViewModelFactory(
             useCases.getMaterials,
             useCases.createMaterial,
@@ -31,25 +31,25 @@ object PresentationModule {
         )
     }
 
-    fun provideCommentViewModelFactory(useCases: DomainModule.UseCases): CommentViewModelFactory {
+    private fun provideCommentViewModelFactory(useCases: DomainModule.UseCases): CommentViewModelFactory {
         return CommentViewModelFactory(
             useCases.createComment,
             useCases.likeComment
         )
     }
 
-    fun provideChatViewModelFactory(useCases: DomainModule.UseCases): ChatViewModelFactory {
+    private fun provideChatViewModelFactory(useCases: DomainModule.UseCases): ChatViewModelFactory {
         return ChatViewModelFactory(
             useCases.createChat,
             useCases.sendMessage
         )
     }
 
-    fun provideProfileViewModelFactory(useCases: DomainModule.UseCases): ProfileViewModelFactory {
+    private fun provideProfileViewModelFactory(useCases: DomainModule.UseCases): ProfileViewModelFactory {
         return ProfileViewModelFactory()
     }
 
-    fun provideStudyGroupViewModelFactory(useCases: DomainModule.UseCases): StudyGroupViewModelFactory {
+    private fun provideStudyGroupViewModelFactory(useCases: DomainModule.UseCases): StudyGroupViewModelFactory {
         return StudyGroupViewModelFactory(
             useCases.createStudyGroup,
             useCases.joinStudyGroup,

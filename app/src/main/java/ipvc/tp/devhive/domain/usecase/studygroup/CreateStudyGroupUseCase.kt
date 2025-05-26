@@ -18,7 +18,7 @@ class CreateStudyGroupUseCase(
         isPrivate: Boolean,
         maxMembers: Int
     ): Result<StudyGroup> {
-        // Verifica se o usuário está logado
+        // Verifica se o utilizador está logado
         val currentUser = userRepository.getCurrentUser() ?: return Result.failure(
             IllegalStateException("Usuário não está logado")
         )
@@ -31,12 +31,12 @@ class CreateStudyGroupUseCase(
             id = UUID.randomUUID().toString(),
             name = name,
             description = description,
-            createdBy = currentUser.uid,
+            createdBy = currentUser.id,
             createdAt = Timestamp(Date()),
             updatedAt = Timestamp(Date()),
             imageUrl = "",
-            members = listOf(currentUser.uid),
-            admins = listOf(currentUser.uid),
+            members = listOf(currentUser.id),
+            admins = listOf(currentUser.id),
             categories = categories,
             isPrivate = isPrivate,
             joinCode = joinCode,

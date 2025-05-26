@@ -95,7 +95,7 @@ class StudyGroupChatActivity : AppCompatActivity() {
     }
 
     private fun loadStudyGroupDetails() {
-        // Em uma implementação real, usaríamos studyGroupViewModel.getStudyGroupById(studyGroupId)
+        // implementação real: usar studyGroupViewModel.getStudyGroupById(studyGroupId)
         val mockStudyGroup = getMockStudyGroup()
         displayStudyGroupDetails(mockStudyGroup)
 
@@ -134,7 +134,7 @@ class StudyGroupChatActivity : AppCompatActivity() {
             return
         }
 
-        // Em uma implementação real, usaríamos studyGroupViewModel.sendGroupMessage()
+        // implementação real: usar studyGroupViewModel.sendGroupMessage()
         val newMessage = GroupMessage(
             id = "msg_" + System.currentTimeMillis(),
             studyGroupId = studyGroupId,

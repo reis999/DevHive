@@ -16,6 +16,18 @@
     <string name="reset_password_instructions">Digite seu email para receber instruções de redefinição de senha</string>
     <string name="send_instructions">Enviar instruções</string>
     <string name="back_to_login">Voltar para login</string>
+    <string name="email_required">Email é obrigatório</string>
+    <string name="password_required">Senha é obrigatória</string>
+    <string name="login_success">Login realizado com sucesso!</string>
+    <string name="google_login_not_implemented">Login com Google não implementado</string>
+    <string name="register_success">Registo realizado com sucesso!</string>
+    <string name="name_required">Nome é obrigatório</string>
+    <string name="username_required">Nome de usuário é obrigatório</string>
+    <string name="password_too_short">A senha deve ter no mínimo 6 caracteres</string>
+    <string name="institution_required">Instituição é obrigatória</string>
+    <string name="course_required">Curso é obrigatório</string>
+    <string name="logout_confirmation">Deseja realmente sair?</string>
+    <string name="invalid_email">Email inválido</string>
 
     <!-- Navegação -->
     <string name="home">Início</string>
@@ -29,7 +41,7 @@
     <string name="recent_materials">Materiais recentes</string>
     <string name="your_study_groups">Seus grupos de estudo</string>
     <string name="see_all">Ver todos</string>
-    <string name="search_hint">Pesquisar materiais, grupos...</string>
+    <string name="search_hint">Pesquisar materiais, grupos…</string>
 
     <!-- Materiais -->
     <string name="add_material">Adicionar material</string>
@@ -42,7 +54,7 @@
     <string name="cancel">Cancelar</string>
     <string name="comments">Comentários</string>
     <string name="add_comment">Adicionar comentário</string>
-    <string name="write_comment">Escreva um comentário...</string>
+    <string name="write_comment">Escreva um comentário…</string>
     <string name="bookmark">Favoritar</string>
     <string name="share">Compartilhar</string>
     <string name="download">Baixar</string>
@@ -51,6 +63,9 @@
     <string name="bookmarks">%1$d favoritos</string>
     <string name="uploaded_by">Enviado por %1$s</string>
     <string name="uploaded_on">Enviado em %1$s</string>
+    <string name="material_published">Material publicado com sucesso</string>
+    <string name="share_material_message">A partilhar o material "%1$s" criado por %2$s, acesse %3$s</string>
+    <string name="share_via">Compartilhar via</string>
 
     <!-- Grupos de Estudo -->
     <string name="create_study_group">Criar grupo de estudo</string>
@@ -67,16 +82,19 @@
     <string name="member_count">%1$d membros</string>
     <string name="leave_group">Sair do grupo</string>
     <string name="invite_members">Convidar membros</string>
+    <string name="study_group_created">Grupo criado com sucesso</string>
 
     <!-- Chat -->
     <string name="new_chat">Nova conversa</string>
-    <string name="message_hint">Digite uma mensagem...</string>
+    <string name="message_hint">Digite uma mensagem…</string>
     <string name="send_message">Enviar mensagem</string>
     <string name="online">Online</string>
     <string name="offline">Offline</string>
-    <string name="typing">Digitando...</string>
+    <string name="typing">Digitando…</string>
     <string name="no_messages_yet">Nenhuma mensagem ainda</string>
     <string name="start_conversation">Comece uma conversa</string>
+    <string name="select_user">Selecionar utilizador</string>
+    <string name="creating_chat_with">A criar um chat com %1$s</string>
 
     <!-- Perfil -->
     <string name="edit_profile">Editar perfil</string>
@@ -91,6 +109,9 @@
     <string name="materials_uploaded">Materiais enviados</string>
     <string name="materials_bookmarked">Materiais favoritos</string>
     <string name="groups_joined">Grupos participando</string>
+    <string name="no_bio">Utilizador não tem biografia</string>
+    <string name="favorites">Favoritos</string>
+    <string name="profile_updated">Perfil atualizado com sucesso</string>
 
     <!-- Erros e Mensagens -->
     <string name="error_login">Erro ao fazer login. Verifique suas credenciais.</string>
@@ -103,4 +124,70 @@
     <string name="success_group_create">Grupo criado com sucesso!</string>
     <string name="success_profile_update">Perfil atualizado com sucesso!</string>
     <string name="password_reset_sent">Instruções de redefinição de senha enviadas para seu email.</string>
+    <string name="error_chat_name_empty">O nome do chat não pode estar vazio.</string>
+    <string name="error_chat_name_too_short">O nome do chat deve ter pelo menos 3 caracteres.</string>
+    <string name="error_access_code_empty">O código de acesso não pode estar vazio.</string>
+    <string name="error_access_code_too_short">O código de acesso deve ter pelo menos 4 caracteres.</string>
+    <string name="chat_created_success">Chat criado com sucesso!</string>
+    <string name="create_chat">Criar chat</string>
+    <string name="error_comment_empty">Comentário não pode estar vazio.</string>
+    <string name="error_comment_too_short">Comentário deve ter pelo menos 3 caracteres.</string>
+    <string name="comment_created_success">Comentário criado com sucesso!</string>
+    <string name="material_bookmarked">Material favoritado com sucesso!</string>
+    <string name="material_bookmark_removed">Material removido dos favoritos!</string>
+    <string name="error_loading_material">Erro ao carregar material.</string>
+    <string name="downloading_material">Baixando material…</string>
+
+
+    <!-- Geral -->
+    <string name="back">Voltar</string>
+    <string name="delete">Excluir</string>
+    <string name="edit">Editar</string>
+    <string name="search">Buscar</string>
+    <string name="loading">Carregando…</string>
+    <string name="error">Erro</string>
+    <string name="success">Sucesso</string>
+    <string name="ok">OK</string>
+    <string name="permission_denied">Permissão negada</string>
+    <string name="permission_rationale">Permissão necessária para acessar</string>
+    <string name="select_file">Selecionar arquivo</string>
+    <string name="select_file_required">É necessário selecionar um arquivo</string>
+    <string name="field_required">Campo obrigatório</string>
+
+    <!-- Splash e Intro -->
+    <string name="app_logo">Logo do DevHive</string>
+    <string name="skip">Pular</string>
+    <string name="next">Próximo</string>
+    <string name="get_started">Começar</string>
+    <string name="intro_slide_image">Imagem do slide de introdução</string>
+
+    <string name="intro_title_1">Bem-vindo ao DevHive</string>
+    <string name="intro_description_1">Uma plataforma colaborativa para estudantes de Engenharia Informática</string>
+    <string name="intro_title_2">Compartilhe Conhecimento</string>
+    <string name="intro_description_2">Compartilhe materiais de estudo, códigos e dicas com outros estudantes</string>
+    <string name="intro_title_3">Estude em Grupo</string>
+    <string name="intro_description_3">Crie ou participe de grupos de estudo para aprender juntos</string>
+
+    <!-- Autenticação -->
+    <string name="login_to_continue">Faça login para continuar</string>
+    <string name="or">ou</string>
+    <string name="continue_with_google">Continuar com Google</string>
+    <string name="register_subtitle">Preencha os campos abaixo para se cadastrar</string>
+    <string name="institution">Instituição</string>
+    <string name="send">Enviar</string>
+
+
+
+    <!-- Home -->
+    <string name="no_materials_found">Nenhum material encontrado</string>
+    <string name="material_thumbnail">Miniatura do material</string>
+
+    <!-- Perfil -->
+    <string name="profile_background">Fundo do perfil</string>
+    <string name="contribution_stats">Estatísticas de Contribuição</string>
+    <string name="likes">Curtidas</string>
+    <string name="sessions">Sessões</string>
+    <string name="my_materials">Meus Materiais</string>
+    <string name="no_materials_yet">Você ainda não compartilhou materiais</string>
+    <string name="settings">Configurações</string>
 </resources>

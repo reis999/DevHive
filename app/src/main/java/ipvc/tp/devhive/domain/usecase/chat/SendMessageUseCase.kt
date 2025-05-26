@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.domain.usecase.chat
 
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.domain.model.Message
 import ipvc.tp.devhive.domain.model.MessageAttachment
 import ipvc.tp.devhive.domain.repository.ChatRepository
@@ -24,7 +25,7 @@ class SendMessageUseCase(private val chatRepository: ChatRepository) {
 
         // Criação da mensagem
         val messageId = UUID.randomUUID().toString()
-        val now = Date()
+        val now = Timestamp(Date())
 
         val newMessage = Message(
             id = messageId,

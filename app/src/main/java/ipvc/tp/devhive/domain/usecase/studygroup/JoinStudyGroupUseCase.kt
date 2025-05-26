@@ -3,60 +3,57 @@ package ipvc.tp.devhive.domain.usecase.studygroup
 import ipvc.tp.devhive.domain.repository.StudyGroupRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 
+sealed class JoinMethod {
+    data class ByGroupId(val groupId: String) : JoinMethod()
+    data class ByJoinCode(val joinCode: String) : JoinMethod()
+}
+
 class JoinStudyGroupUseCase(
     private val studyGroupRepository: StudyGroupRepository,
     private val userRepository: UserRepository
 ) {
-    suspend operator fun invoke(groupId: String): Result<Boolean> {
-        // Verifica se o usuário está logado
+    suspend operator fun invoke(joinMethod: JoinMethod): Result<Boolean> {
+        // Verifica se o utilizador está logado
         val currentUser = userRepository.getCurrentUser() ?: return Result.failure(
-            IllegalStateException("Usuário não está logado")
+            IllegalStateException("Utilizador não está logado")
         )
 
-        // Verifica se o grupo existe
-        val group = studyGroupRepository.getStudyGroupById(groupId) ?: return Result.failure(
-            IllegalArgumentException("Grupo não encontrado")
-        )
+        val group = when (joinMethod) {
+            is JoinMethod.ByGroupId -> {
+                // Busca grupo por ID
+                studyGroupRepository.getStudyGroupById(joinMethod.groupId) ?: return Result.failure(
+                    IllegalArgumentException("Grupo não encontrado")
+                )
+            }
+            is JoinMethod.ByJoinCode -> {
+                // Busca grupo pelo código de acesso
+                val groups = studyGroupRepository.getStudyGroupsByUser(currentUser.id).value ?: emptyList()
+                groups.find { it.joinCode == joinMethod.joinCode } ?: return Result.failure(
+                    IllegalArgumentException("Código de acesso inválido")
+                )
+            }
+        }
 
         // Verifica se o grupo já está cheio
         if (group.members.size >= group.maxMembers) {
             return Result.failure(IllegalStateException("O grupo já atingiu o número máximo de membros"))
         }
 
-        // Verifica se o usuário já é membro
+        // Verifica se o utilizador já é membro
         if (group.members.contains(currentUser.id)) {
             return Result.success(true) // Já é membro, retorna sucesso
         }
 
-        // Adiciona o usuário ao grupo
-        return studyGroupRepository.joinStudyGroup(groupId, currentUser.id)
+        // Adiciona o utilizador ao grupo
+        return studyGroupRepository.joinStudyGroup(group.id, currentUser.id)
     }
 
-    suspend operator fun invoke(joinCode: String): Result<Boolean> {
-        // Verifica se o usuário está logado
-        val currentUser = userRepository.getCurrentUser() ?: return Result.failure(
-            IllegalStateException("Usuário não está logado")
-        )
+    // Métodos de conveniência para facilitar o uso
+    suspend fun joinByGroupId(groupId: String): Result<Boolean> {
+        return invoke(JoinMethod.ByGroupId(groupId))
+    }
 
-        // Busca todos os grupos do usuário para encontrar o grupo com o código de acesso
-        val groups = studyGroupRepository.getStudyGroupsByUser(currentUser.id).value ?: emptyList()
-
-        // Encontra o grupo com o código de acesso
-        val group = groups.find { it.joinCode == joinCode } ?: return Result.failure(
-            IllegalArgumentException("Código de acesso inválido")
-        )
-
-        // Verifica se o grupo já está cheio
-        if (group.members.size >= group.maxMembers) {
-            return Result.failure(IllegalStateException("O grupo já atingiu o número máximo de membros"))
-        }
-
-        // Verifica se o usuário já é membro
-        if (group.members.contains(currentUser.id)) {
-            return Result.success(true) // Já é membro, retorna sucesso
-        }
-
-        // Adiciona o usuário ao grupo
-        return studyGroupRepository.joinStudyGroup(group.id, currentUser.id)
+    suspend fun joinByJoinCode(joinCode: String): Result<Boolean> {
+        return invoke(JoinMethod.ByJoinCode(joinCode))
     }
 }
