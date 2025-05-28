@@ -10,6 +10,7 @@ data class Message(
     val senderUid: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val attachments: List<MessageAttachment> = emptyList(),
+    val read: Boolean = false,
     val syncStatus: String = SyncStatus.SYNCED,
     val lastSync: Timestamp = Timestamp.now()
 )

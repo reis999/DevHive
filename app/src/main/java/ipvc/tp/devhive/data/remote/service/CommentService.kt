@@ -7,7 +7,7 @@ import ipvc.tp.devhive.data.model.Comment
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-class CommentService(private val firestore: FirebaseFirestore) {
+class CommentService(firestore: FirebaseFirestore) {
     private val commentsCollection = firestore.collection("comments")
 
     suspend fun getCommentById(commentId: String): Comment? {

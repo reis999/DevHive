@@ -55,8 +55,12 @@ dependencies {
     implementation(libs.firebase.storage)
 
     // Room
-    implementation(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.compiler) {
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    implementation(libs.androidx.room.ktx) {
+        exclude(group = "com.intellij", module = "annotations")
+    }
 
     // Koin
     implementation(libs.koin.android)
@@ -68,11 +72,19 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
-    // Coil
+    // Coil & Glide
     implementation(libs.coil)
+    implementation(libs.glide)
 
     // Gson
     implementation(libs.gson)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+
+    // CircleImageView, SwipeRefreshLayout & ViewPager2
+    implementation(libs.circleimageview)
+    implementation(libs.androidx.viewpager2)
+    implementation(libs.androidx.swiperefreshlayout)
 
     // Tests
     testImplementation(libs.junit)

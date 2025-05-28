@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "202349296779",
+    "project_id": "devhive-1750a",
+    "storage_bucket": "devhive-1750a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:202349296779:android:1cb00d6660662d8f73688e",
+        "android_client_info": {
+          "package_name": "ipvc.tp.devhive"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaG5fMkmDFsA87J_Yco-r24I_C0oCR21o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

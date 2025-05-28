@@ -1,24 +1,19 @@
 package ipvc.tp.devhive.data.local.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import ipvc.tp.devhive.data.local.entity.CommentEntity
 import ipvc.tp.devhive.data.util.SyncStatus
 
 @Dao
 interface CommentDao {
-    @Query("SELECT * FROM comments WHERE materialId = :materialId")
+    @Query("SELECT * FROM comments WHERE materialId = :materialId ORDER BY createdAt ASC")
     fun getCommentsByMaterial(materialId: String): LiveData<List<CommentEntity>>
 
     @Query("SELECT * FROM comments WHERE id = :commentId")
     suspend fun getCommentById(commentId: String): CommentEntity?
 
-    @Query("SELECT * FROM comments WHERE parentCommentId = :parentId")
+    @Query("SELECT * FROM comments WHERE parentCommentId = :parentId ORDER BY createdAt ASC")
     fun getRepliesByParentId(parentId: String): LiveData<List<CommentEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -42,3 +37,4 @@ interface CommentDao {
     @Query("DELETE FROM comments WHERE id = :commentId")
     suspend fun deleteCommentById(commentId: String)
 }
+

@@ -19,6 +19,7 @@ data class MessageEntity(
     val senderUid: String,
     val createdAt: Long,
     val attachments: List<MessageAttachment>,
+    val read: Boolean,
     val syncStatus: String,
     val lastSyncTimestamp: Long,
 
@@ -36,6 +37,7 @@ data class MessageEntity(
                 senderUid = message.senderUid,
                 createdAt = message.createdAt.seconds * 1000 + message.createdAt.nanoseconds / 1000000,
                 attachments = message.attachments,
+                read = message.read,
                 syncStatus = syncStatus,
                 lastSyncTimestamp = message.lastSync.seconds * 1000 + message.lastSync.nanoseconds / 1000000,
                 lastSyncedAt = System.currentTimeMillis(),
@@ -52,6 +54,7 @@ data class MessageEntity(
                 senderUid = entity.senderUid,
                 createdAt = Timestamp(entity.createdAt / 1000, ((entity.createdAt % 1000) * 1000000).toInt()),
                 attachments = entity.attachments,
+                read = entity.read,
                 syncStatus = entity.syncStatus,
                 lastSync = Timestamp(entity.lastSyncTimestamp / 1000, ((entity.lastSyncTimestamp % 1000) * 1000000).toInt())
             )

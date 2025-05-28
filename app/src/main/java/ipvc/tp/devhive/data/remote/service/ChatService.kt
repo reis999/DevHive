@@ -8,7 +8,7 @@ import ipvc.tp.devhive.data.model.Message
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-class ChatService(private val firestore: FirebaseFirestore) {
+class ChatService(firestore: FirebaseFirestore) {
     private val chatsCollection = firestore.collection("chats")
 
     suspend fun getChatById(chatId: String): Chat? {
@@ -39,6 +39,36 @@ class ChatService(private val firestore: FirebaseFirestore) {
         }
     }
 
+    suspend fun findChatBetweenUsers(user1Id: String, user2Id: String): Chat? {
+        return try {
+            // Busca chats onde user1 é participant1 e user2 é participant2
+            val query1 = chatsCollection
+                .whereEqualTo("participant1Id", user1Id)
+                .whereEqualTo("participant2Id", user2Id)
+                .get()
+                .await()
+
+            if (!query1.isEmpty) {
+                return query1.documents[0].toObject(Chat::class.java)
+            }
+
+            // Busca chats onde user1 é participant2 e user2 é participant1
+            val query2 = chatsCollection
+                .whereEqualTo("participant1Id", user2Id)
+                .whereEqualTo("participant2Id", user1Id)
+                .get()
+                .await()
+
+            if (!query2.isEmpty) {
+                return query2.documents[0].toObject(Chat::class.java)
+            }
+
+            null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun createChat(chat: Chat): Result<Chat> {
         return try {
             val chatId = chat.id.ifEmpty { UUID.randomUUID().toString() }
@@ -62,28 +92,6 @@ class ChatService(private val firestore: FirebaseFirestore) {
     suspend fun deleteChat(chatId: String): Result<Boolean> {
         return try {
             chatsCollection.document(chatId).delete().await()
-            Result.success(true)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun addParticipant(chatId: String, userId: String): Result<Boolean> {
-        return try {
-            chatsCollection.document(chatId)
-                .update("participantIds", com.google.firebase.firestore.FieldValue.arrayUnion(userId))
-                .await()
-            Result.success(true)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun removeParticipant(chatId: String, userId: String): Result<Boolean> {
-        return try {
-            chatsCollection.document(chatId)
-                .update("participantIds", com.google.firebase.firestore.FieldValue.arrayRemove(userId))
-                .await()
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)

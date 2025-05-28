@@ -8,6 +8,7 @@ import android.net.NetworkRequest
 import ipvc.tp.devhive.data.repository.ChatRepository
 import ipvc.tp.devhive.data.repository.CommentRepository
 import ipvc.tp.devhive.data.repository.MaterialRepository
+import ipvc.tp.devhive.data.repository.StudyGroupRepository
 import ipvc.tp.devhive.data.repository.UserRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,11 +16,12 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 class SyncManager(
-    private val context: Context,
+    context: Context,
     private val userRepository: UserRepository,
     private val materialRepository: MaterialRepository,
     private val commentRepository: CommentRepository,
     private val chatRepository: ChatRepository,
+    private val studyGroupRepository: StudyGroupRepository,
     private val appScope: CoroutineScope
 ) {
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -55,13 +57,17 @@ class SyncManager(
                 commentRepository.syncPendingComments()
                 chatRepository.syncPendingChats()
                 chatRepository.syncPendingMessages()
+                studyGroupRepository.syncPendingStudyGroups()
+                studyGroupRepository.syncPendingGroupMessages()
+            } catch (e: Exception) {
+                e.printStackTrace()
             } finally {
                 isSyncing.set(false)
             }
         }
     }
 
-    fun isNetworkAvailable(): Boolean {
+    private fun isNetworkAvailable(): Boolean {
         val activeNetwork = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)

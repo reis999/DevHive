@@ -11,13 +11,17 @@ import ipvc.tp.devhive.data.local.converter.MessageAttachmentListConverter
 import ipvc.tp.devhive.data.local.converter.StringListConverter
 import ipvc.tp.devhive.data.local.dao.ChatDao
 import ipvc.tp.devhive.data.local.dao.CommentDao
+import ipvc.tp.devhive.data.local.dao.GroupMessageDao
 import ipvc.tp.devhive.data.local.dao.MaterialDao
 import ipvc.tp.devhive.data.local.dao.MessageDao
+import ipvc.tp.devhive.data.local.dao.StudyGroupDao
 import ipvc.tp.devhive.data.local.dao.UserDao
 import ipvc.tp.devhive.data.local.entity.ChatEntity
 import ipvc.tp.devhive.data.local.entity.CommentEntity
+import ipvc.tp.devhive.data.local.entity.GroupMessageEntity
 import ipvc.tp.devhive.data.local.entity.MaterialEntity
 import ipvc.tp.devhive.data.local.entity.MessageEntity
+import ipvc.tp.devhive.data.local.entity.StudyGroupEntity
 import ipvc.tp.devhive.data.local.entity.UserEntity
 
 
@@ -28,6 +32,8 @@ import ipvc.tp.devhive.data.local.entity.UserEntity
         CommentEntity::class,
         ChatEntity::class,
         MessageEntity::class,
+        StudyGroupEntity::class,
+        GroupMessageEntity::class
     ],
     version = 1,
     exportSchema = false
@@ -41,6 +47,8 @@ import ipvc.tp.devhive.data.local.entity.UserEntity
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun materialDao(): MaterialDao
+    abstract fun groupMessageDao(): GroupMessageDao
+    abstract fun studyGroupDao(): StudyGroupDao
     abstract fun commentDao(): CommentDao
     abstract fun chatDao(): ChatDao
     abstract fun messageDao(): MessageDao
@@ -56,7 +64,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "devhive_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(false)
                     .build()
                 INSTANCE = instance
                 instance
