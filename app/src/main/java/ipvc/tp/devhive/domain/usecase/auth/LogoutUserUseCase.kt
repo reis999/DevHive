@@ -1,14 +1,18 @@
 package ipvc.tp.devhive.domain.usecase.auth
 
+import ipvc.tp.devhive.domain.repository.AuthRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 
-/**
- * Caso de uso para fazer logout de um usuário
- */
-class LogoutUserUseCase(private val userRepository: UserRepository) {
-
+class LogoutUserUseCase(
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
+) {
     suspend operator fun invoke(userId: String): Result<Boolean> {
-        // Atualiza o status online para false
-        return userRepository.updateUserOnlineStatus(userId, false)
+        // Atualiza o status online
+        val statusResult = userRepository.updateUserOnlineStatus(userId, false)
+        if (statusResult.isFailure) return statusResult
+
+        // Faz signOut no Firebase
+        return authRepository.logout()
     }
 }
