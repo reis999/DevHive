@@ -54,6 +54,7 @@ class DevHiveApp : Application() {
 
             // Inicializa os casos de uso da camada de domínio
             useCases = DomainModule.provideUseCases(
+                dataComponents.authRepository,
                 dataComponents.userRepository,
                 dataComponents.materialRepository,
                 dataComponents.commentRepository,

@@ -4,7 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import ipvc.tp.devhive.domain.repository.AuthRepository
 import kotlinx.coroutines.tasks.await
 
-class AuthRepositoryImpl(
+class AuthRepository(
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 ) : AuthRepository {
 

@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.domain.di
 
+import ipvc.tp.devhive.domain.repository.AuthRepository
 import ipvc.tp.devhive.domain.repository.ChatRepository
 import ipvc.tp.devhive.domain.repository.CommentRepository
 import ipvc.tp.devhive.domain.repository.MaterialRepository
@@ -27,16 +28,16 @@ import ipvc.tp.devhive.domain.usecase.sync.SyncDataUseCase
 object DomainModule {
 
     // Casos de uso de autenticação
-    private fun provideRegisterUserUseCase(userRepository: UserRepository): RegisterUserUseCase {
-        return RegisterUserUseCase(userRepository)
+    private fun provideRegisterUserUseCase(authRepository: AuthRepository, userRepository: UserRepository): RegisterUserUseCase {
+        return RegisterUserUseCase(authRepository, userRepository)
     }
 
-    private fun provideLoginUserUseCase(userRepository: UserRepository): LoginUserUseCase {
-        return LoginUserUseCase(userRepository)
+    private fun provideLoginUserUseCase(authRepository: AuthRepository, userRepository: UserRepository): LoginUserUseCase {
+        return LoginUserUseCase(authRepository, userRepository)
     }
 
-    private fun provideLogoutUserUseCase(userRepository: UserRepository): LogoutUserUseCase {
-        return LogoutUserUseCase(userRepository)
+    private fun provideLogoutUserUseCase(authRepository: AuthRepository, userRepository: UserRepository): LogoutUserUseCase {
+        return LogoutUserUseCase(authRepository, userRepository)
     }
 
     // Casos de uso de materiais
@@ -114,6 +115,7 @@ object DomainModule {
 
     // Função para inicializar todos os casos de uso
     fun provideUseCases(
+        authRepository: AuthRepository,
         userRepository: UserRepository,
         materialRepository: MaterialRepository,
         commentRepository: CommentRepository,
@@ -121,9 +123,9 @@ object DomainModule {
         studyGroupRepository: StudyGroupRepository
     ): UseCases {
         return UseCases(
-            registerUser = provideRegisterUserUseCase(userRepository),
-            loginUser = provideLoginUserUseCase(userRepository),
-            logoutUser = provideLogoutUserUseCase(userRepository),
+            registerUser = provideRegisterUserUseCase(authRepository, userRepository),
+            loginUser = provideLoginUserUseCase(authRepository, userRepository),
+            logoutUser = provideLogoutUserUseCase(authRepository, userRepository),
             getMaterials = provideGetMaterialsUseCase(materialRepository),
             createMaterial = provideCreateMaterialUseCase(materialRepository, userRepository),
             toggleBookmark = provideToggleBookmarkUseCase(materialRepository),

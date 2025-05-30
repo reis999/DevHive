@@ -28,7 +28,7 @@ class AuthViewModel(
         checkAuthState()
     }
 
-    private fun checkAuthState() {
+    fun checkAuthState() {
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
             _authState.value = AuthState.Authenticated(user.uid)

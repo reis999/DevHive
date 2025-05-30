@@ -1,6 +1,7 @@
 package ipvc.tp.devhive.domain.usecase.chat
 
 import com.google.firebase.Timestamp
+import ipvc.tp.devhive.data.util.SyncStatus
 import ipvc.tp.devhive.domain.model.Message
 import ipvc.tp.devhive.domain.model.MessageAttachment
 import ipvc.tp.devhive.domain.repository.ChatRepository
@@ -34,7 +35,9 @@ class SendMessageUseCase(private val chatRepository: ChatRepository) {
             senderUid = senderUid,
             createdAt = now,
             attachments = attachments,
-            read = false
+            read = false,
+            syncStatus = SyncStatus.SYNCED,
+            lastSync = now
         )
 
         return chatRepository.sendMessage(chatId, newMessage)

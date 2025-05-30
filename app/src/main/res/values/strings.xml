@@ -43,6 +43,13 @@
     <string name="see_all">Ver todos</string>
     <string name="search_hint">Pesquisar materiais, grupos…</string>
 
+
+    <string name="title_home">Título Casa</string>
+    <string name="title_materials">Título Materias</string>
+    <string name="title_chat">Título Chat</string>
+    <string name="title_study_groups">Título Grupos de Estudo</string>
+    <string name="title_profile">Título Perfil</string>
+
     <!-- Materiais -->
     <string name="add_material">Adicionar material</string>
     <string name="material_title">Título do material</string>

@@ -1,6 +1,7 @@
 package ipvc.tp.devhive.data.di
 
 import android.content.Context
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import ipvc.tp.devhive.data.local.AppDatabase
 import ipvc.tp.devhive.data.local.dao.ChatDao
@@ -20,6 +21,7 @@ import ipvc.tp.devhive.data.repository.CommentRepository
 import ipvc.tp.devhive.data.repository.MaterialRepository
 import ipvc.tp.devhive.data.repository.StudyGroupRepository
 import ipvc.tp.devhive.data.repository.UserRepository
+import ipvc.tp.devhive.data.repository.AuthRepository
 import ipvc.tp.devhive.data.sync.SyncManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +34,11 @@ import kotlinx.coroutines.SupervisorJob
 object DataModule {
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    // Firebase Auth
+    private fun provideFirebaseAuth(): FirebaseAuth {
+        return FirebaseAuth.getInstance()
+    }
 
     // Firestore
     private fun provideFirestore(): FirebaseFirestore {
@@ -60,6 +67,10 @@ object DataModule {
     private fun provideStudyGroupService(firestore: FirebaseFirestore) = StudyGroupService(firestore)
 
     // Repositórios
+    private fun provideAuthRepository(
+        firebaseAuth: FirebaseAuth
+    ) = AuthRepository(firebaseAuth)
+
     private fun provideUserRepository(
         userDao: UserDao,
         userService: UserService
@@ -107,6 +118,7 @@ object DataModule {
 
     // Função para inicializar todos os componentes da camada de dados
     fun provideDataComponents(context: Context): DataComponents {
+        val firebaseAuth = provideFirebaseAuth()
         val firestore = provideFirestore()
         val database = provideAppDatabase(context)
 
@@ -124,6 +136,7 @@ object DataModule {
         val chatService = provideChatService(firestore)
         val studyGroupService = provideStudyGroupService(firestore)
 
+        val authRepository = provideAuthRepository(firebaseAuth)
         val userRepository = provideUserRepository(userDao, userService)
         val materialRepository = provideMaterialRepository(materialDao, materialService)
         val commentRepository = provideCommentRepository(commentDao, commentService)
@@ -140,6 +153,7 @@ object DataModule {
         )
 
         return DataComponents(
+            authRepository = authRepository,
             userRepository = userRepository,
             materialRepository = materialRepository,
             commentRepository = commentRepository,
@@ -151,6 +165,7 @@ object DataModule {
 
     // Classe para agrupar todos os componentes da camada de dados
     data class DataComponents(
+        val authRepository: AuthRepository,
         val userRepository: UserRepository,
         val materialRepository: MaterialRepository,
         val commentRepository: CommentRepository,
