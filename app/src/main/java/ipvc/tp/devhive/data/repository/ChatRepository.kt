@@ -2,6 +2,7 @@ package ipvc.tp.devhive.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.data.local.dao.ChatDao
 import ipvc.tp.devhive.data.local.dao.MessageDao
 import ipvc.tp.devhive.data.local.entity.ChatEntity
@@ -10,6 +11,7 @@ import ipvc.tp.devhive.data.model.Chat
 import ipvc.tp.devhive.data.model.Message
 import ipvc.tp.devhive.data.remote.service.ChatService
 import ipvc.tp.devhive.data.util.SyncStatus
+import ipvc.tp.devhive.domain.model.MessageAttachment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -322,7 +324,7 @@ class ChatRepository(
             chatId = this.chatId,
             senderUid = this.senderUid,
             content = this.content,
-            attachments = this.attachments,
+            attachments = this.attachments.toDomainList(),
             createdAt = this.createdAt,
             read = this.read,
             syncStatus = this.syncStatus,
@@ -336,11 +338,36 @@ class ChatRepository(
             chatId = this.chatId,
             senderUid = this.senderUid,
             content = this.content,
-            attachments = this.attachments,
+            attachments = this.attachments.toDataList(),
             createdAt = this.createdAt,
             read = this.read,
             syncStatus = this.syncStatus,
             lastSync = this.lastSync
         )
     }
+
+    private fun ipvc.tp.devhive.data.model.MessageAttachment.toDomain(): ipvc.tp.devhive.domain.model.MessageAttachment {
+        return ipvc.tp.devhive.domain.model.MessageAttachment(
+            type = this.type,
+            url = this.url,
+            name = this.name,
+            size = this.size
+        )
+    }
+
+    private fun ipvc.tp.devhive.domain.model.MessageAttachment.toData(): ipvc.tp.devhive.data.model.MessageAttachment {
+        return ipvc.tp.devhive.data.model.MessageAttachment(
+            type = this.type,
+            url = this.url,
+            name = this.name,
+            size = this.size
+        )
+    }
+
+    private fun List<ipvc.tp.devhive.data.model.MessageAttachment>.toDomainList(): List<ipvc.tp.devhive.domain.model.MessageAttachment> =
+        map { it.toDomain() }
+
+    private fun List<ipvc.tp.devhive.domain.model.MessageAttachment>.toDataList(): List<ipvc.tp.devhive.data.model.MessageAttachment> =
+        map { it.toData() }
+
 }

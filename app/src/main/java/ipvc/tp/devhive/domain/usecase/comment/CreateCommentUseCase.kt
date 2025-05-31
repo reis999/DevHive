@@ -1,11 +1,13 @@
 package ipvc.tp.devhive.domain.usecase.comment
 
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.domain.model.Attachment
 import ipvc.tp.devhive.domain.model.Comment
 import ipvc.tp.devhive.domain.repository.CommentRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 import java.util.Date
 import java.util.UUID
+
 
 /**
  * Caso de uso para criar um novo comentário
@@ -33,7 +35,7 @@ class CreateCommentUseCase(
 
         // Criação do comentário
         val commentId = UUID.randomUUID().toString()
-        val now = Date()
+        val now = Timestamp.now()
 
         val newComment = Comment(
             id = commentId,

@@ -32,11 +32,20 @@ class IntroSlideAdapter(private val introSlides: List<IntroSlide>) :
     inner class IntroSlideViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val imageSlide = view.findViewById<ImageView>(R.id.iv_slide_image)
         private val textTitle = view.findViewById<TextView>(R.id.tv_slide_title)
+        private val textSubtitle = view.findViewById<TextView>(R.id.tv_subtitle)
         private val textDescription = view.findViewById<TextView>(R.id.tv_slide_description)
 
         fun bind(introSlide: IntroSlide) {
             imageSlide.setImageResource(introSlide.imageResId)
             textTitle.setText(introSlide.titleResId)
+
+            if (introSlide.subtitleResId != null) {
+                textSubtitle.setText(introSlide.subtitleResId)
+                textSubtitle.visibility = View.VISIBLE
+            } else {
+                textSubtitle.visibility = View.GONE
+            }
+
             textDescription.setText(introSlide.descriptionResId)
         }
     }
@@ -45,5 +54,6 @@ class IntroSlideAdapter(private val introSlides: List<IntroSlide>) :
 data class IntroSlide(
     val imageResId: Int,
     val titleResId: Int,
+    val subtitleResId: Int? = null,
     val descriptionResId: Int
 )

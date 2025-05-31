@@ -40,7 +40,7 @@
             android:layout_height="80dp"
             android:layout_marginTop="16dp"
             android:contentDescription="@string/intro_slide_image"
-            android:src="@drawable/ic_community"
+            android:src="@drawable/ic_slide1"
             app:tint="@android:color/white" />
     </LinearLayout>
 

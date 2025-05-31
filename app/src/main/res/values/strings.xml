@@ -189,8 +189,9 @@
 
     <!-- Splash e Intro -->
     <string name="app_logo">Logo do DevHive</string>
-    <string name="skip">Pular</string>
+    <string name="skip">Saltar</string>
     <string name="next">Próximo</string>
+    <string name="finish">Terminar</string>
     <string name="get_started">Começar</string>
     <string name="intro_slide_image">Imagem do slide de introdução</string>
     <string name="devhive_logo">Logo DevHive</string>
@@ -199,10 +200,16 @@
     <string name="intro_title_1">Bem-vindo ao DevHive</string>
     <string name="intro_subtitle_1">Estuda com a tua Comunidade</string>
     <string name="intro_description_1">Junta-te a uma colmeia de estudantes de informática onde o conhecimento é partilhado, organizado e sempre acessível.</string>
+
     <string name="intro_title_2">Compartilhe Conhecimento</string>
     <string name="intro_description_2">Compartilhe materiais de estudo, códigos e dicas com outros estudantes</string>
+
     <string name="intro_title_3">Estude em Grupo</string>
     <string name="intro_description_3">Crie ou participe de grupos de estudo para aprender juntos</string>
+
+    <string name="intro_title_4">Investe no teu sucesso!</string>
+    <string name="intro_subtitle_4">Começa já!</string>
+    <string name="intro_description_4">Organiza o teu futuro e fica preparado para todos os momentos importantes!</string>
 
     <!-- Autenticação -->
     <string name="login_to_continue">Faça login para continuar</string>
