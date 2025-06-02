@@ -11,9 +11,9 @@ import java.util.concurrent.TimeUnit
  */
 object DateFormatUtils {
 
-    private val fullDateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR"))
-    private val dateOnlyFormat = SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR"))
-    private val timeOnlyFormat = SimpleDateFormat("HH:mm", Locale("pt", "BR"))
+    private val fullDateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "PT"))
+    private val dateOnlyFormat = SimpleDateFormat("dd/MM/yyyy", Locale("pt", "PT"))
+    private val timeOnlyFormat = SimpleDateFormat("HH:mm", Locale("pt", "PT"))
 
     /**
      * Formata uma data para exibição completa
