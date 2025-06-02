@@ -187,16 +187,16 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         }
 
         // Carrega a imagem do autor
-        if (material.authorImageUrl.isNotEmpty()) {
+        if (material.ownerImageUrl.isNotEmpty()) {
             Glide.with(this)
-                .load(material.authorImageUrl)
+                .load(material.ownerImageUrl)
                 .placeholder(R.drawable.profile_placeholder)
                 .error(R.drawable.profile_placeholder)
                 .circleCrop()
                 .into(ivAuthorAvatar)
         }
 
-        tvAuthorName.text = material.authorName
+        tvAuthorName.text = material.ownerName
         tvUploadDate.text = DateFormatUtils.formatFullDate(material.createdAt.toDate())
         tvDescription.text = material.description
         tvDownloads.text = material.downloads.toString()
@@ -262,7 +262,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             val shareMessage = getString(
                 R.string.share_material_message,
                 it.title,
-                it.authorName,
+                it.ownerName,
                 "https://devhive.app/material/${it.id}"
             )
 
@@ -296,8 +296,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             title = "Introdução à Programação em Kotlin",
             description = "Este material apresenta os conceitos básicos da linguagem Kotlin, incluindo sintaxe, estruturas de controle, funções e classes. Ideal para iniciantes que desejam aprender a programar em Kotlin.",
             ownerUid = "user123",
-            authorName = "David Reis",
-            authorImageUrl = "",
+            ownerName = "David Reis",
+            ownerImageUrl = "",
             thumbnailUrl = "",
             contentUrl = "",
             type = "pdf",

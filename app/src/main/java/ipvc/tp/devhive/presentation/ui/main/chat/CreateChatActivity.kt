@@ -18,9 +18,6 @@ class CreateChatActivity : AppCompatActivity() {
     private lateinit var chatViewModel: ChatViewModel
 
     private lateinit var toolbar: Toolbar
-    private lateinit var etChatName: EditText
-    private lateinit var etAccessCode: EditText
-    private lateinit var switchPrivate: Switch
     private lateinit var btnCreate: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,9 +26,6 @@ class CreateChatActivity : AppCompatActivity() {
 
         // Inicializa as views
         toolbar = findViewById(R.id.toolbar)
-        etChatName = findViewById(R.id.et_chat_name)
-        etAccessCode = findViewById(R.id.et_access_code)
-        switchPrivate = findViewById(R.id.switch_private)
         btnCreate = findViewById(R.id.btn_create)
 
         // Configura a toolbar
@@ -43,10 +37,6 @@ class CreateChatActivity : AppCompatActivity() {
         val factory = DevHiveApp.getViewModelFactories().chatViewModelFactory
         chatViewModel = ViewModelProvider(this, factory)[ChatViewModel::class.java]
 
-        // Configura o switch para mostrar/ocultar o campo de código de acesso
-        switchPrivate.setOnCheckedChangeListener { _, isChecked ->
-            etAccessCode.visibility = if (isChecked) android.view.View.VISIBLE else android.view.View.GONE
-        }
 
         // Configura o botão de criar
         btnCreate.setOnClickListener {
@@ -65,31 +55,6 @@ class CreateChatActivity : AppCompatActivity() {
     }
 
     private fun createChat() {
-        val chatName = etChatName.text.toString().trim()
-        val accessCode = etAccessCode.text.toString().trim()
-        val isPrivate = switchPrivate.isChecked
-
-        // Validações
-        if (chatName.isEmpty()) {
-            etChatName.error = getString(R.string.error_chat_name_empty)
-            return
-        }
-
-        if (chatName.length < 3) {
-            etChatName.error = getString(R.string.error_chat_name_too_short)
-            return
-        }
-
-        if (isPrivate && accessCode.isEmpty()) {
-            etAccessCode.error = getString(R.string.error_access_code_empty)
-            return
-        }
-
-        if (isPrivate && accessCode.length < 4) {
-            etAccessCode.error = getString(R.string.error_access_code_too_short)
-            return
-        }
-
         // implementação real: usar chatViewModel.createChat()
         Toast.makeText(this, R.string.chat_created_success, Toast.LENGTH_SHORT).show()
         finish()

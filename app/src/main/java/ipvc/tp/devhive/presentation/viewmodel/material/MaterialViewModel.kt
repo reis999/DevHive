@@ -42,6 +42,8 @@ class MaterialViewModel(
         thumbnailUrl: String,
         fileSize: Long,
         ownerUid: String,
+        ownerName: String,
+        ownerImageUrl: String,
         categories: List<String>,
         isPublic: Boolean,
         subject: String
@@ -55,6 +57,8 @@ class MaterialViewModel(
                 thumbnailUrl = thumbnailUrl,
                 fileSize = fileSize,
                 ownerUid = ownerUid,
+                ownerName = ownerName,
+                ownerImageUrl = ownerImageUrl,
                 categories = categories,
                 isPublic = isPublic,
                 subject = subject
