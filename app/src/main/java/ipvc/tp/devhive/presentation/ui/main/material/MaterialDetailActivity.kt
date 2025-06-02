@@ -29,6 +29,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.Timestamp
+import java.util.Date
 
 class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClickListener {
 
@@ -329,8 +330,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
                 liked = false,
                 parentCommentId = null,
                 attachments = emptyList(),
-                createdAt = java.util.Date(System.currentTimeMillis() - 86400000), // 1 dia atrás
-                updatedAt = java.util.Date(System.currentTimeMillis() - 86400000)
+                createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)), // 1 dia atrás
+                updatedAt = Timestamp(Date(System.currentTimeMillis() - 86400000))
             ),
             Comment(
                 id = "comment2",
@@ -343,8 +344,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
                 liked = true,
                 parentCommentId = null,
                 attachments = emptyList(),
-                createdAt = java.util.Date(System.currentTimeMillis() - 172800000), // 2 dias atrás
-                updatedAt = java.util.Date(System.currentTimeMillis() - 172800000)
+                createdAt = Timestamp(Date(System.currentTimeMillis() - 172800000)), // 2 dias atrás
+                updatedAt = Timestamp(Date(System.currentTimeMillis() - 172800000))
             )
         )
     }

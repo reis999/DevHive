@@ -12,12 +12,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
+import de.hdodenhof.circleimageview.CircleImageView
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
+import ipvc.tp.devhive.data.util.SyncStatus
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.domain.model.Message
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
-import de.hdodenhof.circleimageview.CircleImageView
 import java.util.Date
 
 class ChatRoomActivity : AppCompatActivity() {
@@ -145,7 +146,10 @@ class ChatRoomActivity : AppCompatActivity() {
             content = messageText,
             senderUid = "current_user_id",
             createdAt = Timestamp.now(),
-            attachments = emptyList()
+            attachments = emptyList(),
+            read = false,
+            syncStatus = SyncStatus.SYNCED,
+            lastSync = Timestamp.now(),
         )
 
         // Adiciona a mensagem à lista
@@ -185,7 +189,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 content = "Olá, tudo bem?",
                 senderUid = otherUserId.ifEmpty { "other_user_id" },
                 createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)),
-                attachments = emptyList()
+                attachments = emptyList(),
+                read = false,
+                syncStatus = SyncStatus.SYNCED,
+                lastSync = Timestamp.now(),
             ),
             Message(
                 id = "msg2",
@@ -193,7 +200,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 content = "Olá! Tudo ótimo, e contigo?",
                 senderUid = "current_user_id",
                 createdAt = Timestamp(Date(System.currentTimeMillis() - 82800000)),
-                attachments = emptyList()
+                attachments = emptyList(),
+                read = false,
+                syncStatus = SyncStatus.SYNCED,
+                lastSync = Timestamp.now(),
             ),
             Message(
                 id = "msg3",
@@ -201,7 +211,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 content = "Também estou bem! Preciso de ajuda com um exercício de Kotlin.",
                 senderUid = otherUserId.ifEmpty { "other_user_id" },
                 createdAt = Timestamp(Date(System.currentTimeMillis() - 7200000)),
-                attachments = emptyList()
+                attachments = emptyList(),
+                read = false,
+                syncStatus = SyncStatus.SYNCED,
+                lastSync = Timestamp.now(),
             ),
             Message(
                 id = "msg4",
@@ -209,7 +222,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 content = "Claro, pode enviar!",
                 senderUid = "current_user_id",
                 createdAt = Timestamp(Date(System.currentTimeMillis() - 3600000)),
-                attachments = emptyList()
+                attachments = emptyList(),
+                read = false,
+                syncStatus = SyncStatus.SYNCED,
+                lastSync = Timestamp.now(),
             )
         )
     }
