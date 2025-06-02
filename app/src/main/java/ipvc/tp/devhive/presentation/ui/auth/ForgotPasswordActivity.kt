@@ -79,7 +79,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
         // Mostra o loading
         showLoading(true)
 
-        // Chama o método de recuperação de senha
+        // Chama o metodo de recuperação de senha
         authViewModel.resetPassword(email)
     }
 

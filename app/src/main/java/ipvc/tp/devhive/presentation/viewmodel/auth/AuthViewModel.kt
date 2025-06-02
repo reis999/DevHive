@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import ipvc.tp.devhive.domain.usecase.auth.LoginUserUseCase
 import ipvc.tp.devhive.domain.usecase.auth.LogoutUserUseCase
 import ipvc.tp.devhive.domain.usecase.auth.RegisterUserUseCase
@@ -27,9 +28,13 @@ class AuthViewModel(
         checkAuthState()
     }
 
-    private fun checkAuthState() {
-        // Aqui seria implementada a verificação de autenticação com Firebase Auth
-        _authState.value = AuthState.Unauthenticated
+    fun checkAuthState() {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user != null) {
+            _authState.value = AuthState.Authenticated(user.uid)
+        } else {
+            _authState.value = AuthState.Unauthenticated
+        }
     }
 
     fun register(
@@ -107,9 +112,16 @@ class AuthViewModel(
     }
 
     fun resetPassword(email: String) {
-        // Implementação da recuperação de senha
-        _authEvent.value = Event(AuthEvent.PasswordResetSent)
+        FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    _authEvent.value = Event(AuthEvent.PasswordResetSent)
+                } else {
+                    _authEvent.value = Event(AuthEvent.PasswordResetFailed(task.exception?.message ?: "Erro ao enviar email"))
+                }
+            }
     }
+
 }
 
 sealed class AuthState {
@@ -127,4 +139,6 @@ sealed class AuthEvent {
     object LogoutSuccess : AuthEvent()
     data class LogoutFailure(val message: String) : AuthEvent()
     object PasswordResetSent : AuthEvent()
+    data class PasswordResetFailed(val message: String) : AuthEvent()
+
 }

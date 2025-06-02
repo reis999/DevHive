@@ -1,16 +1,16 @@
 package ipvc.tp.devhive.domain.usecase.auth
 
 import com.google.firebase.Timestamp
+import ipvc.tp.devhive.domain.model.ContributionStats
 import ipvc.tp.devhive.domain.model.User
+import ipvc.tp.devhive.domain.repository.AuthRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 import java.util.Date
-import java.util.UUID
 
-/**
- * Caso de uso para registrar um novo usuário
- */
-class RegisterUserUseCase(private val userRepository: UserRepository) {
-
+class RegisterUserUseCase(
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
+) {
     suspend operator fun invoke(
         name: String,
         username: String,
@@ -19,7 +19,7 @@ class RegisterUserUseCase(private val userRepository: UserRepository) {
         institution: String,
         course: String
     ): Result<User> {
-        // Validação de dados
+        // Validação
         if (name.isBlank() || username.isBlank() || email.isBlank() || password.isBlank()) {
             return Result.failure(IllegalArgumentException("Todos os campos são obrigatórios"))
         }
@@ -32,8 +32,13 @@ class RegisterUserUseCase(private val userRepository: UserRepository) {
             return Result.failure(IllegalArgumentException("Email inválido"))
         }
 
-        // Criação do utilizador
-        val userId = UUID.randomUUID().toString()
+        // Criar conta no Firebase Auth
+        val authResult = authRepository.register(email, password)
+        if (authResult.isFailure) {
+            return Result.failure(authResult.exceptionOrNull() ?: Exception("Erro ao criar utilizador"))
+        }
+
+        val userId = authResult.getOrNull()!!
         val now = Timestamp(Date())
 
         val newUser = User(
@@ -48,14 +53,10 @@ class RegisterUserUseCase(private val userRepository: UserRepository) {
             createdAt = now,
             lastLogin = now,
             isOnline = true,
-            contributionStats = ipvc.tp.devhive.domain.model.ContributionStats(
-                materials = 0,
-                comments = 0,
-                likes = 0,
-                sessions = 0
-            )
+            contributionStats = ContributionStats(0, 0, 0, 0)
         )
 
+        // Guardar no Firestore
         return userRepository.createUser(newUser)
     }
 }

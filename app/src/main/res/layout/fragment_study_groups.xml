@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/study_groups"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/purple_500"
             android:textSize="20sp"
             android:textStyle="bold" />
 

@@ -2,10 +2,8 @@ package ipvc.tp.devhive.presentation.ui.intro
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
@@ -23,19 +21,26 @@ class IntroActivity : AppCompatActivity() {
     private val introSlideAdapter = IntroSlideAdapter(
         listOf(
             IntroSlide(
-                R.drawable.intro_slide1,
+                R.drawable.ic_slide1,
                 R.string.intro_title_1,
+                R.string.intro_subtitle_1,
                 R.string.intro_description_1
             ),
             IntroSlide(
-                R.drawable.intro_slide2,
+                R.drawable.ic_slide2,
                 R.string.intro_title_2,
-                R.string.intro_description_2
+                descriptionResId = R.string.intro_description_2
             ),
             IntroSlide(
-                R.drawable.intro_slide3,
+                R.drawable.ic_slide3,
                 R.string.intro_title_3,
-                R.string.intro_description_3
+                descriptionResId = R.string.intro_description_3
+            ),
+            IntroSlide(
+                R.drawable.ic_slide4,
+                R.string.intro_title_4,
+                R.string.intro_subtitle_4,
+                R.string.intro_description_4
             )
         )
     )
@@ -44,48 +49,30 @@ class IntroActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_intro)
 
-        // Inicializa as views
+        initViews()
+        setupViewPager()
+        setupIndicators()
+        setupButtons()
+        setCurrentIndicator(0)
+    }
+
+    private fun initViews() {
         viewPager = findViewById(R.id.view_pager)
         layoutIndicators = findViewById(R.id.layout_indicators)
         btnSkip = findViewById(R.id.btn_skip)
         btnNext = findViewById(R.id.btn_next)
+    }
 
-        // Configura o ViewPager
+    private fun setupViewPager() {
         viewPager.adapter = introSlideAdapter
 
-        // Configura os indicadores
-        setupIndicators()
-        setCurrentIndicator(0)
-
-        // Configura o listener do ViewPager
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 setCurrentIndicator(position)
-
-                // Atualiza o texto do botão "Próximo" na última página
-                if (position == introSlideAdapter.itemCount - 1) {
-                    btnNext.text = getString(R.string.get_started)
-                } else {
-                    btnNext.text = getString(R.string.next)
-                }
+                updateButtonText(position)
             }
         })
-
-        // Configura os botões
-        btnSkip.setOnClickListener {
-            navigateToLogin()
-        }
-
-        btnNext.setOnClickListener {
-            if (viewPager.currentItem == introSlideAdapter.itemCount - 1) {
-                // Última página, navega para o login
-                navigateToLogin()
-            } else {
-                // Avança para a próxima página
-                viewPager.currentItem += 1
-            }
-        }
     }
 
     private fun setupIndicators() {
@@ -101,11 +88,25 @@ class IntroActivity : AppCompatActivity() {
             indicators[i]?.setImageDrawable(
                 ContextCompat.getDrawable(
                     applicationContext,
-                    R.drawable.indicator_inactive
+                    R.drawable.page_indicator_inactive
                 )
             )
             indicators[i]?.layoutParams = layoutParams
             layoutIndicators.addView(indicators[i])
+        }
+    }
+
+    private fun setupButtons() {
+        btnSkip.setOnClickListener {
+            navigateToLogin()
+        }
+
+        btnNext.setOnClickListener {
+            if (viewPager.currentItem == introSlideAdapter.itemCount - 1) {
+                navigateToLogin()
+            } else {
+                viewPager.currentItem += 1
+            }
         }
     }
 
@@ -117,17 +118,25 @@ class IntroActivity : AppCompatActivity() {
                 imageView.setImageDrawable(
                     ContextCompat.getDrawable(
                         applicationContext,
-                        R.drawable.indicator_active
+                        R.drawable.page_indicator_active
                     )
                 )
             } else {
                 imageView.setImageDrawable(
                     ContextCompat.getDrawable(
                         applicationContext,
-                        R.drawable.indicator_inactive
+                        R.drawable.page_indicator_inactive
                     )
                 )
             }
+        }
+    }
+
+    private fun updateButtonText(position: Int) {
+        if (position == introSlideAdapter.itemCount - 1) {
+            btnNext.text = getString(R.string.finish) // ou R.string.get_started
+        } else {
+            btnNext.text = getString(R.string.next)
         }
     }
 

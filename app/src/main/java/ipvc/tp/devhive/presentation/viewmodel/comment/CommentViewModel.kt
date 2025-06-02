@@ -21,7 +21,7 @@ class CommentViewModel(
 
     fun createComment(
         materialId: String,
-        userUid: String,
+        userId: String,
         content: String,
         parentCommentId: String? = null,
         attachments: List<Attachment> = emptyList()
@@ -29,7 +29,7 @@ class CommentViewModel(
         viewModelScope.launch {
             val result = createCommentUseCase(
                 materialId = materialId,
-                userUid = userUid,
+                userId = userId,
                 content = content,
                 parentCommentId = parentCommentId,
                 attachments = attachments

@@ -9,11 +9,12 @@
 
     <ImageView
         android:id="@+id/iv_logo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+        android:layout_width="260dp"
+        android:layout_height="150dp"
         android:layout_marginTop="32dp"
         android:contentDescription="@string/app_logo"
-        android:src="@drawable/logo_devhive"
+        android:scaleType="fitCenter"
+        android:src="@drawable/logo_devhive_alt"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -86,7 +87,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="@string/forgot_password"
-        android:textColor="@color/colorPrimary"
+        android:textColor="@color/primary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/til_password" />
 
@@ -118,6 +119,7 @@
         android:layout_marginTop="16dp"
         android:text="@string/continue_with_google"
         app:icon="@drawable/ic_google"
+        app:iconTint="@null"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_or" />
@@ -143,7 +145,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="@string/register"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/primary"
             android:textStyle="bold" />
 
     </LinearLayout>

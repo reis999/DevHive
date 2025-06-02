@@ -42,7 +42,7 @@ class CommentAdapter(
 
         fun bind(comment: Comment, position: Int) {
             tvUserName.text = comment.userName
-            tvCommentDate.text = DateFormatUtils.formatDate(comment.createdAt)
+            tvCommentDate.text = DateFormatUtils.formatFullDate(comment.createdAt)
             tvCommentContent.text = comment.content
             tvLikeCount.text = comment.likes.toString()
 

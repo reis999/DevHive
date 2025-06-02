@@ -18,69 +18,95 @@ import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var authViewModel: AuthViewModel
+    private var hasNavigated = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().authViewModelFactory
-        authViewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
+        try {
+            val factory = DevHiveApp.getViewModelFactories().authViewModelFactory
+            authViewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
 
-        // Observa o estado de autenticação
-        authViewModel.authState.observe(this) { state ->
-            when (state) {
-                is AuthState.Authenticated -> navigateToMain()
-                is AuthState.Unauthenticated -> checkFirstLaunch()
-                else -> {} // Ignora outros estados
+            authViewModel.authState.observe(this) { state ->
+                if (!hasNavigated) {
+                    when (state) {
+                        is AuthState.Authenticated -> navigateToMain()
+                        is AuthState.Unauthenticated -> checkFirstLaunch()
+                        is AuthState.Loading -> {
+                        }
+                        is AuthState.Error -> {
+                            checkFirstLaunch()
+                        }
+                    }
+                }
             }
+
+            authViewModel.checkAuthState()
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (!hasNavigated) {
+                    checkFirstLaunch()
+                }
+            }, SPLASH_TIMEOUT)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (!hasNavigated) {
+                    checkFirstLaunch()
+                }
+            }, SPLASH_DELAY)
         }
-
-        // Atraso para mostrar o ecra de splash
-        Handler(Looper.getMainLooper()).postDelayed({
-            // Se o estado de autenticação ainda não foi definido, verifica o primeiro lançamento
-            if (authViewModel.authState.value !is AuthState.Authenticated) {
-                checkFirstLaunch()
-            }
-        }, SPLASH_DELAY)
     }
 
     private fun checkFirstLaunch() {
+        if (hasNavigated) return
+
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         val isFirstLaunch = prefs.getBoolean(KEY_FIRST_LAUNCH, true)
 
         if (isFirstLaunch) {
-            // Primeiro lançamento, mostra a introdução
             navigateToIntro()
-
-            // Marca como não primeiro lançamento
             prefs.edit { putBoolean(KEY_FIRST_LAUNCH, false) }
         } else {
-            // Não é o primeiro lançamento, vai para o login
             navigateToLogin()
         }
     }
 
     private fun navigateToIntro() {
+        if (hasNavigated) return
+        hasNavigated = true
+
         val intent = Intent(this, IntroActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }
 
     private fun navigateToLogin() {
+        if (hasNavigated) return
+        hasNavigated = true
+
         val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }
 
     private fun navigateToMain() {
+        if (hasNavigated) return
+        hasNavigated = true
+
         val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }
 
     companion object {
-        private const val SPLASH_DELAY = 2000L // 2 segundos
+        private const val SPLASH_DELAY = 2000L
+        private const val SPLASH_TIMEOUT = 3000L
         private const val PREFS_NAME = "DevHivePrefs"
         private const val KEY_FIRST_LAUNCH = "isFirstLaunch"
     }

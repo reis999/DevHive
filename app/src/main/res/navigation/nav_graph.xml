@@ -3,26 +3,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/navigation_home">
 
+    <!-- Fragment Home -->
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="ipvc.tp.devhive.presentation.ui.auth.FirstFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
+        android:id="@+id/navigation_home"
+        android:name="ipvc.tp.devhive.presentation.ui.main.home.HomeFragment"
+        android:label="@string/title_home"
+        tools:layout="@layout/fragment_home" />
 
-        <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
-    </fragment>
+    <!-- Fragment Materials -->
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="ipvc.tp.devhive.presentation.ui.auth.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+        android:id="@+id/navigation_materials"
+        android:name="ipvc.tp.devhive.presentation.ui.main.material.MaterialsFragment"
+        android:label="@string/title_materials"
+        tools:layout="@layout/fragment_materials" />
 
-        <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
-    </fragment>
+    <!-- Fragment Chat -->
+    <fragment
+        android:id="@+id/navigation_chat"
+        android:name="ipvc.tp.devhive.presentation.ui.main.chat.ChatFragment"
+        android:label="@string/title_chat"
+        tools:layout="@layout/fragment_chat" />
+
+    <!-- Fragment Study Groups -->
+    <fragment
+        android:id="@+id/navigation_groups"
+        android:name="ipvc.tp.devhive.presentation.ui.main.studygroup.StudyGroupsFragment"
+        android:label="@string/title_study_groups"
+        tools:layout="@layout/fragment_study_groups" />
+
+    <!-- Fragment Profile -->
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="ipvc.tp.devhive.presentation.ui.main.profile.ProfileFragment"
+        android:label="@string/title_profile"
+        tools:layout="@layout/fragment_profile" />
+
 </navigation>

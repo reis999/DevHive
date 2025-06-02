@@ -18,7 +18,7 @@ class LikeCommentUseCase(
             // Atualiza as estatísticas de contribuição do autor do comentário
             val comment = commentRepository.getCommentById(commentId)
             if (comment != null) {
-                val authorId = comment.userUid
+                val authorId = comment.userId
                 val author = userRepository.getUserById(authorId)
 
                 if (author != null) {

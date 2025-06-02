@@ -33,7 +33,7 @@
                 android:id="@+id/tv_other_user_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 tools:text="Ana Silva" />
@@ -93,7 +93,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/send_message"
             android:src="@drawable/ic_send"
-            app:tint="@color/colorPrimary" />
+            app:tint="@color/black" />
 
     </LinearLayout>
 
