@@ -9,6 +9,7 @@ import ipvc.tp.devhive.data.local.converter.AttachmentListConverter
 import ipvc.tp.devhive.data.local.converter.MapStringAnyConverter
 import ipvc.tp.devhive.data.local.converter.MessageAttachmentListConverter
 import ipvc.tp.devhive.data.local.converter.StringListConverter
+import ipvc.tp.devhive.data.local.converter.TimestampConverter
 import ipvc.tp.devhive.data.local.dao.ChatDao
 import ipvc.tp.devhive.data.local.dao.CommentDao
 import ipvc.tp.devhive.data.local.dao.GroupMessageDao
@@ -42,7 +43,8 @@ import ipvc.tp.devhive.data.local.entity.UserEntity
     StringListConverter::class,
     AttachmentListConverter::class,
     MessageAttachmentListConverter::class,
-    MapStringAnyConverter::class
+    MapStringAnyConverter::class,
+    TimestampConverter::class
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao

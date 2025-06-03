@@ -10,7 +10,7 @@ import ipvc.tp.devhive.data.local.entity.StudyGroupEntity
 
 @Dao
 interface StudyGroupDao {
-    @Query("SELECT * FROM study_groups WHERE ':userId' IN (members) ORDER BY updatedAt DESC")
+    @Query("SELECT * FROM study_groups WHERE :userId IN (members) ORDER BY updatedAt DESC")
     fun getStudyGroupsByUser(userId: String): LiveData<List<StudyGroupEntity>>
 
     @Query("SELECT * FROM study_groups WHERE id = :studyGroupId")

@@ -1,6 +1,7 @@
 package ipvc.tp.devhive.data.local.converter
 
 import androidx.room.TypeConverter
+import com.google.firebase.Timestamp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import ipvc.tp.devhive.data.model.Attachment
@@ -42,6 +43,18 @@ class MessageAttachmentListConverter {
     @TypeConverter
     fun fromList(list: List<MessageAttachment>): String {
         return Gson().toJson(list)
+    }
+}
+
+class TimestampConverter {
+    @TypeConverter
+    fun fromTimestamp(timestamp: Timestamp?): Long? {
+        return timestamp?.toDate()?.time
+    }
+
+    @TypeConverter
+    fun toTimestamp(value: Long?): Timestamp? {
+        return value?.let { Timestamp(it / 1000, ((it % 1000) * 1000000).toInt()) }
     }
 }
 

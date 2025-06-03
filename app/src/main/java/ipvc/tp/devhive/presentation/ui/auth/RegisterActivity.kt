@@ -7,8 +7,11 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.ui.main.MainActivity
@@ -17,8 +20,6 @@ import ipvc.tp.devhive.presentation.util.showToast
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthEvent
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthState
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -99,9 +100,16 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
 
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
         // Configura os listeners
         ivBack.setOnClickListener {
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
         }
 
         btnRegister.setOnClickListener {

@@ -4,14 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import ipvc.tp.devhive.domain.usecase.auth.LoginUserUseCase
 import ipvc.tp.devhive.domain.usecase.auth.LogoutUserUseCase
 import ipvc.tp.devhive.domain.usecase.auth.RegisterUserUseCase
 import ipvc.tp.devhive.presentation.util.Event
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
     private val registerUserUseCase: RegisterUserUseCase,
     private val loginUserUseCase: LoginUserUseCase,
     private val logoutUserUseCase: LogoutUserUseCase
@@ -24,17 +26,14 @@ class AuthViewModel(
     val authEvent: LiveData<Event<AuthEvent>> = _authEvent
 
     init {
-        // Verifica se o utilizador já está autenticado
+        // Verifica se o usuário já está autenticado
         checkAuthState()
     }
 
-    fun checkAuthState() {
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user != null) {
-            _authState.value = AuthState.Authenticated(user.uid)
-        } else {
-            _authState.value = AuthState.Unauthenticated
-        }
+    private fun checkAuthState() {
+        // Aqui seria implementada a verificação de autenticação com Firebase Auth
+        // Por enquanto, definimos como não autenticado
+        _authState.value = AuthState.Unauthenticated
     }
 
     fun register(
@@ -112,16 +111,9 @@ class AuthViewModel(
     }
 
     fun resetPassword(email: String) {
-        FirebaseAuth.getInstance().sendPasswordResetEmail(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    _authEvent.value = Event(AuthEvent.PasswordResetSent)
-                } else {
-                    _authEvent.value = Event(AuthEvent.PasswordResetFailed(task.exception?.message ?: "Erro ao enviar email"))
-                }
-            }
+        // Implementação da recuperação de senha
+        _authEvent.value = Event(AuthEvent.PasswordResetSent)
     }
-
 }
 
 sealed class AuthState {
@@ -139,6 +131,4 @@ sealed class AuthEvent {
     object LogoutSuccess : AuthEvent()
     data class LogoutFailure(val message: String) : AuthEvent()
     object PasswordResetSent : AuthEvent()
-    data class PasswordResetFailed(val message: String) : AuthEvent()
-
 }

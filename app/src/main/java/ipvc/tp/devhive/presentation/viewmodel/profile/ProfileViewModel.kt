@@ -5,13 +5,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
 import java.util.Date
+import javax.inject.Inject
 
-class ProfileViewModel : ViewModel() {
-    // LiveData para o perfil do utilizador
+@HiltViewModel
+class ProfileViewModel @Inject constructor() : ViewModel() {
+    // LiveData para o perfil do usuário
     private val _userProfile = MutableLiveData<User>()
     val userProfile: LiveData<User> = _userProfile
 
@@ -23,17 +26,18 @@ class ProfileViewModel : ViewModel() {
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    // Carrega o perfil do utilizador
+    // Carrega o perfil do usuário
     fun loadUserProfile(userId: String) {
         _isLoading.value = true
 
-        // implementação real: buscar dados do repositório
+        // Em uma implementação real, buscaríamos os dados do repositório
         // Por enquanto, simulamos o carregamento
         viewModelScope.launch {
             try {
                 // Simula uma chamada de rede
                 kotlinx.coroutines.delay(1000)
 
+                // Simulamos um usuário
                 val user = User(
                     id = userId,
                     name = "Diogo Oliveira",
@@ -64,7 +68,7 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    // Atualiza o perfil do utilizador
+    // Atualiza o perfil do usuário
     fun updateProfile(
         name: String,
         bio: String,
@@ -73,7 +77,8 @@ class ProfileViewModel : ViewModel() {
     ) {
         _isLoading.value = true
 
-        // implementação real: atualizar dados no repositório
+        // Em uma implementação real, atualizaríamos os dados no repositório
+        // Por enquanto, simulamos a atualização
         viewModelScope.launch {
             try {
                 // Simula uma chamada de rede
@@ -106,3 +111,4 @@ sealed class ProfileEvent {
     object ProfileUpdated : ProfileEvent()
     data class Error(val message: String) : ProfileEvent()
 }
+

@@ -4,14 +4,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.Attachment
 import ipvc.tp.devhive.domain.model.Comment
 import ipvc.tp.devhive.domain.usecase.comment.CreateCommentUseCase
 import ipvc.tp.devhive.domain.usecase.comment.LikeCommentUseCase
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CommentViewModel(
+@HiltViewModel
+class CommentViewModel @Inject constructor(
     private val createCommentUseCase: CreateCommentUseCase,
     private val likeCommentUseCase: LikeCommentUseCase
 ) : ViewModel() {
@@ -21,7 +24,7 @@ class CommentViewModel(
 
     fun createComment(
         materialId: String,
-        userId: String,
+        userUid: String,
         content: String,
         parentCommentId: String? = null,
         attachments: List<Attachment> = emptyList()
@@ -29,7 +32,7 @@ class CommentViewModel(
         viewModelScope.launch {
             val result = createCommentUseCase(
                 materialId = materialId,
-                userId = userId,
+                userId = userUid,
                 content = content,
                 parentCommentId = parentCommentId,
                 attachments = attachments

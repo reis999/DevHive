@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.googleServices)
+    kotlin("kapt")
 }
 
 android {
@@ -55,7 +58,7 @@ dependencies {
     implementation(libs.firebase.storage)
 
     // Room
-    implementation(libs.androidx.room.compiler) {
+    kapt(libs.androidx.room.compiler) {
         exclude(group = "com.intellij", module = "annotations")
     }
     implementation(libs.androidx.room.ktx) {
@@ -63,8 +66,10 @@ dependencies {
     }
 
     // Koin
-    implementation(libs.koin.android)
-    implementation(libs.koin.androidx.compose)
+    // implementation(libs.koin.android)
+   //  implementation(libs.koin.androidx.compose)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 
     // Jetpack, LiveData, ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -90,4 +95,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+kapt {
+    correctErrorTypes = true
+    useBuildCache = false
 }

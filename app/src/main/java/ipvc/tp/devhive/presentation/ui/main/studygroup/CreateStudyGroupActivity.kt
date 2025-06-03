@@ -9,15 +9,16 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
-import ipvc.tp.devhive.DevHiveApp
-import ipvc.tp.devhive.R
-import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModel
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputLayout
+import ipvc.tp.devhive.DevHiveApp
+import ipvc.tp.devhive.R
+import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModel
 
 class CreateStudyGroupActivity : AppCompatActivity() {
 
@@ -77,9 +78,16 @@ class CreateStudyGroupActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             else -> super.onOptionsItemSelected(item)

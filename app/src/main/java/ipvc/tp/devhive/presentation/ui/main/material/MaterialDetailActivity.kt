@@ -8,12 +8,18 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.appbar.CollapsingToolbarLayout
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Comment
@@ -24,11 +30,6 @@ import ipvc.tp.devhive.presentation.ui.main.profile.UserProfileActivity
 import ipvc.tp.devhive.presentation.util.DateFormatUtils
 import ipvc.tp.devhive.presentation.viewmodel.comment.CommentViewModel
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
-import com.google.android.material.appbar.CollapsingToolbarLayout
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.firebase.Timestamp
 import java.util.Date
 
 class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClickListener {
@@ -141,9 +142,15 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             R.id.action_bookmark -> {
