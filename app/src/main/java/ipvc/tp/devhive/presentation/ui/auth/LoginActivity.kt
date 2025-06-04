@@ -6,23 +6,24 @@ import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
-import ipvc.tp.devhive.DevHiveApp
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import dagger.hilt.android.AndroidEntryPoint
+import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.ui.main.MainActivity
 import ipvc.tp.devhive.presentation.util.showSnackbar
 import ipvc.tp.devhive.presentation.util.showToast
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthEvent
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthState
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
-import ipvc.tp.devhive.R
 
+@AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var authViewModel: AuthViewModel
+    private val authViewModel: AuthViewModel by viewModels()
 
     private lateinit var tilEmail: TextInputLayout
     private lateinit var etEmail: TextInputEditText
@@ -50,8 +51,8 @@ class LoginActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progress_bar)
 
         // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().authViewModelFactory
-        authViewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
+        // val factory = DevHiveApp.getViewModelFactories().authViewModelFactory
+        //authViewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
 
         // Observa o estado de autenticação
         authViewModel.authState.observe(this) { state ->

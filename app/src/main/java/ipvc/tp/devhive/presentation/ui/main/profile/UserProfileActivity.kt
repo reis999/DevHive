@@ -5,12 +5,15 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.tabs.TabLayout
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Material
@@ -18,8 +21,6 @@ import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
-import com.google.android.material.tabs.TabLayout
-import com.google.firebase.Timestamp
 
 class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClickListener {
 
@@ -90,9 +91,15 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             else -> super.onOptionsItemSelected(item)

@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.GroupMessage
 import ipvc.tp.devhive.domain.model.MessageAttachment
 import ipvc.tp.devhive.domain.model.StudyGroup
@@ -15,8 +16,10 @@ import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
+import javax.inject.Inject
 
-class StudyGroupViewModel(
+@HiltViewModel
+class StudyGroupViewModel @Inject constructor(
     private val createStudyGroupUseCase: CreateStudyGroupUseCase,
     private val joinStudyGroupUseCase: JoinStudyGroupUseCase,
     private val sendGroupMessageUseCase: SendGroupMessageUseCase

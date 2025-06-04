@@ -133,7 +133,7 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
 
         commentViewModel.createComment(
             materialId = materialId,
-            userId = currentUserId,
+            userUid = currentUserId,
             content = commentText,
             parentCommentId = parentCommentId
         )

@@ -5,20 +5,21 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
-import ipvc.tp.devhive.DevHiveApp
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
-import ipvc.tp.devhive.presentation.util.showSnackbar
 import ipvc.tp.devhive.presentation.util.showToast
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthEvent
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 
+@AndroidEntryPoint
 class ForgotPasswordActivity : AppCompatActivity() {
 
-    private lateinit var authViewModel: AuthViewModel
+    private val authViewModel: AuthViewModel by viewModels()
 
     private lateinit var ivBack: ImageView
     private lateinit var tilEmail: TextInputLayout
@@ -37,10 +38,6 @@ class ForgotPasswordActivity : AppCompatActivity() {
         btnResetPassword = findViewById(R.id.btn_reset_password)
         progressBar = findViewById(R.id.progress_bar)
 
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().authViewModelFactory
-        authViewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
-
         // Observa eventos de autenticação
         authViewModel.authEvent.observe(this) { event ->
             event.getContentIfNotHandled()?.let { authEvent ->
@@ -55,9 +52,17 @@ class ForgotPasswordActivity : AppCompatActivity() {
             }
         }
 
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
+
         // Configura os listeners
         ivBack.setOnClickListener {
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
         }
 
         btnResetPassword.setOnClickListener {

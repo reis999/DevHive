@@ -5,6 +5,7 @@ import android.view.MenuItem
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
@@ -26,6 +27,7 @@ class ChatRoomActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_CHAT_ID = "extra_chat_id"
         const val EXTRA_OTHER_USER_ID = "extra_other_user_id"
+        const val EXTRA_CHAT_NAME = "extra_other_user_name"
     }
 
     private lateinit var chatViewModel: ChatViewModel
@@ -90,9 +92,17 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             else -> super.onOptionsItemSelected(item)
