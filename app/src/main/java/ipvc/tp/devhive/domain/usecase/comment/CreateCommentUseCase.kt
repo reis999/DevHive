@@ -5,14 +5,15 @@ import ipvc.tp.devhive.domain.model.Attachment
 import ipvc.tp.devhive.domain.model.Comment
 import ipvc.tp.devhive.domain.repository.CommentRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
-import java.util.Date
 import java.util.UUID
+import javax.inject.Inject
+
 
 
 /**
  * Caso de uso para criar um novo comentário
  */
-class CreateCommentUseCase(
+class CreateCommentUseCase @Inject constructor(
     private val commentRepository: CommentRepository,
     private val userRepository: UserRepository
 ) {

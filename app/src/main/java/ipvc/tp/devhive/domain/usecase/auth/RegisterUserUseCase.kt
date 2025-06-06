@@ -6,8 +6,9 @@ import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.domain.repository.AuthRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 import java.util.Date
+import javax.inject.Inject
 
-class RegisterUserUseCase(
+class RegisterUserUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) {

@@ -24,6 +24,8 @@ import ipvc.tp.devhive.domain.usecase.studygroup.CreateStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.JoinStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.SendGroupMessageUseCase
 import ipvc.tp.devhive.domain.usecase.sync.SyncDataUseCase
+import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
+import ipvc.tp.devhive.domain.usecase.user.UpdateUserUseCase
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -146,4 +148,20 @@ object AppModule {
     ): SyncDataUseCase {
         return SyncDataUseCase(userRepository, materialRepository, commentRepository, chatRepository, studyGroupRepository)
     }
+
+    // Use Cases - User
+    @Provides
+    fun provideGetCurrentUserUseCase(
+        userRepository: UserRepository
+    ): GetCurrentUserUseCase {
+        return GetCurrentUserUseCase(userRepository)
+    }
+
+    @Provides
+    fun provideUpdateUserUseCase(
+        userRepository: UserRepository
+    ): UpdateUserUseCase {
+        return UpdateUserUseCase(userRepository)
+    }
+
 }

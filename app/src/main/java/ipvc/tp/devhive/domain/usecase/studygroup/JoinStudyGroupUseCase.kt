@@ -2,13 +2,15 @@ package ipvc.tp.devhive.domain.usecase.studygroup
 
 import ipvc.tp.devhive.domain.repository.StudyGroupRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
+import javax.inject.Inject
+
 
 sealed class JoinMethod {
     data class ByGroupId(val groupId: String) : JoinMethod()
     data class ByJoinCode(val joinCode: String) : JoinMethod()
 }
 
-class JoinStudyGroupUseCase(
+class JoinStudyGroupUseCase @Inject constructor(
     private val studyGroupRepository: StudyGroupRepository,
     private val userRepository: UserRepository
 ) {

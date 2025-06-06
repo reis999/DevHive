@@ -5,11 +5,12 @@ import ipvc.tp.devhive.domain.repository.CommentRepository
 import ipvc.tp.devhive.domain.repository.MaterialRepository
 import ipvc.tp.devhive.domain.repository.StudyGroupRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
+import javax.inject.Inject
 
 /**
  * Caso de uso para sincronizar dados pendentes
  */
-class SyncDataUseCase(
+class SyncDataUseCase @Inject constructor(
     private val userRepository: UserRepository,
     private val materialRepository: MaterialRepository,
     private val commentRepository: CommentRepository,
