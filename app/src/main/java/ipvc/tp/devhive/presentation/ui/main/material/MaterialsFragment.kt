@@ -9,21 +9,19 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import ipvc.tp.devhive.DevHiveApp
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Material
-import ipvc.tp.devhive.presentation.ui.main.material.AddMaterialActivity
 import ipvc.tp.devhive.presentation.util.showSnackbar
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialEvent
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MaterialsFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
 
-    private lateinit var materialViewModel: MaterialViewModel
+    private val materialViewModel: MaterialViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
     private lateinit var searchView: SearchView
     private lateinit var fabAdd: FloatingActionButton
@@ -53,10 +51,6 @@ class MaterialsFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
         // Configura o RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = materialAdapter
-
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().materialViewModelFactory
-        materialViewModel = ViewModelProvider(this, factory)[MaterialViewModel::class.java]
 
         // Observa a lista de materiais
         materialViewModel.materials.observe(viewLifecycleOwner) { materials ->

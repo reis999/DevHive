@@ -9,9 +9,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -20,7 +20,6 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.Timestamp
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Comment
 import ipvc.tp.devhive.domain.model.Material
@@ -38,8 +37,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         const val EXTRA_MATERIAL_ID = "extra_material_id"
     }
 
-    private lateinit var materialViewModel: MaterialViewModel
-    private lateinit var commentViewModel: CommentViewModel
+    private val materialViewModel: MaterialViewModel by viewModels()
+    private val commentViewModel: CommentViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var collapsingToolbar: CollapsingToolbarLayout
@@ -75,7 +74,6 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         initializeViews()
         setupToolbar()
         setupRecyclerView()
-        initializeViewModels()
         loadMaterialDetails()
         setupClickListeners()
     }
@@ -107,19 +105,6 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         recyclerViewComments.adapter = commentAdapter
     }
 
-    private fun initializeViewModels() {
-        val viewModelFactories = DevHiveApp.getViewModelFactories()
-
-        materialViewModel = ViewModelProvider(
-            this,
-            viewModelFactories.materialViewModelFactory
-        )[MaterialViewModel::class.java]
-
-        commentViewModel = ViewModelProvider(
-            this,
-            viewModelFactories.commentViewModelFactory
-        )[CommentViewModel::class.java]
-    }
 
     private fun setupClickListeners() {
         fabAddComment.setOnClickListener {

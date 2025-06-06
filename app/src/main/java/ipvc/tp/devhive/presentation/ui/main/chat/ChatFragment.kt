@@ -9,17 +9,13 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import dagger.hilt.android.AndroidEntryPoint
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 
-@AndroidEntryPoint
 class ChatFragment : Fragment(), ChatAdapter.OnChatClickListener {
 
     private val chatViewModel: ChatViewModel by viewModels()

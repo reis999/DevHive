@@ -2,11 +2,13 @@ package ipvc.tp.devhive.domain.usecase.comment
 
 import ipvc.tp.devhive.domain.repository.CommentRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
+import javax.inject.Inject
+
 
 /**
  * Caso de uso para curtir um comentário
  */
-class LikeCommentUseCase(
+class LikeCommentUseCase @Inject constructor(
     private val commentRepository: CommentRepository,
     private val userRepository: UserRepository
 ) {

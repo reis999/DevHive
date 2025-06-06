@@ -5,11 +5,12 @@ import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.domain.repository.ChatRepository
 import java.util.Date
 import java.util.UUID
+import javax.inject.Inject
 
 /**
  * Caso de uso para criar um novo chat direto entre dois utilizadores
  */
-class CreateChatUseCase(
+class CreateChatUseCase @Inject constructor(
     private val chatRepository: ChatRepository
 ) {
 

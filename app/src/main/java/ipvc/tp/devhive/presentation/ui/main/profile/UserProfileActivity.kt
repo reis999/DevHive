@@ -9,15 +9,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.google.firebase.Timestamp
-import dagger.hilt.android.AndroidEntryPoint
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.model.User
@@ -25,14 +21,13 @@ import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
-@AndroidEntryPoint
 class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClickListener {
 
     companion object {
         const val EXTRA_USER_ID = "extra_user_id"
     }
 
-    private val viewModel: ProfileViewModel by viewModels()
+    private val profileViewModel: ProfileViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivProfileImage: ImageView

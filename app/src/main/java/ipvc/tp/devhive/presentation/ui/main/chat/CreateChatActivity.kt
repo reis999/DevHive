@@ -7,19 +7,15 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Timestamp
-import dagger.hilt.android.AndroidEntryPoint
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.ContributionStats
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 import java.util.Date
 
-@AndroidEntryPoint
 class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener {
 
     private val chatViewModel: ChatViewModel by viewModels()
@@ -72,7 +68,7 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
     }
 
     private fun loadUsers() {
-        // Em uma implementação real, carregaríamos os usuários disponíveis
+        // Em uma implementação real, carregaríamos os utilizadores disponíveis
         // Para fins de demonstração, usamos dados simulados
         val mockUsers = getMockUsers()
         userAdapter.submitList(mockUsers)
@@ -84,7 +80,7 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
     }
 
     private fun createDirectChat(user: User) {
-        // Em uma implementação real, usaríamos chatViewModel.createDirectChat()
+        // Em uma implementação real, utilizariamos o chatViewModel.createDirectChat()
         // Para fins de demonstração, navegamos diretamente para o chat
         val intent = Intent(this, ChatRoomActivity::class.java)
         intent.putExtra(ChatRoomActivity.EXTRA_CHAT_ID, "chat_with_${user.id}")
@@ -94,7 +90,7 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
     }
 
     private fun getMockUsers(): List<User> {
-        // Simulamos alguns usuários para fins de demonstração
+        // Simulamos alguns utilizadores para fins de demonstração
         return listOf(
             User(
                 id = "user1",

@@ -7,8 +7,10 @@ import ipvc.tp.devhive.domain.repository.StudyGroupRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 import java.util.Date
 import java.util.UUID
+import javax.inject.Inject
 
-class SendGroupMessageUseCase(
+
+class SendGroupMessageUseCase @Inject constructor(
     private val studyGroupRepository: StudyGroupRepository,
     private val userRepository: UserRepository
 ) {

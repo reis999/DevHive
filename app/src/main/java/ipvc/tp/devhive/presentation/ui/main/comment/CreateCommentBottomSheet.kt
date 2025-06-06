@@ -7,9 +7,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.viewmodel.comment.CommentViewModel
 
@@ -29,7 +28,7 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private lateinit var commentViewModel: CommentViewModel
+    private val commentViewModel: CommentViewModel by viewModels()
     private lateinit var etComment: EditText
     private lateinit var btnSubmit: Button
     private lateinit var btnCancel: Button
@@ -57,7 +56,6 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initializeViews(view)
-        initializeViewModel()
         setupClickListeners()
         observeEvents()
 
@@ -69,11 +67,6 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
         etComment = view.findViewById(R.id.et_comment)
         btnSubmit = view.findViewById(R.id.btn_submit)
         btnCancel = view.findViewById(R.id.btn_cancel)
-    }
-
-    private fun initializeViewModel() {
-        val factory = DevHiveApp.getViewModelFactories().commentViewModelFactory
-        commentViewModel = ViewModelProvider(this, factory)[CommentViewModel::class.java]
     }
 
     private fun setupClickListeners() {

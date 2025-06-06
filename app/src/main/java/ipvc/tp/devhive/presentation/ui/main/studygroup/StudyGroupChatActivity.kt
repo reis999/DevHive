@@ -6,15 +6,14 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
 import de.hdodenhof.circleimageview.CircleImageView
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.GroupMessage
 import ipvc.tp.devhive.domain.model.StudyGroup
@@ -27,7 +26,7 @@ class StudyGroupChatActivity : AppCompatActivity() {
         const val EXTRA_STUDY_GROUP_ID = "extra_study_group_id"
     }
 
-    private lateinit var studyGroupViewModel: StudyGroupViewModel
+    private val studyGroupViewModel: StudyGroupViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivGroupImage: CircleImageView
@@ -71,10 +70,6 @@ class StudyGroupChatActivity : AppCompatActivity() {
         layoutManager.stackFromEnd = true
         recyclerViewMessages.layoutManager = layoutManager
         recyclerViewMessages.adapter = groupMessageAdapter
-
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().studyGroupViewModelFactory
-        studyGroupViewModel = ViewModelProvider(this, factory)[StudyGroupViewModel::class.java]
 
         // Carrega os detalhes do grupo
         loadStudyGroupDetails()

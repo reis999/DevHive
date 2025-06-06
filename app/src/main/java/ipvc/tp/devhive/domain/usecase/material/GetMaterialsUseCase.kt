@@ -3,11 +3,12 @@ package ipvc.tp.devhive.domain.usecase.material
 import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.repository.MaterialRepository
+import javax.inject.Inject
 
 /**
  * Caso de uso para obter materiais de estudo
  */
-class GetMaterialsUseCase(private val materialRepository: MaterialRepository) {
+class GetMaterialsUseCase @Inject constructor(private val materialRepository: MaterialRepository) {
 
     operator fun invoke(): LiveData<List<Material>> {
         return materialRepository.getAllMaterials()

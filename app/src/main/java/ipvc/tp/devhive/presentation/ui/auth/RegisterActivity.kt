@@ -8,11 +8,10 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.ui.main.MainActivity
 import ipvc.tp.devhive.presentation.util.showSnackbar
@@ -23,7 +22,7 @@ import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
 
 class RegisterActivity : AppCompatActivity() {
 
-    private lateinit var authViewModel: AuthViewModel
+    private val authViewModel: AuthViewModel by viewModels()
 
     private lateinit var ivBack: ImageView
     private lateinit var tilName: TextInputLayout
@@ -64,9 +63,6 @@ class RegisterActivity : AppCompatActivity() {
         tvLogin = findViewById(R.id.tv_login)
         progressBar = findViewById(R.id.progress_bar)
 
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().authViewModelFactory
-        authViewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
 
         // Observa o estado de autenticação
         authViewModel.authState.observe(this) { state ->

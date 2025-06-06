@@ -7,11 +7,15 @@ import ipvc.tp.devhive.domain.model.MessageAttachment
 import ipvc.tp.devhive.domain.repository.ChatRepository
 import java.util.Date
 import java.util.UUID
+import javax.inject.Inject
+
 
 /**
  * Caso de uso para enviar uma mensagem em um chat
  */
-class SendMessageUseCase(private val chatRepository: ChatRepository) {
+class SendMessageUseCase @Inject constructor(
+    private val chatRepository: ChatRepository
+) {
 
     suspend operator fun invoke(
         chatId: String,

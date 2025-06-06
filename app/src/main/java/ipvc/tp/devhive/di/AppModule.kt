@@ -1,12 +1,9 @@
 package ipvc.tp.devhive.di
 
-import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import ipvc.tp.devhive.data.di.DataModule
 import ipvc.tp.devhive.domain.repository.AuthRepository
 import ipvc.tp.devhive.domain.repository.ChatRepository
 import ipvc.tp.devhive.domain.repository.CommentRepository
@@ -26,74 +23,44 @@ import ipvc.tp.devhive.domain.usecase.material.ToggleBookmarkUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.CreateStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.JoinStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.SendGroupMessageUseCase
-import javax.inject.Singleton
+import ipvc.tp.devhive.domain.usecase.sync.SyncDataUseCase
+import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
+import ipvc.tp.devhive.domain.usecase.user.UpdateUserUseCase
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // Repositórios
-    @Provides
-    @Singleton
-    fun provideDataComponents(@ApplicationContext context: Context): DataModule.DataComponents {
-        return DataModule.provideDataComponents(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideAuthRepository(dataComponents: DataModule.DataComponents): AuthRepository {
-        return dataComponents.authRepository
-    }
-
-    @Provides
-    @Singleton
-    fun provideUserRepository(dataComponents: DataModule.DataComponents): UserRepository {
-        return dataComponents.userRepository
-    }
-
-    @Provides
-    @Singleton
-    fun provideMaterialRepository(dataComponents: DataModule.DataComponents): MaterialRepository {
-        return dataComponents.materialRepository
-    }
-
-    @Provides
-    @Singleton
-    fun provideCommentRepository(dataComponents: DataModule.DataComponents): CommentRepository {
-        return dataComponents.commentRepository
-    }
-
-    @Provides
-    @Singleton
-    fun provideChatRepository(dataComponents: DataModule.DataComponents): ChatRepository {
-        return dataComponents.chatRepository
-    }
-
-    @Provides
-    @Singleton
-    fun provideStudyGroupRepository(dataComponents: DataModule.DataComponents): StudyGroupRepository {
-        return dataComponents.studyGroupRepository
-    }
-
     // Use Cases - Auth
     @Provides
-    fun provideRegisterUserUseCase(authRepository: AuthRepository, userRepository: UserRepository): RegisterUserUseCase {
+    fun provideRegisterUserUseCase(
+        authRepository: AuthRepository,
+        userRepository: UserRepository
+    ): RegisterUserUseCase {
         return RegisterUserUseCase(authRepository, userRepository)
     }
 
     @Provides
-    fun provideLoginUserUseCase(authRepository: AuthRepository, userRepository: UserRepository): LoginUserUseCase {
+    fun provideLoginUserUseCase(
+        authRepository: AuthRepository,
+        userRepository: UserRepository
+    ): LoginUserUseCase {
         return LoginUserUseCase(authRepository, userRepository)
     }
 
     @Provides
-    fun provideLogoutUserUseCase(authRepository: AuthRepository,userRepository: UserRepository): LogoutUserUseCase {
+    fun provideLogoutUserUseCase(
+        authRepository: AuthRepository,
+        userRepository: UserRepository
+    ): LogoutUserUseCase {
         return LogoutUserUseCase(authRepository ,userRepository)
     }
 
     // Use Cases - Material
     @Provides
-    fun provideGetMaterialsUseCase(materialRepository: MaterialRepository): GetMaterialsUseCase {
+    fun provideGetMaterialsUseCase(
+        materialRepository: MaterialRepository
+    ): GetMaterialsUseCase {
         return GetMaterialsUseCase(materialRepository)
     }
 
@@ -106,7 +73,9 @@ object AppModule {
     }
 
     @Provides
-    fun provideToggleBookmarkUseCase(materialRepository: MaterialRepository): ToggleBookmarkUseCase {
+    fun provideToggleBookmarkUseCase(
+        materialRepository: MaterialRepository
+    ): ToggleBookmarkUseCase {
         return ToggleBookmarkUseCase(materialRepository)
     }
 
@@ -129,12 +98,16 @@ object AppModule {
 
     // Use Cases - Chat
     @Provides
-    fun provideCreateChatUseCase(chatRepository: ChatRepository): CreateChatUseCase {
+    fun provideCreateChatUseCase(
+        chatRepository: ChatRepository
+    ): CreateChatUseCase {
         return CreateChatUseCase(chatRepository)
     }
 
     @Provides
-    fun provideSendMessageUseCase(chatRepository: ChatRepository): SendMessageUseCase {
+    fun provideSendMessageUseCase(
+        chatRepository: ChatRepository
+    ): SendMessageUseCase {
         return SendMessageUseCase(chatRepository)
     }
 
@@ -162,4 +135,33 @@ object AppModule {
     ): SendGroupMessageUseCase {
         return SendGroupMessageUseCase(studyGroupRepository, userRepository)
     }
+
+    // Use Cases - Sync
+
+    @Provides
+    fun provideSyncDataUseCase(
+        userRepository: UserRepository,
+        materialRepository: MaterialRepository,
+        commentRepository: CommentRepository,
+        chatRepository: ChatRepository,
+        studyGroupRepository: StudyGroupRepository
+    ): SyncDataUseCase {
+        return SyncDataUseCase(userRepository, materialRepository, commentRepository, chatRepository, studyGroupRepository)
+    }
+
+    // Use Cases - User
+    @Provides
+    fun provideGetCurrentUserUseCase(
+        userRepository: UserRepository
+    ): GetCurrentUserUseCase {
+        return GetCurrentUserUseCase(userRepository)
+    }
+
+    @Provides
+    fun provideUpdateUserUseCase(
+        userRepository: UserRepository
+    ): UpdateUserUseCase {
+        return UpdateUserUseCase(userRepository)
+    }
+
 }

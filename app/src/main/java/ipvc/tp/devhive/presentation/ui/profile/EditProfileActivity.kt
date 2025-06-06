@@ -21,19 +21,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
-import dagger.hilt.android.AndroidEntryPoint
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
-@AndroidEntryPoint
 class EditProfileActivity : AppCompatActivity() {
 
-    private val viewModel: ProfileViewModel by viewModels()
+    private val profileViewModel: ProfileViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivProfile: ImageView

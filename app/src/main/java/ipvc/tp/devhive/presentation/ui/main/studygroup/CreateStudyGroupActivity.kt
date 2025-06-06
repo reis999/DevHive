@@ -10,19 +10,18 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputLayout
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModel
 
 class CreateStudyGroupActivity : AppCompatActivity() {
 
-    private lateinit var studyGroupViewModel: StudyGroupViewModel
+    private val studyGroupViewModel: StudyGroupViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var etName: EditText
@@ -57,10 +56,6 @@ class CreateStudyGroupActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.create_study_group)
-
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().studyGroupViewModelFactory
-        studyGroupViewModel = ViewModelProvider(this, factory)[StudyGroupViewModel::class.java]
 
         // Configura o adapter para as disciplinas
         val subjects = resources.getStringArray(R.array.subjects)

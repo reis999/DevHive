@@ -9,15 +9,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
-import dagger.hilt.android.AndroidEntryPoint
 import de.hdodenhof.circleimageview.CircleImageView
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.data.util.SyncStatus
 import ipvc.tp.devhive.domain.model.Chat
@@ -25,7 +21,6 @@ import ipvc.tp.devhive.domain.model.Message
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 import java.util.Date
 
-@AndroidEntryPoint
 class ChatRoomActivity : AppCompatActivity() {
 
     companion object {

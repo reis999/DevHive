@@ -6,11 +6,13 @@ import ipvc.tp.devhive.domain.repository.MaterialRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 import java.util.Date
 import java.util.UUID
+import javax.inject.Inject
+
 
 /**
  * Caso de uso para criar um novo material de estudo
  */
-class CreateMaterialUseCase(
+class CreateMaterialUseCase @Inject constructor(
     private val materialRepository: MaterialRepository,
     private val userRepository: UserRepository
 ) {

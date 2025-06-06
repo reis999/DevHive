@@ -18,22 +18,21 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputLayout
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
 
 class AddMaterialActivity : AppCompatActivity() {
 
-    private lateinit var materialViewModel: MaterialViewModel
+    private val materialViewModel: MaterialViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivCover: ImageView
@@ -116,10 +115,6 @@ class AddMaterialActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.add_material)
-
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().materialViewModelFactory
-        materialViewModel = ViewModelProvider(this, factory)[MaterialViewModel::class.java]
 
         // Configura os listeners
         btnSelectCover.setOnClickListener {
