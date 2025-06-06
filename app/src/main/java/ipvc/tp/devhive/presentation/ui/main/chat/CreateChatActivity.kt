@@ -4,12 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.ContributionStats
@@ -17,9 +19,10 @@ import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 import java.util.Date
 
+@AndroidEntryPoint
 class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener {
 
-    private lateinit var chatViewModel: ChatViewModel
+    private val chatViewModel: ChatViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var recyclerViewUsers: RecyclerView
@@ -33,7 +36,6 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
         initializeViews()
         setupToolbar()
         setupRecyclerView()
-        initializeViewModel()
         loadUsers()
     }
 
@@ -51,11 +53,6 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
     private fun setupRecyclerView() {
         recyclerViewUsers.layoutManager = LinearLayoutManager(this)
         recyclerViewUsers.adapter = userAdapter
-    }
-
-    private fun initializeViewModel() {
-        val factory = DevHiveApp.getViewModelFactories().chatViewModelFactory
-        chatViewModel = ViewModelProvider(this, factory)[ChatViewModel::class.java]
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

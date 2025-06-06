@@ -45,28 +45,27 @@ class ProfileFragment : Fragment() {
     }
 
     private fun loadUserProfile() {
-        // Em uma implementação real, obteríamos o ID do usuário atual
-        val userId = "user123" // ID de exemplo
-        viewModel.loadUserProfile(userId)
+        viewModel.loadUserProfile()
     }
 
     private fun observeViewModel() {
-
         viewModel.userProfile.observe(viewLifecycleOwner) { user ->
-            binding.tvName.text = user.name
-            binding.tvUsername.text = "@${user.username}"
-            binding.tvBio.text = user.bio
-            binding.tvInstitution.text = user.institution
-            binding.tvCourse.text = user.course
+            if (user != null) {
+                binding.tvName.text = user.name
+                binding.tvUsername.text = "@${user.username}"
+                binding.tvBio.text = user.bio
+                binding.tvInstitution.text = user.institution
+                binding.tvCourse.text = user.course
 
-            // Estatísticas de contribuição
-            binding.tvMaterialsCount.text = user.contributionStats.materials.toString()
-            binding.tvCommentsCount.text = user.contributionStats.comments.toString()
-            binding.tvLikesCount.text = user.contributionStats.likes.toString()
-            binding.tvSessionsCount.text = user.contributionStats.sessions.toString()
+                // Estatísticas de contribuição
+                binding.tvMaterialsCount.text = user.contributionStats.materials.toString()
+                binding.tvCommentsCount.text = user.contributionStats.comments.toString()
+                binding.tvLikesCount.text = user.contributionStats.likes.toString()
+                binding.tvSessionsCount.text = user.contributionStats.sessions.toString()
 
-            // Carregar imagem de perfil (em uma implementação real)
-            Glide.with(this).load(user.profileImageUrl).into(binding.ivProfile)
+                // Carregar imagem de perfil (em uma implementação real)
+                Glide.with(this).load(user.profileImageUrl).into(binding.ivProfile)
+            }
         }
     }
 
