@@ -46,6 +46,7 @@ class ProfileFragment : Fragment() {
 
     private fun loadUserProfile() {
         // Em uma implementação real, obteríamos o ID do usuário atual
+
         val userId = "user123" // ID de exemplo
         viewModel.loadUserProfile(userId)
     }

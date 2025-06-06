@@ -8,18 +8,17 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 
 class ChatFragment : Fragment(), ChatAdapter.OnChatClickListener {
 
-    private lateinit var chatViewModel: ChatViewModel
+    private val chatViewModel: ChatViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
     private lateinit var fabAdd: FloatingActionButton
     private lateinit var progressBar: ProgressBar
@@ -47,10 +46,6 @@ class ChatFragment : Fragment(), ChatAdapter.OnChatClickListener {
         // Configura o RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = chatAdapter
-
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().chatViewModelFactory
-        chatViewModel = ViewModelProvider(this, factory)[ChatViewModel::class.java]
 
         // Configura o FAB para criar um novo chat
         fabAdd.setOnClickListener {

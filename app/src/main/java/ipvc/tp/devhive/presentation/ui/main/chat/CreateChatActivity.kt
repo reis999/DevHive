@@ -4,13 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Timestamp
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.ContributionStats
 import ipvc.tp.devhive.domain.model.User
@@ -19,7 +18,7 @@ import java.util.Date
 
 class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener {
 
-    private lateinit var chatViewModel: ChatViewModel
+    private val chatViewModel: ChatViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var recyclerViewUsers: RecyclerView
@@ -33,7 +32,6 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
         initializeViews()
         setupToolbar()
         setupRecyclerView()
-        initializeViewModel()
         loadUsers()
     }
 
@@ -53,11 +51,6 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
         recyclerViewUsers.adapter = userAdapter
     }
 
-    private fun initializeViewModel() {
-        val factory = DevHiveApp.getViewModelFactories().chatViewModelFactory
-        chatViewModel = ViewModelProvider(this, factory)[ChatViewModel::class.java]
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -75,7 +68,7 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
     }
 
     private fun loadUsers() {
-        // Em uma implementação real, carregaríamos os usuários disponíveis
+        // Em uma implementação real, carregaríamos os utilizadores disponíveis
         // Para fins de demonstração, usamos dados simulados
         val mockUsers = getMockUsers()
         userAdapter.submitList(mockUsers)
@@ -87,7 +80,7 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
     }
 
     private fun createDirectChat(user: User) {
-        // Em uma implementação real, usaríamos chatViewModel.createDirectChat()
+        // Em uma implementação real, utilizariamos o chatViewModel.createDirectChat()
         // Para fins de demonstração, navegamos diretamente para o chat
         val intent = Intent(this, ChatRoomActivity::class.java)
         intent.putExtra(ChatRoomActivity.EXTRA_CHAT_ID, "chat_with_${user.id}")
@@ -97,7 +90,7 @@ class CreateChatActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
     }
 
     private fun getMockUsers(): List<User> {
-        // Simulamos alguns usuários para fins de demonstração
+        // Simulamos alguns utilizadores para fins de demonstração
         return listOf(
             User(
                 id = "user1",

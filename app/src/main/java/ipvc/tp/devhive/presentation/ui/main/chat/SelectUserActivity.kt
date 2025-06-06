@@ -5,14 +5,13 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Timestamp
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
@@ -20,8 +19,8 @@ import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
 class SelectUserActivity : AppCompatActivity(), UserAdapter.OnUserClickListener {
 
-    private lateinit var chatViewModel: ChatViewModel
-    private lateinit var profileViewModel: ProfileViewModel
+    private val chatViewModel: ChatViewModel by viewModels()
+    private val profileViewModel: ProfileViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var searchView: SearchView
@@ -47,13 +46,6 @@ class SelectUserActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = userAdapter
 
-        // Inicializa os ViewModels
-        val chatFactory = DevHiveApp.getViewModelFactories().chatViewModelFactory
-        chatViewModel = ViewModelProvider(this, chatFactory)[ChatViewModel::class.java]
-
-        val profileFactory = DevHiveApp.getViewModelFactories().profileViewModelFactory
-        profileViewModel = ViewModelProvider(this, profileFactory)[ProfileViewModel::class.java]
-
         // Configura a busca
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -66,7 +58,7 @@ class SelectUserActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
             }
         })
 
-        // Carrega a lista de usuários
+        // Carrega a lista de utilizadores
         loadUsers()
     }
 

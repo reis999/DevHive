@@ -6,15 +6,14 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
 import de.hdodenhof.circleimageview.CircleImageView
-import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.data.util.SyncStatus
 import ipvc.tp.devhive.domain.model.Chat
@@ -30,7 +29,7 @@ class ChatRoomActivity : AppCompatActivity() {
         const val EXTRA_CHAT_NAME = "extra_other_user_name"
     }
 
-    private lateinit var chatViewModel: ChatViewModel
+    private val chatViewModel: ChatViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivOtherUserAvatar: CircleImageView
@@ -77,10 +76,6 @@ class ChatRoomActivity : AppCompatActivity() {
         layoutManager.stackFromEnd = true
         recyclerViewMessages.layoutManager = layoutManager
         recyclerViewMessages.adapter = messageAdapter
-
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().chatViewModelFactory
-        chatViewModel = ViewModelProvider(this, factory)[ChatViewModel::class.java]
 
         // Carrega os detalhes do chat
         loadChatDetails()

@@ -46,7 +46,7 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
                     profileImageUrl = "",
                     bio = "Estudante de Engenharia Informática no IPVC. Interessado em desenvolvimento mobile e inteligência artificial.",
                     institution = "Instituto Politécnico de Viana do Castelo",
-                    course = "Licenciatura em Engenharia Informática",
+                    course = "Buhbubhbuubbhbubub",
                     createdAt = Timestamp(Date()),
                     lastLogin = Timestamp(Date()),
                     isOnline = true,

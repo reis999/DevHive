@@ -2,11 +2,12 @@ package ipvc.tp.devhive.domain.usecase.auth
 
 import ipvc.tp.devhive.domain.repository.AuthRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
+import javax.inject.Inject
 
 /**
  * Caso de uso para autenticar um usuário
  */
-class LoginUserUseCase(
+class LoginUserUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) {
