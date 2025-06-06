@@ -5,29 +5,36 @@ import android.view.MenuItem
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
+import de.hdodenhof.circleimageview.CircleImageView
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
+import ipvc.tp.devhive.data.util.SyncStatus
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.domain.model.Message
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
-import de.hdodenhof.circleimageview.CircleImageView
 import java.util.Date
 
+@AndroidEntryPoint
 class ChatRoomActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_CHAT_ID = "extra_chat_id"
         const val EXTRA_OTHER_USER_ID = "extra_other_user_id"
+        const val EXTRA_CHAT_NAME = "extra_other_user_name"
     }
 
-    private lateinit var chatViewModel: ChatViewModel
+    private val chatViewModel: ChatViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivOtherUserAvatar: CircleImageView
@@ -75,10 +82,6 @@ class ChatRoomActivity : AppCompatActivity() {
         recyclerViewMessages.layoutManager = layoutManager
         recyclerViewMessages.adapter = messageAdapter
 
-        // Inicializa o ViewModel
-        val factory = DevHiveApp.getViewModelFactories().chatViewModelFactory
-        chatViewModel = ViewModelProvider(this, factory)[ChatViewModel::class.java]
-
         // Carrega os detalhes do chat
         loadChatDetails()
 
@@ -89,9 +92,17 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -145,7 +156,10 @@ class ChatRoomActivity : AppCompatActivity() {
             content = messageText,
             senderUid = "current_user_id",
             createdAt = Timestamp.now(),
-            attachments = emptyList()
+            attachments = emptyList(),
+            read = false,
+            syncStatus = SyncStatus.SYNCED,
+            lastSync = Timestamp.now(),
         )
 
         // Adiciona a mensagem à lista
@@ -185,7 +199,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 content = "Olá, tudo bem?",
                 senderUid = otherUserId.ifEmpty { "other_user_id" },
                 createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)),
-                attachments = emptyList()
+                attachments = emptyList(),
+                read = false,
+                syncStatus = SyncStatus.SYNCED,
+                lastSync = Timestamp.now(),
             ),
             Message(
                 id = "msg2",
@@ -193,7 +210,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 content = "Olá! Tudo ótimo, e contigo?",
                 senderUid = "current_user_id",
                 createdAt = Timestamp(Date(System.currentTimeMillis() - 82800000)),
-                attachments = emptyList()
+                attachments = emptyList(),
+                read = false,
+                syncStatus = SyncStatus.SYNCED,
+                lastSync = Timestamp.now(),
             ),
             Message(
                 id = "msg3",
@@ -201,7 +221,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 content = "Também estou bem! Preciso de ajuda com um exercício de Kotlin.",
                 senderUid = otherUserId.ifEmpty { "other_user_id" },
                 createdAt = Timestamp(Date(System.currentTimeMillis() - 7200000)),
-                attachments = emptyList()
+                attachments = emptyList(),
+                read = false,
+                syncStatus = SyncStatus.SYNCED,
+                lastSync = Timestamp.now(),
             ),
             Message(
                 id = "msg4",
@@ -209,7 +232,10 @@ class ChatRoomActivity : AppCompatActivity() {
                 content = "Claro, pode enviar!",
                 senderUid = "current_user_id",
                 createdAt = Timestamp(Date(System.currentTimeMillis() - 3600000)),
-                attachments = emptyList()
+                attachments = emptyList(),
+                read = false,
+                syncStatus = SyncStatus.SYNCED,
+                lastSync = Timestamp.now(),
             )
         )
     }

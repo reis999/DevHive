@@ -5,12 +5,18 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.tabs.TabLayout
+import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Material
@@ -18,16 +24,15 @@ import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
-import com.google.android.material.tabs.TabLayout
-import com.google.firebase.Timestamp
 
+@AndroidEntryPoint
 class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClickListener {
 
     companion object {
         const val EXTRA_USER_ID = "extra_user_id"
     }
 
-    private lateinit var profileViewModel: ProfileViewModel
+    private val viewModel: ProfileViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivProfileImage: ImageView
@@ -57,7 +62,6 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
         initializeViews()
         setupToolbar()
         setupRecyclerView()
-        initializeViewModel()
         setupTabs()
         loadUserProfile()
     }
@@ -84,15 +88,16 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
         recyclerView.adapter = materialAdapter
     }
 
-    private fun initializeViewModel() {
-        val factory = DevHiveApp.getViewModelFactories().profileViewModelFactory
-        profileViewModel = ViewModelProvider(this, factory)[ProfileViewModel::class.java]
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -207,8 +212,8 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
                 title = "Guia de Kotlin",
                 description = "Guia completo sobre Kotlin",
                 ownerUid = userId,
-                authorName = "Ana Silva",
-                authorImageUrl = "",
+                ownerName = "Ana Silva",
+                ownerImageUrl = "",
                 thumbnailUrl = "",
                 contentUrl = "",
                 type = "pdf",
@@ -236,8 +241,8 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
                 title = "Android Development",
                 description = "Curso de desenvolvimento Android",
                 ownerUid = "other_user",
-                authorName = "João Santos",
-                authorImageUrl = "",
+                ownerName = "João Santos",
+                ownerImageUrl = "",
                 thumbnailUrl = "",
                 contentUrl = "",
                 type = "pdf",
