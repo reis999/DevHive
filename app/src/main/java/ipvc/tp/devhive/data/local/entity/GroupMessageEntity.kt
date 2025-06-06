@@ -10,7 +10,6 @@ import ipvc.tp.devhive.data.model.MessageAttachment
 import ipvc.tp.devhive.data.util.SyncStatus
 
 @Entity(tableName = "group_messages")
-@TypeConverters(MessageAttachmentListConverter::class)
 data class GroupMessageEntity(
     @PrimaryKey
     val id: String,
@@ -20,16 +19,17 @@ data class GroupMessageEntity(
     val senderName: String,
     val senderImageUrl: String,
     val createdAt: Timestamp,
+    @field: TypeConverters(MessageAttachmentListConverter::class)
     val attachments: List<MessageAttachment>,
-    val replyToMessageId: String?,
-    val isEdited: Boolean,
-    val editedAt: Timestamp?,
+    val replyToMessageId: String? = null,
+    val isEdited: Boolean = false,
+    val editedAt: Timestamp? = null,
 
     // Campos para sincronização
     val syncStatus: String,
-    val lastSyncedAt: Long,
-    val isLocalOnly: Boolean,
-    val pendingOperation: String?
+    val lastSyncedAt: Long = 0L,
+    val isLocalOnly: Boolean = false,
+    val pendingOperation: String? = null
 ) {
     companion object {
         fun fromGroupMessage(groupMessage: GroupMessage, syncStatus: String = SyncStatus.SYNCED): GroupMessageEntity {

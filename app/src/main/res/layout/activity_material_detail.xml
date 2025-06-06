@@ -233,6 +233,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        android:contentDescription="@string/add_comment"
         android:src="@drawable/ic_add_comment"
         app:maxImageSize="36dp"
         app:layout_anchor="@id/recycler_view_comments"

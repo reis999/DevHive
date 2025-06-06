@@ -14,6 +14,8 @@ data class Material(
     val thumbnailUrl: String,
     val fileSize: Long,
     val ownerUid: String,
+    val ownerName: String,
+    val ownerImageUrl: String,
     val createdAt: Timestamp,
     val updatedAt: Timestamp,
     val categories: List<String>,

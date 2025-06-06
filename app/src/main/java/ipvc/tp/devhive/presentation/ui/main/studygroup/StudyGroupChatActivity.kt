@@ -5,6 +5,7 @@ import android.view.MenuItem
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
@@ -12,12 +13,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
+import de.hdodenhof.circleimageview.CircleImageView
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
-import ipvc.tp.devhive.domain.model.StudyGroup
 import ipvc.tp.devhive.domain.model.GroupMessage
+import ipvc.tp.devhive.domain.model.StudyGroup
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModel
-import de.hdodenhof.circleimageview.CircleImageView
 import java.util.Date
 
 class StudyGroupChatActivity : AppCompatActivity() {
@@ -36,7 +37,7 @@ class StudyGroupChatActivity : AppCompatActivity() {
     private lateinit var etMessage: EditText
     private lateinit var btnSend: ImageButton
 
-    private val groupMessageAdapter = GroupMessageAdapter()
+    private val groupMessageAdapter = GroupMessageAdapter("current_user_id")
     private var studyGroupId: String = ""
     private var currentStudyGroup: StudyGroup? = null
 
@@ -85,9 +86,15 @@ class StudyGroupChatActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             else -> super.onOptionsItemSelected(item)

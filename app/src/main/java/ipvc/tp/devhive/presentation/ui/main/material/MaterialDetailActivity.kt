@@ -8,12 +8,18 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.appbar.CollapsingToolbarLayout
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Comment
@@ -24,11 +30,7 @@ import ipvc.tp.devhive.presentation.ui.main.profile.UserProfileActivity
 import ipvc.tp.devhive.presentation.util.DateFormatUtils
 import ipvc.tp.devhive.presentation.viewmodel.comment.CommentViewModel
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
-import com.google.android.material.appbar.CollapsingToolbarLayout
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.firebase.Timestamp
+import java.util.Date
 
 class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClickListener {
 
@@ -140,9 +142,15 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             R.id.action_bookmark -> {
@@ -186,16 +194,16 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         }
 
         // Carrega a imagem do autor
-        if (material.authorImageUrl.isNotEmpty()) {
+        if (material.ownerImageUrl.isNotEmpty()) {
             Glide.with(this)
-                .load(material.authorImageUrl)
+                .load(material.ownerImageUrl)
                 .placeholder(R.drawable.profile_placeholder)
                 .error(R.drawable.profile_placeholder)
                 .circleCrop()
                 .into(ivAuthorAvatar)
         }
 
-        tvAuthorName.text = material.authorName
+        tvAuthorName.text = material.ownerName
         tvUploadDate.text = DateFormatUtils.formatFullDate(material.createdAt.toDate())
         tvDescription.text = material.description
         tvDownloads.text = material.downloads.toString()
@@ -261,7 +269,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             val shareMessage = getString(
                 R.string.share_material_message,
                 it.title,
-                it.authorName,
+                it.ownerName,
                 "https://devhive.app/material/${it.id}"
             )
 
@@ -295,8 +303,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             title = "Introdução à Programação em Kotlin",
             description = "Este material apresenta os conceitos básicos da linguagem Kotlin, incluindo sintaxe, estruturas de controle, funções e classes. Ideal para iniciantes que desejam aprender a programar em Kotlin.",
             ownerUid = "user123",
-            authorName = "David Reis",
-            authorImageUrl = "",
+            ownerName = "David Reis",
+            ownerImageUrl = "",
             thumbnailUrl = "",
             contentUrl = "",
             type = "pdf",
@@ -329,8 +337,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
                 liked = false,
                 parentCommentId = null,
                 attachments = emptyList(),
-                createdAt = java.util.Date(System.currentTimeMillis() - 86400000), // 1 dia atrás
-                updatedAt = java.util.Date(System.currentTimeMillis() - 86400000)
+                createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)), // 1 dia atrás
+                updatedAt = Timestamp(Date(System.currentTimeMillis() - 86400000))
             ),
             Comment(
                 id = "comment2",
@@ -343,8 +351,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
                 liked = true,
                 parentCommentId = null,
                 attachments = emptyList(),
-                createdAt = java.util.Date(System.currentTimeMillis() - 172800000), // 2 dias atrás
-                updatedAt = java.util.Date(System.currentTimeMillis() - 172800000)
+                createdAt = Timestamp(Date(System.currentTimeMillis() - 172800000)), // 2 dias atrás
+                updatedAt = Timestamp(Date(System.currentTimeMillis() - 172800000))
             )
         )
     }

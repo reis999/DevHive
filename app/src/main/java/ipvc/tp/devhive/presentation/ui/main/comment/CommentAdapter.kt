@@ -42,11 +42,11 @@ class CommentAdapter(
 
         fun bind(comment: Comment, position: Int) {
             tvUserName.text = comment.userName
-            tvCommentDate.text = DateFormatUtils.formatFullDate(comment.createdAt)
+            tvCommentDate.text = DateFormatUtils.formatFullDate(comment.createdAt.toDate())
             tvCommentContent.text = comment.content
             tvLikeCount.text = comment.likes.toString()
 
-            // Carrega a imagem do usuário
+            // Carrega a imagem do utilizador
             if (comment.userImageUrl.isNotEmpty()) {
                 Glide.with(itemView.context)
                     .load(comment.userImageUrl)

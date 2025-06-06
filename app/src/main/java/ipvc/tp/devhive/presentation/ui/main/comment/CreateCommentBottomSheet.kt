@@ -8,10 +8,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import ipvc.tp.devhive.DevHiveApp
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.viewmodel.comment.CommentViewModel
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class CreateCommentBottomSheet : BottomSheetDialogFragment() {
 

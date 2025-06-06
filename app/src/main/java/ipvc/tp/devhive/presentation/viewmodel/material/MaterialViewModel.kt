@@ -4,14 +4,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.usecase.material.CreateMaterialUseCase
 import ipvc.tp.devhive.domain.usecase.material.GetMaterialsUseCase
 import ipvc.tp.devhive.domain.usecase.material.ToggleBookmarkUseCase
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MaterialViewModel(
+@HiltViewModel
+class MaterialViewModel @Inject constructor(
     private val getMaterialsUseCase: GetMaterialsUseCase,
     private val createMaterialUseCase: CreateMaterialUseCase,
     private val toggleBookmarkUseCase: ToggleBookmarkUseCase
@@ -42,6 +45,8 @@ class MaterialViewModel(
         thumbnailUrl: String,
         fileSize: Long,
         ownerUid: String,
+        ownerName: String,
+        ownerImageUrl: String,
         categories: List<String>,
         isPublic: Boolean,
         subject: String
@@ -55,10 +60,12 @@ class MaterialViewModel(
                 thumbnailUrl = thumbnailUrl,
                 fileSize = fileSize,
                 ownerUid = ownerUid,
+                ownerName = ownerName,
+                ownerImageUrl = ownerImageUrl,
                 categories = categories,
                 isPublic = isPublic,
                 subject = subject
-            )
+                )
 
             result.fold(
                 onSuccess = {

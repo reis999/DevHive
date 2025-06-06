@@ -4,38 +4,62 @@ import android.app.Application
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.firebase.FirebaseApp
+import dagger.hilt.android.HiltAndroidApp
 import ipvc.tp.devhive.data.di.DataModule
 import ipvc.tp.devhive.domain.di.DomainModule
+import ipvc.tp.devhive.domain.repository.AuthRepository
+import ipvc.tp.devhive.domain.repository.ChatRepository
+import ipvc.tp.devhive.domain.repository.CommentRepository
+import ipvc.tp.devhive.domain.repository.MaterialRepository
+import ipvc.tp.devhive.domain.repository.StudyGroupRepository
+import ipvc.tp.devhive.domain.repository.UserRepository
 import ipvc.tp.devhive.presentation.di.PresentationModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+@HiltAndroidApp
 class DevHiveApp : Application() {
 
+    // Escopo da aplicação para operações em segundo plano
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    // Componentes da camada de dados
+    // Componentes da aplicação
+    lateinit var authRepository: AuthRepository
+    lateinit var userRepository: UserRepository
+    lateinit var materialRepository: MaterialRepository
+    lateinit var commentRepository: CommentRepository
+    lateinit var chatRepository: ChatRepository
+    lateinit var studyGroupRepository: StudyGroupRepository
+
     private lateinit var dataComponents: DataModule.DataComponents
-
-    // Componentes da camada de domínio
-    private lateinit var useCases: DomainModule.UseCases
-
-    // Componentes da camada de apresentação
-    private lateinit var viewModels: PresentationModule.ViewModelFactories
 
     override fun onCreate() {
         super.onCreate()
         instance = this
 
+        // Inicializa os componentes da camada de dados
+        dataComponents = DataModule.provideDataComponents(this)
+
+        // Inicializa o Firebase
         initializeFirebase()
 
+        // Inicializa os componentes da aplicação
         initializeComponents()
 
+        // Configura o tema (claro/escuro)
         setupTheme()
 
+        // Inicia o monitoramento de sincronização
         startSyncMonitoring()
+
+        // Atribui os repositórios
+        userRepository = dataComponents.userRepository
+        materialRepository = dataComponents.materialRepository
+        commentRepository = dataComponents.commentRepository
+        chatRepository = dataComponents.chatRepository
+        studyGroupRepository = dataComponents.studyGroupRepository
     }
 
     private fun initializeFirebase() {
@@ -49,9 +73,6 @@ class DevHiveApp : Application() {
 
     private fun initializeComponents() {
         try {
-            // Inicializa os componentes da camada de dados
-            dataComponents = DataModule.provideDataComponents(this)
-
             // Inicializa os casos de uso da camada de domínio
             useCases = DomainModule.provideUseCases(
                 dataComponents.authRepository,
@@ -59,7 +80,7 @@ class DevHiveApp : Application() {
                 dataComponents.materialRepository,
                 dataComponents.commentRepository,
                 dataComponents.chatRepository,
-                dataComponents.studyGroupRepository,
+                dataComponents.studyGroupRepository
             )
 
             // Inicializa as factories de ViewModels da camada de apresentação
@@ -67,7 +88,7 @@ class DevHiveApp : Application() {
         } catch (e: Exception) {
             // Em caso de erro, cria instâncias vazias para evitar crashes
             e.printStackTrace()
-            // implementação real: criar implementações de fallback
+            // Em uma implementação real, você poderia criar implementações de fallback
         }
     }
 
@@ -107,6 +128,8 @@ class DevHiveApp : Application() {
 
     companion object {
         private lateinit var instance: DevHiveApp
+        private lateinit var useCases: DomainModule.UseCases
+        private lateinit var viewModels: PresentationModule.ViewModelFactories
 
         fun getDataComponents(): DataModule.DataComponents {
             return if (::instance.isInitialized && instance::dataComponents.isInitialized) {
@@ -117,16 +140,16 @@ class DevHiveApp : Application() {
         }
 
         fun getUseCases(): DomainModule.UseCases {
-            return if (::instance.isInitialized && instance::useCases.isInitialized) {
-                instance.useCases
+            return if (::useCases.isInitialized) {
+                useCases
             } else {
                 throw IllegalStateException("UseCases not initialized")
             }
         }
 
         fun getViewModelFactories(): PresentationModule.ViewModelFactories {
-            return if (::instance.isInitialized && instance::viewModels.isInitialized) {
-                instance.viewModels
+            return if (::viewModels.isInitialized) {
+                viewModels
             } else {
                 throw IllegalStateException("ViewModelFactories not initialized")
             }

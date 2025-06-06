@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.domain.model.Message
 import ipvc.tp.devhive.domain.model.MessageAttachment
@@ -11,8 +12,10 @@ import ipvc.tp.devhive.domain.usecase.chat.CreateChatUseCase
 import ipvc.tp.devhive.domain.usecase.chat.SendMessageUseCase
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ChatViewModel(
+@HiltViewModel
+class ChatViewModel @Inject constructor(
     private val createChatUseCase: CreateChatUseCase,
     private val sendMessageUseCase: SendMessageUseCase
 ) : ViewModel() {

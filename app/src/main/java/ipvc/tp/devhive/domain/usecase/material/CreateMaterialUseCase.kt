@@ -23,6 +23,8 @@ class CreateMaterialUseCase(
         thumbnailUrl: String,
         fileSize: Long,
         ownerUid: String,
+        ownerName: String,
+        ownerImageUrl: String,
         categories: List<String>,
         isPublic: Boolean,
         subject: String
@@ -45,6 +47,8 @@ class CreateMaterialUseCase(
             thumbnailUrl = thumbnailUrl,
             fileSize = fileSize,
             ownerUid = ownerUid,
+            ownerName = ownerName,
+            ownerImageUrl = ownerImageUrl,
             createdAt = now,
             updatedAt = now,
             categories = categories,

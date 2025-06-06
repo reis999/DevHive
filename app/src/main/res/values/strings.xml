@@ -121,9 +121,13 @@
     <string name="search_users">Procurar utilizadores</string>
     <string name="no_chats_found">Nenhuma conversa encontrada</string>
     <string name="chat_image">Imagem de Chat</string>
+    <string name="select_user_to_chat">Selecionar utilizador para conversar</string>
+    <string name="no_users_found">Nenhum utilizador encontrado</string>
+    <string name="no_users">Nenhum utilizador</string>
+    <string name="try_different_search">Experimente uma pesquisa diferente</string>
 
     <!-- Comentarios -->
-    <string name="hint_comment">Escreva um comentário...</string>
+    <string name="hint_comment">Escreva um comentário…</string>
     <string name="user_avatar">Avatar do utilizador</string>
     <string name="like_comment">Comentário Gosto</string>
 
@@ -143,6 +147,8 @@
     <string name="no_bio">Utilizador não tem biografia</string>
     <string name="favorites">Favoritos</string>
     <string name="profile_updated">Perfil atualizado com sucesso</string>
+    <string name="followers">Seguidores</string>
+    <string name="following">A seguir</string>
 
     <!-- Erros e Mensagens -->
     <string name="error_login">Erro ao fazer login. Verifique suas credenciais.</string>
