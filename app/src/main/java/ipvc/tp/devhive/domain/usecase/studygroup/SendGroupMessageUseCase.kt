@@ -16,6 +16,7 @@ class SendGroupMessageUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(
         groupId: String,
+        senderId: String,
         content: String,
         attachments: List<MessageAttachment> = emptyList()
     ): Result<GroupMessage> {
@@ -39,7 +40,7 @@ class SendGroupMessageUseCase @Inject constructor(
             id = UUID.randomUUID().toString(),
             studyGroupId = groupId,
             content = content,
-            senderUid = currentUser.id,
+            senderUid = senderId,
             senderName = currentUser.name ?: "Utilizador",
             senderImageUrl = currentUser.profileImageUrl ?: "",
             createdAt = Timestamp(Date()),

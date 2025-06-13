@@ -20,15 +20,12 @@ class CreateStudyGroupUseCase @Inject constructor(
         isPrivate: Boolean,
         maxMembers: Int
     ): Result<StudyGroup> {
-        // Verifica se o utilizador está logado
         val currentUser = userRepository.getCurrentUser() ?: return Result.failure(
-            IllegalStateException("Usuário não está logado")
+            IllegalStateException("Utilizador não está logado")
         )
 
-        // Gera um código de acesso para grupos privados
         val joinCode = if (isPrivate) generateJoinCode() else ""
 
-        // Cria o objeto StudyGroup
         val studyGroup = StudyGroup(
             id = UUID.randomUUID().toString(),
             name = name,
@@ -48,12 +45,10 @@ class CreateStudyGroupUseCase @Inject constructor(
             messageCount = 0
         )
 
-        // Salva o grupo no repositório
         return studyGroupRepository.createStudyGroup(studyGroup)
     }
 
     private fun generateJoinCode(): String {
-        // Gera um código de 6 caracteres alfanuméricos
         val allowedChars = ('A'..'Z') + ('0'..'9')
         return (1..6)
             .map { allowedChars.random() }

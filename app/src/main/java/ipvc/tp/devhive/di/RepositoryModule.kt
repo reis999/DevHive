@@ -1,6 +1,7 @@
 package ipvc.tp.devhive.di
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -96,9 +97,10 @@ object RepositoryModule {
         studyGroupDao: StudyGroupDao,
         groupMessageDao: GroupMessageDao,
         studyGroupService: StudyGroupService,
-        @ApplicationScope scope: CoroutineScope
+        @ApplicationScope scope: CoroutineScope,
+        firebaseStorage: FirebaseStorage
     ): DomainStudyGroupRepository {
-        return DataStudyGroupRepository(studyGroupDao, groupMessageDao, studyGroupService, scope)
+        return DataStudyGroupRepository(studyGroupDao, groupMessageDao, studyGroupService, scope, firebaseStorage)
     }
 
     @Provides

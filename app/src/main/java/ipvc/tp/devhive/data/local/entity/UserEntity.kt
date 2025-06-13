@@ -3,6 +3,7 @@ package ipvc.tp.devhive.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.PropertyName
 import ipvc.tp.devhive.data.model.ContributionStats
 import ipvc.tp.devhive.data.model.User
 import ipvc.tp.devhive.data.util.SyncStatus
@@ -21,7 +22,7 @@ data class UserEntity(
     val course: String,
     val createdAt: Long,
     val lastLogin: Long,
-    val isOnline: Boolean,
+    @get:PropertyName("online") val isOnline: Boolean,
     val materialCount: Int,
     val commentCount: Int,
     val likeCount: Int,
@@ -46,7 +47,7 @@ data class UserEntity(
                 course = user.course,
                 createdAt = user.createdAt.seconds * 1000 + user.createdAt.nanoseconds / 1000000,
                 lastLogin = user.lastLogin.seconds * 1000 + user.lastLogin.nanoseconds / 1000000,
-                isOnline = user.isOnline,
+                isOnline = user.online,
                 materialCount = user.contributionStats.materials,
                 commentCount = user.contributionStats.comments,
                 likeCount = user.contributionStats.likes,
@@ -70,7 +71,7 @@ data class UserEntity(
                 course = entity.course,
                 createdAt = Timestamp(entity.createdAt / 1000, ((entity.createdAt % 1000) * 1000000).toInt()),
                 lastLogin = Timestamp(entity.lastLogin / 1000, ((entity.lastLogin % 1000) * 1000000).toInt()),
-                isOnline = entity.isOnline,
+                online = entity.isOnline,
                 contributionStats = ContributionStats(
                     materials = entity.materialCount,
                     comments = entity.commentCount,

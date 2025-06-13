@@ -1,218 +1,249 @@
 package ipvc.tp.devhive.presentation.ui.main.studygroup
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
-import androidx.activity.OnBackPressedCallback
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.firebase.Timestamp
-import de.hdodenhof.circleimageview.CircleImageView
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
+import ipvc.tp.devhive.databinding.ActivityStudyGroupChatBinding
 import ipvc.tp.devhive.domain.model.GroupMessage
 import ipvc.tp.devhive.domain.model.StudyGroup
+import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupEvent
+import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupGeneralResult
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModel
-import java.util.Date
 
+@AndroidEntryPoint
 class StudyGroupChatActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_STUDY_GROUP_ID = "extra_study_group_id"
     }
 
-    private val studyGroupViewModel: StudyGroupViewModel by viewModels()
+    private lateinit var binding: ActivityStudyGroupChatBinding
+    private val viewModel: StudyGroupViewModel by viewModels()
 
-    private lateinit var toolbar: Toolbar
-    private lateinit var ivGroupImage: CircleImageView
-    private lateinit var tvGroupName: TextView
-    private lateinit var tvMemberCount: TextView
-    private lateinit var recyclerViewMessages: RecyclerView
-    private lateinit var etMessage: EditText
-    private lateinit var btnSend: ImageButton
-
-    private val groupMessageAdapter = GroupMessageAdapter("current_user_id")
+    private lateinit var groupMessageAdapter: GroupMessageAdapter
+    private var currentUserId: String? = null
     private var studyGroupId: String = ""
-    private var currentStudyGroup: StudyGroup? = null
+    private var isAdapterInitialized = false // Para controlar a inicialização do adapter
+
+    private val groupSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            Toast.makeText(this, R.string.group_settings_updated, Toast.LENGTH_SHORT).show()
+            viewModel.loadStudyGroupDetails(studyGroupId)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_study_group_chat)
+        binding = ActivityStudyGroupChatBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        // Obtém o ID do grupo da intent
         studyGroupId = intent.getStringExtra(EXTRA_STUDY_GROUP_ID) ?: ""
         if (studyGroupId.isEmpty()) {
+            Toast.makeText(this, R.string.group_id_not_provided, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
-        // Inicializa as views
-        toolbar = findViewById(R.id.toolbar)
-        ivGroupImage = findViewById(R.id.iv_group_image)
-        tvGroupName = findViewById(R.id.tv_group_name)
-        tvMemberCount = findViewById(R.id.tv_member_count)
-        recyclerViewMessages = findViewById(R.id.recycler_view_messages)
-        etMessage = findViewById(R.id.et_message)
-        btnSend = findViewById(R.id.btn_send)
+        setupToolbar()
+        observeViewModel()
 
-        // Configura a toolbar
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
-
-        // Configura o RecyclerView
-        val layoutManager = LinearLayoutManager(this)
-        layoutManager.stackFromEnd = true
-        recyclerViewMessages.layoutManager = layoutManager
-        recyclerViewMessages.adapter = groupMessageAdapter
-
-        // Carrega os detalhes do grupo
-        loadStudyGroupDetails()
-
-        // Configura o botão de enviar
-        btnSend.setOnClickListener {
+        binding.btnSend.setOnClickListener {
             sendMessage()
+        }
+
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = ""
+    }
+
+    private fun initializeAdapterAndRecyclerView(userId: String) {
+
+        if (!isAdapterInitialized || currentUserId != userId) {
+            currentUserId = userId
+            groupMessageAdapter = GroupMessageAdapter(userId)
+            binding.recyclerViewMessages.apply {
+                layoutManager = LinearLayoutManager(this@StudyGroupChatActivity).apply {
+                    stackFromEnd = true // Novas mensagens no final
+                }
+                adapter = groupMessageAdapter
+            }
+            isAdapterInitialized = true
+            Log.d("ChatActivity", "Adapter initialized/updated with userId: $userId")
+
+            if (studyGroupId.isNotEmpty()) {
+                viewModel.loadGroupMessages(studyGroupId)
+            }
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val onBackPressedCallback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                finish()
+    private fun observeViewModel() {
+        viewModel.currentUser.observe(this) { user ->
+            if (user != null) {
+                initializeAdapterAndRecyclerView(user.id) // Garante que o adapter está pronto com o user ID
+                // Carrega detalhes e mensagens apenas se o user estiver definido e o ID do grupo também
+                if (studyGroupId.isNotEmpty()) {
+                    viewModel.loadStudyGroupDetails(studyGroupId) // Carrega/recarrega detalhes do grupo
+                    // As mensagens são carregadas dentro de initializeAdapter ou podem ser chamadas aqui
+                    if (isAdapterInitialized) viewModel.loadGroupMessages(studyGroupId)
+                }
+            } else {
+                Toast.makeText(this, R.string.user_not_auth, Toast.LENGTH_LONG).show()
+                isAdapterInitialized = false // Reseta
+                currentUserId = null
+                finish() // Fecha a activity se o user deslogar
             }
         }
-        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
+        viewModel.selectedStudyGroup.observe(this) { group ->
+            if (group != null) {
+                displayStudyGroupDetails(group)
+                invalidateOptionsMenu()
+            } else {
+                if (viewModel.currentUser.value != null) {
+                    Toast.makeText(this, R.string.group_no_longer_available, Toast.LENGTH_LONG)
+                        .show()
+                    finish()
+                }
+            }
+        }
+
+        viewModel.groupMessages.observe(this) { messages ->
+            if (isAdapterInitialized) { // Garante que o adapter existe
+                displayMessages(messages)
+            }
+        }
+
+        viewModel.sendMessageResultEvent.observe(this) { event ->
+            event?.getContentIfNotHandled()?.let { result ->
+                binding.btnSend.isEnabled = true
+
+                when (result) {
+                    is StudyGroupGeneralResult.Success<*> -> {
+                        binding.etMessage.text?.clear()
+                        Log.d("ChatActivity", "Mensagem enviada com sucesso.")
+                    }
+
+                    is StudyGroupGeneralResult.Failure -> {
+                        Toast.makeText(
+                            this,
+                            getString(R.string.error_sending_message_param, result.message),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
+
+
+        viewModel.generalEvent.observe(this) { event ->
+            event?.getContentIfNotHandled()?.let { studyEvent ->
+                if (studyEvent is StudyGroupEvent.Error) {
+                    Toast.makeText(this, studyEvent.message, Toast.LENGTH_LONG).show()
+                    if (studyEvent.message.contains("não encontrado", ignoreCase = true)) {
+                        finish()
+                    }
+                }
+            }
+        }
+
+        viewModel.isCurrentUserAdmin.observe(this) {
+            invalidateOptionsMenu()
+        }
+    }
+
+    private fun displayStudyGroupDetails(studyGroup: StudyGroup) {
+        supportActionBar?.title = studyGroup.name
+        binding.tvGroupName.text = studyGroup.name
+        binding.tvMemberCount.text = getString(R.string.member_count, studyGroup.members.size) // Assumindo que members existe
+
+        val imageUrl = studyGroup.imageUrl.ifEmpty { null }
+        Glide.with(this)
+            .load(imageUrl)
+            .placeholder(R.drawable.placeholder_group)
+            .error(R.drawable.placeholder_group)
+            .circleCrop()
+            .into(binding.ivGroupImage)
+    }
+
+    private fun displayMessages(messages: List<GroupMessage>) {
+        if (!::groupMessageAdapter.isInitialized) return
+
+        val previousItemCount = groupMessageAdapter.itemCount
+        groupMessageAdapter.submitList(messages.toList()) {
+            if (messages.isNotEmpty()) {
+                if (groupMessageAdapter.itemCount > previousItemCount || previousItemCount == 0) {
+                    scrollToLastMessage()
+                }
+            }
+        }
+        Log.d("ChatActivity", "Displaying ${messages.size} messages.")
+    }
+
+    private fun scrollToLastMessage() {
+        if (groupMessageAdapter.itemCount > 0) {
+            binding.recyclerViewMessages.smoothScrollToPosition(groupMessageAdapter.itemCount - 1)
+        }
+    }
+
+    private fun sendMessage() {
+        if (currentUserId == null) {
+            Toast.makeText(this, R.string.wait_initializing, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val messageText = binding.etMessage.text.toString().trim()
+        if (messageText.isEmpty()) {
+            return
+        }
+
+        binding.btnSend.isEnabled = false
+
+        viewModel.sendGroupMessage(
+            groupId = studyGroupId,
+            content = messageText
+            // attachments = emptyList() // Opcional
+        )
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
                 onBackPressedDispatcher.onBackPressed()
+                true
+            }
+            R.id.action_group_settings -> {
+                if (viewModel.isCurrentUserAdmin.value == true && studyGroupId.isNotEmpty()) {
+                    val intent = Intent(this, StudyGroupSettingsActivity::class.java).apply {
+                        putExtra(StudyGroupSettingsActivity.EXTRA_GROUP_ID_SETTINGS, studyGroupId)
+                    }
+                    groupSettingsLauncher.launch(intent)
+                } else if(viewModel.isCurrentUserAdmin.value == false) {
+                    Toast.makeText(this, R.string.only_admin_can_access_settings, Toast.LENGTH_SHORT).show()
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun loadStudyGroupDetails() {
-        // implementação real: usar studyGroupViewModel.getStudyGroupById(studyGroupId)
-        val mockStudyGroup = getMockStudyGroup()
-        displayStudyGroupDetails(mockStudyGroup)
-
-        // Carrega as mensagens do grupo
-        val mockMessages = getMockGroupMessages()
-        displayMessages(mockMessages)
-    }
-
-    private fun displayStudyGroupDetails(studyGroup: StudyGroup) {
-        currentStudyGroup = studyGroup
-
-        tvGroupName.text = studyGroup.name
-        tvMemberCount.text = getString(R.string.member_count, studyGroup.members.size)
-
-        // Carrega a imagem do grupo
-        if (studyGroup.imageUrl.isNotEmpty()) {
-            Glide.with(this)
-                .load(studyGroup.imageUrl)
-                .placeholder(R.drawable.placeholder_group)
-                .error(R.drawable.placeholder_group)
-                .circleCrop()
-                .into(ivGroupImage)
-        }
-    }
-
-    private fun displayMessages(messages: List<GroupMessage>) {
-        groupMessageAdapter.submitList(messages)
-        if (messages.isNotEmpty()) {
-            recyclerViewMessages.scrollToPosition(messages.size - 1)
-        }
-    }
-
-    private fun sendMessage() {
-        val messageText = etMessage.text.toString().trim()
-        if (messageText.isEmpty()) {
-            return
-        }
-
-        // implementação real: usar studyGroupViewModel.sendGroupMessage()
-        val newMessage = GroupMessage(
-            id = "msg_" + System.currentTimeMillis(),
-            studyGroupId = studyGroupId,
-            content = messageText,
-            senderUid = "current_user_id",
-            senderName = "Você",
-            senderImageUrl = "",
-            createdAt = Timestamp(Date()),
-            attachments = emptyList()
-        )
-
-        // Adiciona a mensagem à lista
-        val currentMessages = groupMessageAdapter.currentList.toMutableList()
-        currentMessages.add(newMessage)
-        groupMessageAdapter.submitList(currentMessages)
-
-        // Limpa o campo de texto
-        etMessage.text.clear()
-
-        // Rola para a última mensagem
-        recyclerViewMessages.scrollToPosition(currentMessages.size - 1)
-    }
-
-    private fun getMockStudyGroup(): StudyGroup {
-        return StudyGroup(
-            id = studyGroupId,
-            name = "Grupo de Programação Java",
-            description = "Grupo dedicado ao estudo de Java",
-            createdBy = "creator_id",
-            createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000 * 7)),
-            updatedAt = Timestamp(Date()),
-            imageUrl = "",
-            members = listOf("current_user_id", "user2", "user3", "user4"),
-            admins = listOf("creator_id"),
-            categories = listOf("Programação", "Java"),
-            isPrivate = false,
-            joinCode = "",
-            maxMembers = 50,
-            lastMessageAt = Timestamp(Date(System.currentTimeMillis() - 3600000)),
-            lastMessagePreview = "Alguém pode ajudar com este exercício?",
-            messageCount = 15
-        )
-    }
-
-    private fun getMockGroupMessages(): List<GroupMessage> {
-        return listOf(
-            GroupMessage(
-                id = "msg1",
-                studyGroupId = studyGroupId,
-                content = "Olá pessoal! Bem-vindos ao grupo de Java!",
-                senderUid = "creator_id",
-                senderName = "João Silva",
-                senderImageUrl = "",
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)),
-                attachments = emptyList()
-            ),
-            GroupMessage(
-                id = "msg2",
-                studyGroupId = studyGroupId,
-                content = "Obrigado! Estou animado para aprender!",
-                senderUid = "user2",
-                senderName = "Maria Santos",
-                senderImageUrl = "",
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 82800000)),
-                attachments = emptyList()
-            ),
-            GroupMessage(
-                id = "msg3",
-                studyGroupId = studyGroupId,
-                content = "Alguém pode me ajudar com este exercício de herança?",
-                senderUid = "user3",
-                senderName = "Pedro Costa",
-                senderImageUrl = "",
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 7200000)),
-                attachments = emptyList()
-            )
-        )
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.study_group_chat_menu, menu)
+        val settingsItem = menu?.findItem(R.id.action_group_settings)
+        settingsItem?.isVisible = viewModel.isCurrentUserAdmin.value == true && viewModel.selectedStudyGroup.value != null
+        return true
     }
 }

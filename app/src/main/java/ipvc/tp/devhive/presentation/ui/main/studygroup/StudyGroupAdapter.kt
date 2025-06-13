@@ -1,54 +1,62 @@
 package ipvc.tp.devhive.presentation.ui.main.studygroup
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ipvc.tp.devhive.R
+import ipvc.tp.devhive.databinding.ItemStudyGroupBinding
 import ipvc.tp.devhive.domain.model.StudyGroup
-import ipvc.tp.devhive.presentation.util.DateFormatUtils
 
-class StudyGroupAdapter :
-    ListAdapter<StudyGroup, StudyGroupAdapter.StudyGroupViewHolder>(StudyGroupDiffCallback()) {
+class StudyGroupAdapter(
+    private val onGroupClickListener: (studyGroup: StudyGroup) -> Unit
+) : ListAdapter<StudyGroup, StudyGroupAdapter.StudyGroupViewHolder>(StudyGroupDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StudyGroupViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_study_group, parent, false)
-        return StudyGroupViewHolder(view)
+        val binding = ItemStudyGroupBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return StudyGroupViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: StudyGroupViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val studyGroup = getItem(position)
+        holder.bind(studyGroup)
     }
 
-    inner class StudyGroupViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val ivGroupImage: ImageView = itemView.findViewById(R.id.iv_group_image)
-        private val tvGroupName: TextView = itemView.findViewById(R.id.tv_group_name)
-        private val tvGroupDescription: TextView = itemView.findViewById(R.id.tv_group_description)
-        private val tvMemberCount: TextView = itemView.findViewById(R.id.tv_member_count)
-        private val tvCategories: TextView = itemView.findViewById(R.id.tv_categories)
+    inner class StudyGroupViewHolder(
+        private val binding: ItemStudyGroupBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.root.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val studyGroup = getItem(position)
+                    onGroupClickListener(studyGroup)
+                }
+            }
+        }
 
         fun bind(studyGroup: StudyGroup) {
-            tvGroupName.text = studyGroup.name
-            tvGroupDescription.text = studyGroup.description
-            tvMemberCount.text = itemView.context.getString(
+            binding.tvGroupName.text = studyGroup.name
+            binding.tvGroupDescription.text = studyGroup.description
+            binding.tvMemberCount.text = itemView.context.getString(
                 R.string.member_count,
                 studyGroup.members.size
             )
-            tvCategories.text = studyGroup.categories.joinToString(", ")
+            binding.tvCategories.text = studyGroup.categories.joinToString(", ")
 
-            // Carrega a imagem com Glide
-            Glide.with(itemView.context)
+            Glide.with(binding.root.context)
                 .load(studyGroup.imageUrl)
                 .placeholder(R.drawable.placeholder_group)
                 .error(R.drawable.placeholder_group)
                 .centerCrop()
-                .into(ivGroupImage)
+                .into(binding.ivGroupImage)
         }
     }
 

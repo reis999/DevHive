@@ -5,12 +5,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
+import ipvc.tp.devhive.R
 import ipvc.tp.devhive.databinding.FragmentProfileBinding
-import ipvc.tp.devhive.presentation.ui.profile.EditProfileActivity
+import ipvc.tp.devhive.presentation.ui.auth.LoginActivity
+import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileEvent
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
 @AndroidEntryPoint
@@ -42,6 +45,24 @@ class ProfileFragment : Fragment() {
         binding.fabEditProfile.setOnClickListener {
             startActivity(Intent(requireContext(), EditProfileActivity::class.java))
         }
+
+        binding.toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_logout -> {
+                    viewModel.logout()
+                    val intent = Intent(requireContext(), LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    requireActivity().finish()
+                    true
+                }
+                R.id.action_settings -> {
+                    // settings (later)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun loadUserProfile() {
@@ -63,8 +84,28 @@ class ProfileFragment : Fragment() {
                 binding.tvLikesCount.text = user.contributionStats.likes.toString()
                 binding.tvSessionsCount.text = user.contributionStats.sessions.toString()
 
-                // Carregar imagem de perfil (em uma implementação real)
-                Glide.with(this).load(user.profileImageUrl).into(binding.ivProfile)
+                Glide.with(this).load(user.profileImageUrl)
+                    .placeholder(R.drawable.profile_placeholder)
+                    .error(R.drawable.profile_placeholder)
+                    .into(binding.ivProfile)
+            } else {
+                requireActivity().finish()
+            }
+        }
+
+        viewModel.profileEvent.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { profileEvent ->
+                when (profileEvent) {
+                    is ProfileEvent.Error -> {
+                        Toast.makeText(context, profileEvent.message, Toast.LENGTH_SHORT).show()
+                    }
+
+                    is ProfileEvent.LogoutSuccess -> {
+                        Toast.makeText(context, "Logout successful", Toast.LENGTH_SHORT).show()
+                    }
+
+                    else -> {}
+                }
             }
         }
     }

@@ -1,257 +1,337 @@
 package ipvc.tp.devhive.presentation.viewmodel.studygroup
 
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.GroupMessage
 import ipvc.tp.devhive.domain.model.MessageAttachment
 import ipvc.tp.devhive.domain.model.StudyGroup
+import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.domain.usecase.studygroup.CreateStudyGroupUseCase
-import ipvc.tp.devhive.domain.usecase.studygroup.JoinStudyGroupUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.DeleteStudyGroupUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupByIdUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupMessagesUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupsByUserUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.SendGroupMessageUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.UpdateStudyGroupUseCase
+import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
-import java.util.Date
-import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class StudyGroupViewModel @Inject constructor(
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val getStudyGroupsByUserUseCase: GetStudyGroupsByUserUseCase,
+    private val getStudyGroupByIdUseCase: GetStudyGroupByIdUseCase,
+    private val getStudyGroupMessagesUseCase: GetStudyGroupMessagesUseCase,
     private val createStudyGroupUseCase: CreateStudyGroupUseCase,
-    private val joinStudyGroupUseCase: JoinStudyGroupUseCase,
-    private val sendGroupMessageUseCase: SendGroupMessageUseCase
+    private val sendGroupMessageUseCase: SendGroupMessageUseCase,
+    private val updateStudyGroupUseCase: UpdateStudyGroupUseCase, // Adicionado
+    private val deleteStudyGroupUseCase: DeleteStudyGroupUseCase  // Adicionado
+    // Removi removeMemberUseCase por enquanto, pois não estava sendo usado diretamente nas Activities fornecidas
 ) : ViewModel() {
-    // LiveData para a lista de grupos de estudo
-    private val _studyGroups = MutableLiveData<List<StudyGroup>>()
-    val studyGroups: LiveData<List<StudyGroup>> = _studyGroups
 
-    // LiveData para um grupo de estudo específico
-    private val _studyGroup = MutableLiveData<StudyGroup>()
-    val studyGroup: LiveData<StudyGroup> = _studyGroup
+    private var hasAttemptedInitialGroupLoadForCurrentUser = false
 
-    // LiveData para eventos de grupo de estudo
-    private val _studyGroupEvent = MutableLiveData<Event<StudyGroupEvent>>()
-    val studyGroupEvent: LiveData<Event<StudyGroupEvent>> = _studyGroupEvent
+    // Para StudyGroupsFragment
+    private val _userStudyGroups = MediatorLiveData<List<StudyGroup>>()
+    val userStudyGroups: LiveData<List<StudyGroup>> = _userStudyGroups
+    private var currentUserStudyGroupsSource: LiveData<List<StudyGroup>>? = null
 
-    // LiveData para o estado de loading
-    private val _isLoading = MutableLiveData<Boolean>()
+    // Para StudyGroupChatActivity e StudyGroupSettingsActivity (detalhes do grupo selecionado)
+    private val _selectedStudyGroup = MutableLiveData<StudyGroup?>()
+    val selectedStudyGroup: LiveData<StudyGroup?> = _selectedStudyGroup
+
+    // Para StudyGroupChatActivity (mensagens)
+    private val _groupMessages = MediatorLiveData<List<GroupMessage>>()
+    val groupMessages: LiveData<List<GroupMessage>> = _groupMessages
+    private var currentMessagesSource: LiveData<List<GroupMessage>>? = null
+
+    // Para eventos gerais e de erro que não são específicos de uma operação
+    private val _generalEvent = MutableLiveData<Event<StudyGroupEvent>?>()
+    val generalEvent: LiveData<Event<StudyGroupEvent>?> = _generalEvent
+
+    // Para isLoading geral (usado por várias telas)
+    private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _studyGroupCreationResult = MutableLiveData<Event<Result<StudyGroup>>>()
-    val studyGroupCreationResult: LiveData<Event<Result<StudyGroup>>> = _studyGroupCreationResult
+    // Para CreateStudyGroupActivity
+    private val _createGroupResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>() // Usando um Result mais genérico
+    val createGroupResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _createGroupResultEvent
 
-    private val _joinStudyGroupResult = MutableLiveData<Event<Result<Boolean>>>()
-    val joinStudyGroupResult: LiveData<Event<Result<Boolean>>> = _joinStudyGroupResult
+    // Para StudyGroupChatActivity (envio de mensagens)
+    private val _sendMessageResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
+    val sendMessageResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _sendMessageResultEvent
 
-    private val _sendMessageResult = MutableLiveData<Event<Result<GroupMessage>>>()
-    val sendMessageResult: LiveData<Event<Result<GroupMessage>>> = _sendMessageResult
+    // Para StudyGroupSettingsActivity
+    private val _updateGroupResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
+    val updateGroupResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _updateGroupResultEvent
 
-    // Carrega a lista de grupos de estudo
-    fun loadStudyGroups() {
-        _isLoading.value = true
+    private val _deleteGroupResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
+    val deleteGroupResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _deleteGroupResultEvent
 
-        // implementação real: buscar dados do repositório
+    private val _isCurrentUserAdmin = MutableLiveData<Boolean>(false)
+    val isCurrentUserAdmin: LiveData<Boolean> = _isCurrentUserAdmin
+
+    private val _currentUser = MutableLiveData<User?>()
+    val currentUser: LiveData<User?> = _currentUser
+
+    init {
+        loadCurrentUser()
+    }
+
+    private fun loadCurrentUser() {
         viewModelScope.launch {
-            try {
-                // Simula uma chamada de rede
-                kotlinx.coroutines.delay(1000)
+            val user = getCurrentUserUseCase()
+            val previousUserId = _currentUser.value?.id
+            _currentUser.value = user
 
-                _studyGroups.value = emptyList()
-                _isLoading.value = false
-            } catch (e: Exception) {
-                _isLoading.value = false
-                _studyGroupEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao carregar grupos"))
+            if (user?.id != previousUserId) {
+                hasAttemptedInitialGroupLoadForCurrentUser = false
+                _userStudyGroups.value = emptyList()
             }
         }
     }
 
-    // Carrega um grupo de estudo específico
-    fun loadStudyGroup(groupId: String) {
-        _isLoading.value = true
+    fun loadUserStudyGroups() {
+        val user = _currentUser.value
+        if(user == null){
+            _isLoading.value = false
+            _generalEvent.value = Event(StudyGroupEvent.Error("Utilizador não autenticado"))
+            _userStudyGroups.value = emptyList()
+            return
+        }
 
-        // implementação real: buscar dados do repositório
+
+        if (hasAttemptedInitialGroupLoadForCurrentUser && currentUserStudyGroupsSource != null) {
+            Log.d("ViewModel", "loadUserStudyGroups: Already attempted load and have a source. Skipping.")
+            if (_isLoading.value == true) {
+                Log.d("ViewModel", "loadUserStudyGroups: Already loading. Skipping.")
+                return
+            }
+            return
+        }
+
+
+        Log.d("ViewModel", "loadUserStudyGroups: Proceeding with load for user ${user.id}")
+        _isLoading.value = true
+        currentUserStudyGroupsSource?.let {
+            _userStudyGroups.removeSource(it)
+            currentUserStudyGroupsSource = null
+        }
+
         viewModelScope.launch {
             try {
-                // Simula uma chamada de rede
-                kotlinx.coroutines.delay(1000)
+                val newSource = getStudyGroupsByUserUseCase(user.id)
+                currentUserStudyGroupsSource = newSource
+                hasAttemptedInitialGroupLoadForCurrentUser = true
 
-                val group = StudyGroup(
-                    id = groupId,
-                    name = "Grupo de Programação Java",
-                    description = "Grupo dedicado ao estudo e prática de programação em Java.",
-                    createdBy = "user123",
-                    createdAt = Timestamp(Date()),
-                    updatedAt = Timestamp(Date()),
-                    imageUrl = "",
-                    members = listOf("user123", "user456", "user789"),
-                    admins = listOf("user123"),
-                    categories = listOf("Programação", "Java", "OOP"),
-                    isPrivate = false,
-                    joinCode = ""
-                )
-
-                _studyGroup.value = group
-                _isLoading.value = false
+                _userStudyGroups.addSource(newSource) { updatedGroups ->
+                    Log.d("ViewModel", "Groups received from source. Count: ${updatedGroups.size}")
+                    if (_userStudyGroups.value != updatedGroups){
+                        _userStudyGroups.value = updatedGroups
+                    }
+                    _isLoading.value = false
+                }
             } catch (e: Exception) {
+                Log.e("ViewModel", "Erro ao carregar grupos do utilizador: ${e.message}", e)
                 _isLoading.value = false
-                _studyGroupEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao carregar grupo"))
+                _userStudyGroups.value = emptyList()
+                _generalEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao buscar grupos do utilizador."))
+                hasAttemptedInitialGroupLoadForCurrentUser = false
             }
         }
     }
 
-    // Cria um novo grupo de estudo
+    // Usado por StudyGroupChatActivity e StudyGroupSettingsActivity
+    fun loadStudyGroupDetails(groupId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                // Assumindo que getStudyGroupByIdUseCase é suspend e retorna StudyGroup?
+                val group = getStudyGroupByIdUseCase(groupId)
+                _selectedStudyGroup.value = group
+                if (group == null) {
+                    _generalEvent.value = Event(StudyGroupEvent.Error("Grupo não encontrado"))
+                } else {
+                    // Verifica se o currentUser é admin deste grupo
+                    val adminId = group.admins.firstOrNull() ?: "" // Supondo que StudyGroup tem um campo adminId ou admin (User)
+                    _isCurrentUserAdmin.value = _currentUser.value?.id == adminId
+                }
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Erro ao carregar detalhes do grupo $groupId: ${e.message}", e)
+                _selectedStudyGroup.value = null
+                _generalEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao carregar detalhes do grupo."))
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun createStudyGroup(
         name: String,
         description: String,
-        creatorUid: String,
         isPrivate: Boolean,
         categories: List<String>
     ) {
         _isLoading.value = true
-
-        // implementação real: salvar dados no repositório
         viewModelScope.launch {
+            val user = _currentUser.value
+            if (user == null) {
+                _createGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure("Utilizador não autenticado para criar grupo."))
+                _isLoading.value = false
+                return@launch
+            }
             try {
-                // Simula uma chamada de rede
-                kotlinx.coroutines.delay(1000)
-
-                val groupId = UUID.randomUUID().toString()
-                val now = Date()
-                val joinCode = if (isPrivate) {
-                    (1..6).map { ('0'..'9').random() }.joinToString("")
-                } else {
-                    ""
-                }
-
-                val newGroup = StudyGroup(
-                    id = groupId,
+                val result = createStudyGroupUseCase(
                     name = name,
                     description = description,
-                    createdBy = creatorUid,
-                    createdAt = Timestamp(now),
-                    updatedAt = Timestamp(now),
-                    imageUrl = "",
-                    members = listOf(creatorUid),
-                    admins = listOf(creatorUid),
                     categories = categories,
                     isPrivate = isPrivate,
-                    joinCode = joinCode
+                    maxMembers = 50,
                 )
 
-                val currentGroups = _studyGroups.value ?: emptyList()
-                _studyGroups.value = currentGroups + newGroup
-
-                _isLoading.value = false
-                _studyGroupEvent.value = Event(StudyGroupEvent.CreateSuccess(newGroup))
-            } catch (e: Exception) {
-                _isLoading.value = false
-                _studyGroupEvent.value = Event(StudyGroupEvent.CreateFailure(e.message ?: "Erro ao criar grupo"))
-            }
-        }
-    }
-
-    // Entra em um grupo de estudo
-    fun joinStudyGroup(groupId: String, userId: String, joinCode: String = "") {
-        _isLoading.value = true
-
-        // implementação real: atualizar dados no repositório
-        viewModelScope.launch {
-            try {
-                // Simula uma chamada de rede
-                kotlinx.coroutines.delay(1000)
-
-                // Verifica se o grupo existe
-                val currentGroup = _studyGroup.value
-                if (currentGroup != null && currentGroup.id == groupId) {
-                    // Verifica se é um grupo privado e se o código de acesso está correto
-                    if (currentGroup.isPrivate && currentGroup.joinCode != joinCode) {
-                        throw Exception("Código de acesso inválido")
+                if (result.isSuccess) {
+                    val newGroup = result.getOrNull()
+                    if (newGroup != null) {
+                        _createGroupResultEvent.value = Event(StudyGroupGeneralResult.Success(newGroup.id)) // Envia ID ou objeto
+                    } else {
+                        _createGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure("Grupo criado, mas dados não retornados."))
                     }
-
-                    // Adiciona o utilizador à lista de membros
-                    val updatedMembers = currentGroup.members.toMutableList()
-                    if (!updatedMembers.contains(userId)) {
-                        updatedMembers.add(userId)
-                    }
-
-                    val updatedGroup = currentGroup.copy(
-                        members = updatedMembers,
-                        updatedAt = Timestamp(Date())
-                    )
-
-                    _studyGroup.value = updatedGroup
-
-                    // Atualiza o grupo na lista geral
-                    val currentGroups = _studyGroups.value ?: emptyList()
-                    val updatedGroups = currentGroups.map {
-                        if (it.id == groupId) updatedGroup else it
-                    }
-                    _studyGroups.value = updatedGroups
-
-                    _isLoading.value = false
-                    _studyGroupEvent.value = Event(StudyGroupEvent.JoinSuccess)
                 } else {
-                    throw Exception("Grupo não encontrado")
+                    _createGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao criar grupo."))
                 }
             } catch (e: Exception) {
+                Log.e("ViewModel", "Exceção ao criar grupo: ${e.message}", e)
+                _createGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(e.message ?: "Erro inesperado ao criar grupo."))
+            } finally {
                 _isLoading.value = false
-                _studyGroupEvent.value = Event(StudyGroupEvent.JoinFailure(e.message ?: "Erro ao entrar no grupo"))
             }
-        }
-    }
-
-    fun createStudyGroup(
-        name: String,
-        description: String,
-        categories: List<String>,
-        isPrivate: Boolean,
-        maxMembers: Int
-    ) {
-        viewModelScope.launch {
-            val result = createStudyGroupUseCase(
-                name = name,
-                description = description,
-                categories = categories,
-                isPrivate = isPrivate,
-                maxMembers = maxMembers
-            )
-            _studyGroupCreationResult.value = Event(result)
-        }
-    }
-
-    fun joinStudyGroup(groupId: String) {
-        viewModelScope.launch {
-            val result = joinStudyGroupUseCase.joinByGroupId(groupId)
-            _joinStudyGroupResult.value = Event(result)
-        }
-    }
-
-    fun joinStudyGroupByCode(joinCode: String) {
-        viewModelScope.launch {
-            val result = joinStudyGroupUseCase.joinByJoinCode(joinCode)
-            _joinStudyGroupResult.value = Event(result)
         }
     }
 
     fun sendGroupMessage(groupId: String, content: String, attachments: List<MessageAttachment> = emptyList()) {
-        viewModelScope.launch {
-            val result = sendGroupMessageUseCase(
-                groupId = groupId,
-                content = content,
-                attachments = attachments
-            )
-            _sendMessageResult.value = Event(result)
+        val userId = _currentUser.value?.id
+        if (userId == null) {
+            _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure("Utilizador não autenticado para enviar mensagem."))
+            return
         }
+        // _isLoading.value = true; // Pode ter um isLoading específico para envio de msg
+
+        viewModelScope.launch {
+            try {
+                val result = sendGroupMessageUseCase(
+                    groupId = groupId,
+                    senderId = userId,
+                    content = content,
+                    attachments = attachments
+                )
+                if (result.isSuccess) {
+                    _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Success("Mensagem enviada")) // Sucesso
+                } else {
+                    _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao enviar mensagem."))
+                }
+            } catch (e: Exception) {
+                _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure(e.message ?: "Erro inesperado ao enviar mensagem."))
+            } finally {
+                // _isLoading.value = false;
+            }
+        }
+    }
+
+    fun loadGroupMessages(groupId: String) {
+        // _isLoading.value = true; // Pode ter um isLoading específico para mensagens
+        currentMessagesSource?.let {
+            _groupMessages.removeSource(it)
+        }
+
+        viewModelScope.launch { // Adicionado viewModelScope.launch
+            try {
+                // Assumindo que getStudyGroupMessagesUseCase retorna LiveData<List<GroupMessage>>
+                val newSource: LiveData<List<GroupMessage>> = getStudyGroupMessagesUseCase(groupId)
+                currentMessagesSource = newSource
+
+                _groupMessages.addSource(newSource) { messageList ->
+                    _groupMessages.value = messageList
+                    // _isLoading.value = false
+                }
+            } catch (e: Exception) {
+                // _isLoading.value = false
+                _groupMessages.value = emptyList()
+                _generalEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao carregar mensagens"))
+            }
+        }
+    }
+
+    // --- Funções para StudyGroupSettingsActivity ---
+    fun updateStudyGroupDetails(
+        groupId: String,
+        name: String,
+        description: String,
+        categories: List<String>,
+        newImageUri: Uri?
+    ) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = updateStudyGroupUseCase(
+                    groupId = groupId,
+                    name = name,
+                    description = description,
+                    categories = categories,
+                    imageUri = newImageUri,
+                )
+                if (result.isSuccess) {
+                    _updateGroupResultEvent.value = Event(StudyGroupGeneralResult.Success("Grupo atualizado com sucesso"))
+                    loadStudyGroupDetails(groupId)
+                } else {
+                    _updateGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao atualizar grupo."))
+                }
+            } catch (e: Exception) {
+                _updateGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(e.message ?: "Erro inesperado ao atualizar grupo."))
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteStudyGroup(groupId: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = deleteStudyGroupUseCase(groupId)
+                if (result.isSuccess) {
+                    _deleteGroupResultEvent.value = Event(StudyGroupGeneralResult.Success("Grupo excluído com sucesso"))
+                } else {
+                    _deleteGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao excluir grupo."))
+                }
+            } catch (e: Exception) {
+                _deleteGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(e.message ?: "Erro inesperado ao excluir grupo."))
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearGeneralEvent() {
+        _generalEvent.value = null
     }
 }
 
+// Eventos e Resultados Genéricos
 sealed class StudyGroupEvent {
-    data class CreateSuccess(val studyGroup: StudyGroup) : StudyGroupEvent()
-    data class CreateFailure(val message: String) : StudyGroupEvent()
-    object JoinSuccess : StudyGroupEvent()
-    data class JoinFailure(val message: String) : StudyGroupEvent()
+    data class Success(val message: String? = null) : StudyGroupEvent()
     data class Error(val message: String) : StudyGroupEvent()
+}
+
+// Um resultado mais genérico para operações
+sealed class StudyGroupGeneralResult {
+    data class Success<T>(val data: T? = null) : StudyGroupGeneralResult()
+    data class Failure(val message: String) : StudyGroupGeneralResult()
 }

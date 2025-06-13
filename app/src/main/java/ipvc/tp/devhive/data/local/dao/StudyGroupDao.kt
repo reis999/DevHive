@@ -10,7 +10,11 @@ import ipvc.tp.devhive.data.local.entity.StudyGroupEntity
 
 @Dao
 interface StudyGroupDao {
-    @Query("SELECT * FROM study_groups WHERE :userId IN (members) ORDER BY updatedAt DESC")
+
+    @Query("SELECT * FROM study_groups ORDER BY updatedAt DESC")
+    fun getStudyGroups(): LiveData<List<StudyGroupEntity>>
+
+    @Query("SELECT * FROM study_groups WHERE members LIKE '%' || :userId || '%' ORDER BY updatedAt DESC")
     fun getStudyGroupsByUser(userId: String): LiveData<List<StudyGroupEntity>>
 
     @Query("SELECT * FROM study_groups WHERE id = :studyGroupId")
@@ -39,4 +43,10 @@ interface StudyGroupDao {
 
     @Query("SELECT * FROM study_groups WHERE isPrivate = 0 AND name LIKE '%' || :query || '%'")
     suspend fun searchPublicStudyGroups(query: String): List<StudyGroupEntity>
+
+    @Query("SELECT * FROM study_groups WHERE isPrivate = 0 ORDER BY name ASC")
+    fun getAllPublicStudyGroups(): LiveData<List<StudyGroupEntity>>
+
+    @Query("SELECT * FROM study_groups WHERE joinCode = :joinCode LIMIT 1")
+    suspend fun getStudyGroupByJoinCode(joinCode: String): StudyGroupEntity?
 }

@@ -24,9 +24,9 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/message_container"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="80dp"
+        android:layout_marginStart="112dp"
         android:background="@drawable/bg_message_sent"
         android:maxWidth="260dp"
         android:minWidth="80dp"
@@ -37,12 +37,12 @@
         app:layout_constraintTop_toBottomOf="@+id/tv_sender_name">
 
         <TextView
-            android:id="@+id/tv_message_content"
-            android:layout_width="wrap_content"
+            android:id="@+id/tv_message_content_sent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
             android:textSize="14sp"
-            app:layout_constraintBottom_toTopOf="@+id/tv_message_time"
+            app:layout_constraintBottom_toTopOf="@+id/tv_timestamp_sent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
@@ -51,7 +51,7 @@
             tools:text="Esta é uma mensagem enviada pelo usuário atual. Pode ser longa e ocupar várias linhas." />
 
         <TextView
-            android:id="@+id/tv_message_time"
+            android:id="@+id/tv_timestamp_sent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -61,7 +61,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_message_content"
+            app:layout_constraintTop_toBottomOf="@+id/tv_message_content_sent"
             tools:ignore="SmallSp"
             tools:text="14:30" />
     </androidx.constraintlayout.widget.ConstraintLayout>

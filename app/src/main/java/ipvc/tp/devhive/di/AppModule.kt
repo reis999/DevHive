@@ -20,9 +20,18 @@ import ipvc.tp.devhive.domain.usecase.comment.LikeCommentUseCase
 import ipvc.tp.devhive.domain.usecase.material.CreateMaterialUseCase
 import ipvc.tp.devhive.domain.usecase.material.GetMaterialsUseCase
 import ipvc.tp.devhive.domain.usecase.material.ToggleBookmarkUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.CheckUserIsAdminUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.CreateStudyGroupUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.DeleteStudyGroupUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.GetPublicStudyGroupsUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupByIdUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupMessagesUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupsByUserUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupsUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.JoinStudyGroupUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.RemoveMemberUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.SendGroupMessageUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.UpdateStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.sync.SyncDataUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
 import ipvc.tp.devhive.domain.usecase.user.UpdateUserUseCase
@@ -112,6 +121,70 @@ object AppModule {
     }
 
     // Use Cases - Study Group
+
+    @Provides
+    fun provideGetStudyGroupsUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): GetStudyGroupsUseCase {
+        return GetStudyGroupsUseCase(studyGroupRepository)
+    }
+
+    @Provides
+    fun provideGetStudyGroupByUserUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): GetStudyGroupsByUserUseCase {
+        return GetStudyGroupsByUserUseCase(studyGroupRepository)
+    }
+
+    @Provides
+    fun provideGetAllPublicStudyGroupsUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): GetPublicStudyGroupsUseCase {
+        return GetPublicStudyGroupsUseCase(studyGroupRepository)
+    }
+
+    @Provides
+    fun provideGetStudyGroupByIdUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): GetStudyGroupByIdUseCase {
+        return GetStudyGroupByIdUseCase(studyGroupRepository)
+    }
+
+    @Provides
+    fun provideGetGroupMessagesUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): GetStudyGroupMessagesUseCase {
+        return GetStudyGroupMessagesUseCase(studyGroupRepository)
+    }
+
+    @Provides
+    fun provideCheckUserIsAdminUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): CheckUserIsAdminUseCase {
+        return CheckUserIsAdminUseCase(studyGroupRepository)
+    }
+
+    @Provides
+    fun provideDeleteStudyGroupUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): DeleteStudyGroupUseCase {
+        return DeleteStudyGroupUseCase(studyGroupRepository)
+    }
+
+    @Provides
+    fun provideUpdateStudyGroupUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): UpdateStudyGroupUseCase {
+        return UpdateStudyGroupUseCase(studyGroupRepository)
+    }
+
+    @Provides
+    fun provideRemoveMemberUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): RemoveMemberUseCase {
+        return RemoveMemberUseCase(studyGroupRepository)
+    }
+
     @Provides
     fun provideCreateStudyGroupUseCase(
         studyGroupRepository: StudyGroupRepository,

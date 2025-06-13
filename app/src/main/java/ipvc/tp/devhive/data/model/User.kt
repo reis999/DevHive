@@ -13,7 +13,7 @@ data class User(
     val course: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val lastLogin: Timestamp = Timestamp.now(),
-    val isOnline: Boolean = false,
+    val online: Boolean = false,
     val contributionStats: ContributionStats = ContributionStats()
 )
 

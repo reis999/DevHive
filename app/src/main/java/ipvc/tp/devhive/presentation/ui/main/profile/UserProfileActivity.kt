@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
 import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.model.User
@@ -21,6 +22,7 @@ import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
+@AndroidEntryPoint
 class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClickListener {
 
     companion object {

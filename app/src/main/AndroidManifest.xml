@@ -86,7 +86,11 @@
             android:exported="false" />
 
         <activity
-            android:name=".presentation.ui.profile.EditProfileActivity"
+            android:name=".presentation.ui.main.studygroup.StudyGroupSettingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".presentation.ui.main.profile.EditProfileActivity"
             android:exported="false" />
 
         <activity
@@ -95,4 +99,16 @@
 
     </application>
 
+    <queries>
+        <!-- Para permitir que a app encontre apps de galeria/selecionadores de imagem -->
+        <intent>
+            <action android:name="android.intent.action.PICK" />
+            <data android:mimeType="image/*" />
+        </intent>
+        <!-- Opcional, mas comum: para permitir que a app encontre apps que podem abrir imagens -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="image/*" />
+        </intent>
+    </queries>
 </manifest>

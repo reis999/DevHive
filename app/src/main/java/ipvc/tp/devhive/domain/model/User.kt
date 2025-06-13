@@ -1,6 +1,7 @@
 package ipvc.tp.devhive.domain.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.PropertyName
 
 /**
  * Modelo de domínio para representar um utilizador na aplicação
@@ -16,7 +17,7 @@ data class User(
     val course: String,
     val createdAt: Timestamp,
     val lastLogin: Timestamp,
-    val isOnline: Boolean,
+    @get:PropertyName("online") val isOnline: Boolean,
     val contributionStats: ContributionStats
 )
 

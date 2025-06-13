@@ -1,4 +1,4 @@
-package ipvc.tp.devhive.presentation.ui.profile
+package ipvc.tp.devhive.presentation.ui.main.profile
 
 import android.Manifest
 import android.app.Activity
@@ -23,10 +23,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
+@AndroidEntryPoint
 class EditProfileActivity : AppCompatActivity() {
 
     private val profileViewModel: ProfileViewModel by viewModels()

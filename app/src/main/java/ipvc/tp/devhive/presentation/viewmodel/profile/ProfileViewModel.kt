@@ -1,23 +1,24 @@
 package ipvc.tp.devhive.presentation.viewmodel.profile
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.User
+import ipvc.tp.devhive.domain.usecase.auth.LogoutUserUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
 import ipvc.tp.devhive.domain.usecase.user.UpdateUserUseCase
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val updateUserUseCase: UpdateUserUseCase
+    private val updateUserUseCase: UpdateUserUseCase,
+    private val logoutUserUseCase: LogoutUserUseCase,
 ) : ViewModel() {
 
     // LiveData para o perfil do usuário
@@ -84,11 +85,31 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
+
+    fun logout(){
+        viewModelScope.launch {
+
+            val currentUser = getCurrentUserUseCase()
+            if (currentUser != null) {
+                val logoutResult = logoutUserUseCase(currentUser.id)
+                if (logoutResult.isSuccess) {
+                    _profileEvent.value = Event(ProfileEvent.LogoutSuccess) // Emitir sucesso
+                    Log.d("ViewModel", "Logout successful in use case.")
+                } else {
+                    _profileEvent.value = Event(ProfileEvent.Error("Falha ao fazer logout: ${logoutResult.exceptionOrNull()?.message}"))
+                }
+            } else {
+                Log.d("ViewModel", "No current user found, attempting Firebase signOut directly.")
+                _profileEvent.value = Event(ProfileEvent.LogoutSuccess) // Emitir sucesso
+            }
+        }
+    }
 }
 
 sealed class ProfileEvent {
     object ProfileLoaded : ProfileEvent()
     object ProfileUpdated : ProfileEvent()
+    object LogoutSuccess : ProfileEvent()
     data class Error(val message: String) : ProfileEvent()
 }
 

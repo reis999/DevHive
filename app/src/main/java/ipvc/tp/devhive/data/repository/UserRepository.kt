@@ -47,40 +47,31 @@ class UserRepository(
     override suspend fun getCurrentUser(): DomainUser? {
         return withContext(Dispatchers.IO) {
             val currentFirebaseUserId = FirebaseAuthHelper.getCurrentUserId()
-                ?: // Nenhum usuário Firebase logado
+                ?:
                 return@withContext null
 
-            // 1. Tenta obter do DAO local
             val localUserEntity = userDao.getUserById(currentFirebaseUserId)
             if (localUserEntity != null) {
-                // Opcional: Você pode adicionar uma lógica para verificar se os dados locais estão "velhos"
-                // e precisam ser atualizados do serviço antes de retornar.
-                // Por agora, retornamos o local se existir.
-                // Lança uma atualização em segundo plano para garantir que está atualizado para a próxima vez.
                 appScope.launch { refreshUser(currentFirebaseUserId) }
                 return@withContext UserEntity.toUser(localUserEntity).toDomainUser()
             }
 
-            // 2. Se não estiver no DAO local, busca do UserService
-            val remoteUser = userService.getUserById(currentFirebaseUserId) // userService.getCurrentUser() também funcionaria aqui
+
+            val remoteUser = userService.getUserById(currentFirebaseUserId)
             remoteUser?.let { dataUser ->
-                // Salva o usuário remoto no DAO local para cache
                 userDao.insertUser(UserEntity.fromUser(dataUser, SyncStatus.SYNCED))
                 return@withContext dataUser.toDomainUser()
             }
 
-            // Se não encontrado localmente nem remotamente (ex: usuário deletado no backend mas ainda autenticado no Firebase?)
             return@withContext null
         }
     }
 
     override fun observeUserById(userId: String): LiveData<ipvc.tp.devhive.domain.model.User?> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshUser(userId)
         }
 
-        // Retorna LiveData do banco local
         return userDao.observeUserById(userId).map { entity ->
             entity?.let { UserEntity.toUser(it).toDomainUser() }
         }
@@ -99,22 +90,18 @@ class UserRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataUser = user.toDataUser()
-                // Tenta criar no Firestore
                 val result = userService.createUser(dataUser)
 
                 if (result.isSuccess) {
-                    // Se sucesso, salva no banco local
                     val createdUser = result.getOrThrow()
                     userDao.insertUser(UserEntity.fromUser(createdUser))
                     Result.success(createdUser.toDomainUser())
                 } else {
-                    // Se falhar, salva localmente com status pendente
                     val userEntity = UserEntity.fromUser(dataUser, SyncStatus.PENDING_UPLOAD)
                     userDao.insertUser(userEntity)
                     Result.success(user)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente
                 val userEntity = UserEntity.fromUser(user.toDataUser(), SyncStatus.PENDING_UPLOAD)
                 userDao.insertUser(userEntity)
                 Result.failure(e)
@@ -126,21 +113,17 @@ class UserRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataUser = user.toDataUser()
-                // Tenta atualizar no Firestore
                 val result = userService.updateUser(dataUser)
 
                 if (result.isSuccess) {
-                    // Se sucesso, atualiza no banco local
                     userDao.insertUser(UserEntity.fromUser(dataUser))
                     Result.success(user)
                 } else {
-                    // Se falhar, atualiza localmente com status pendente
                     val userEntity = UserEntity.fromUser(dataUser, SyncStatus.PENDING_UPDATE)
                     userDao.insertUser(userEntity)
                     Result.success(user)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, atualiza localmente com status pendente
                 val userEntity = UserEntity.fromUser(user.toDataUser(), SyncStatus.PENDING_UPDATE)
                 userDao.insertUser(userEntity)
                 Result.failure(e)
@@ -151,15 +134,12 @@ class UserRepository(
     override suspend fun deleteUser(userId: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Tenta deletar no Firestore
                 val result = userService.deleteUser(userId)
 
                 if (result.isSuccess) {
-                    // Se sucesso, remove do banco local
                     userDao.deleteUserById(userId)
                     Result.success(true)
                 } else {
-                    // Se falhar, marca como pendente de deleção
                     val user = userDao.getUserById(userId)
                     if (user != null) {
                         val updatedUser = user.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -168,7 +148,6 @@ class UserRepository(
                     Result.success(false)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, marca como pendente de deleção
                 val user = userDao.getUserById(userId)
                 if (user != null) {
                     val updatedUser = user.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -185,7 +164,6 @@ class UserRepository(
                 val result = userService.updateUserOnlineStatus(userId, isOnline)
 
                 if (result.isSuccess) {
-                    // Atualiza o status online no banco local
                     val user = userDao.getUserById(userId)
                     if (user != null) {
                         val updatedUser = user.copy(isOnline = isOnline)
@@ -242,7 +220,7 @@ class UserRepository(
             course = this.course,
             institution = this.institution,
             bio = this.bio,
-            isOnline = this.isOnline,
+            isOnline = this.online,
             createdAt = this.createdAt,
             lastLogin = this.lastLogin,
             contributionStats = ipvc.tp.devhive.domain.model.ContributionStats(
@@ -264,7 +242,7 @@ class UserRepository(
             course = this.course,
             institution = this.institution,
             bio = this.bio,
-            isOnline = this.isOnline,
+            online = this.isOnline,
             createdAt = this.createdAt,
             lastLogin = this.lastLogin,
             contributionStats = ipvc.tp.devhive.data.model.ContributionStats(

@@ -54,7 +54,7 @@ class UserService(firestore: FirebaseFirestore) {
 
     suspend fun updateUserOnlineStatus(userId: String, isOnline: Boolean): Result<Boolean> {
         return try {
-            usersCollection.document(userId).update("isOnline", isOnline).await()
+            usersCollection.document(userId).update("online", isOnline).await()
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)

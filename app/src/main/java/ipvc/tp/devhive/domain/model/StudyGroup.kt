@@ -19,7 +19,6 @@ data class StudyGroup(
     val isPrivate: Boolean,
     val joinCode: String,
     val maxMembers: Int = 100,
-    // Campos para chat do grupo
     val lastMessageAt: Timestamp? = null,
     val lastMessagePreview: String = "",
     val messageCount: Int = 0,

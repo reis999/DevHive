@@ -16,10 +16,10 @@
         android:src="@drawable/placeholder_user"
         app:layout_constraintBottom_toBottomOf="@+id/message_container"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tv_sender_name" />
+        app:layout_constraintTop_toTopOf="@+id/tv_receiver_name" />
 
     <TextView
-        android:id="@+id/tv_sender_name"
+        android:id="@+id/tv_receiver_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -33,7 +33,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/message_container"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="80dp"
@@ -44,24 +44,23 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/iv_sender_avatar"
-        app:layout_constraintTop_toBottomOf="@+id/tv_sender_name">
+        app:layout_constraintTop_toBottomOf="@+id/tv_receiver_name">
 
         <TextView
             android:id="@+id/tv_message_content"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
-            app:layout_constraintBottom_toTopOf="@+id/tv_message_time"
+            app:layout_constraintBottom_toTopOf="@+id/tv_timestamp_received"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0"
-            tools:text="Esta é uma mensagem recebida de outro usuário. Pode ser longa e ocupar várias linhas." />
+            tools:text="Esta é uma mensagem recebida de outro usuário. Pode ser longa e ocupar várias linhas e agora deve quebrar corretamente." />
 
         <TextView
-            android:id="@+id/tv_message_time"
+            android:id="@+id/tv_timestamp_received"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"

@@ -13,12 +13,14 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.presentation.util.showSnackbar
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialEvent
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
 
+@AndroidEntryPoint
 class MaterialsFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
 
     private val materialViewModel: MaterialViewModel by viewModels()

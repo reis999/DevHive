@@ -12,11 +12,13 @@ import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
+@AndroidEntryPoint
 class SelectUserActivity : AppCompatActivity(), UserAdapter.OnUserClickListener {
 
     private val chatViewModel: ChatViewModel by viewModels()
