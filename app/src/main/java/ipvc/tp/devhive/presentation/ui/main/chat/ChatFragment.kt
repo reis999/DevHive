@@ -15,6 +15,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Chat
+import ipvc.tp.devhive.presentation.ui.main.chat.adapters.ChatAdapter
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 
 @AndroidEntryPoint

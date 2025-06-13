@@ -173,6 +173,12 @@
     <string name="only_members_can_leave">Apenas membros podem sair do grupo.</string>
     <string name="group_not_found">Grupo não encontrado.</string>
     <string name="member_list_updated">Lista de membros atualizada.</string>
+    <string name="attach_file">Anexar Ficheiro</string>
+    <string name="file_ready_to_upload">Ficheiro pronto para upload: %1$s</string>
+    <string name="remove_attachment">Remover Anexo</string>
+    <string name="download_file">Baixar Ficheiro</string>
+    <string name="download_started_param">Download iniciado para o ficheiro: %1$s</string>
+    <string name="downloading_file">A fazer download do ficheiro…</string>
 
     <!-- Chat -->
     <string name="new_chat">Nova conversa</string>

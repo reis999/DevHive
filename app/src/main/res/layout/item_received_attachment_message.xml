@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/iv_sender_profile_received_attachment"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/placeholder_user"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/message_bubble_received_attachment" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/message_bubble_received_attachment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="60dp"
+        app:cardBackgroundColor="@color/light_gray"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="1dp"
+        app:cardUseCompatPadding="true"
+        app:layout_constraintStart_toEndOf="@+id/iv_sender_profile_received_attachment"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintHorizontal_bias="0.0">
+
+        <LinearLayout
+            android:layout_width="269dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/tv_sender_name_received_attachment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Nome do Remetente" />
+
+            <TextView
+                android:id="@+id/tv_message_content_received_attachment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp"
+                android:visibility="gone"
+                tools:text="Olha só este anexo!"
+                tools:visibility="visible" />
+
+            <LinearLayout
+                android:id="@+id/attachment_details_container_received"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_attachment_inner_bubble"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/iv_attachment_icon_received"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/ic_file_generic"
+                    app:tint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_attachment_file_name_received"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="Apresentacao_Importante.pptx" />
+
+                    <TextView
+                        android:id="@+id/tv_attachment_file_size_received"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="12sp"
+                        tools:text="5.7 MB" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btn_download_attachment_received"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/download_file"
+                    android:src="@drawable/ic_download"
+                    app:tint="?attr/colorPrimary" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_timestamp_received_attachment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/gray"
+                android:textSize="10sp"
+                tools:text="10:35 AM" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

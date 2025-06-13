@@ -19,6 +19,7 @@ import ipvc.tp.devhive.R
 import ipvc.tp.devhive.data.util.SyncStatus
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.domain.model.Message
+import ipvc.tp.devhive.presentation.ui.main.chat.adapters.MessageAdapter
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 import java.util.Date
 

@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.data.repository
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -21,6 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.UUID.randomUUID
+import ipvc.tp.devhive.domain.model.GroupMessage as DomainGroupMessage
+import ipvc.tp.devhive.domain.model.MessageAttachment as DomainMessageAttachment
 import ipvc.tp.devhive.domain.repository.StudyGroupRepository as DomainStudyGroupRepository
 
 class StudyGroupRepository(
@@ -28,7 +31,8 @@ class StudyGroupRepository(
     private val groupMessageDao: GroupMessageDao,
     private val studyGroupService: StudyGroupService,
     private val appScope: CoroutineScope,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
+    private val applicationContext: Context
 ) : DomainStudyGroupRepository {
 
     override suspend fun getStudyGroups(): LiveData<List<ipvc.tp.devhive.domain.model.StudyGroup>> {
@@ -338,33 +342,63 @@ class StudyGroupRepository(
 
     override suspend fun sendGroupMessage(
         groupId: String,
-        message: ipvc.tp.devhive.domain.model.GroupMessage
-    ): Result<ipvc.tp.devhive.domain.model.GroupMessage> {
+        messageContent: String,
+        senderId: String,
+        senderName: String,
+        senderImageUrl: String,
+        attachmentUri: Uri?, // NOVO: URI do anexo a ser carregado
+        originalAttachmentFileName: String? // NOVO: Nome original para exibição
+    ): Result<DomainGroupMessage> {
         return withContext(Dispatchers.IO) {
             try {
-                val dataMessage = message.toDataGroupMessage()
-                // Tenta enviar para o Firestore
-                val result = studyGroupService.sendGroupMessage(groupId, dataMessage)
+                val messageId = randomUUID().toString()
+                var uploadedAttachments = listOf<DomainMessageAttachment>()
 
-                if (result.isSuccess) {
+                if (attachmentUri != null) {
+                    val uploadResult = uploadMessageAttachment(groupId, messageId, attachmentUri, originalAttachmentFileName)
+                    if (uploadResult.isSuccess) {
+                        uploadedAttachments = listOf(uploadResult.getOrThrow())
+                    } else {
+                        return@withContext Result.failure(
+                            uploadResult.exceptionOrNull() ?: Exception("Failed to upload attachment.")
+                        )
+                    }
+                }
+
+                val domainMessage = DomainGroupMessage(
+                    id = messageId,
+                    studyGroupId = groupId,
+                    content = messageContent,
+                    senderUid = senderId,
+                    senderName = senderName,
+                    senderImageUrl = senderImageUrl,
+                    createdAt =Timestamp(java.util.Date()),
+                    attachments = uploadedAttachments
+                )
+
+                // Converte para Data Model para enviar ao Firestore
+                val dataMessage = domainMessage.toDataGroupMessage() // Você precisará deste mapeador
+
+                // Tenta enviar para o Firestore
+                val serviceResult = studyGroupService.sendGroupMessage(groupId, dataMessage)
+
+                if (serviceResult.isSuccess) {
+                    val sentMessageData = serviceResult.getOrThrow()
                     // Se sucesso, salva no banco local
-                    val sentMessage = result.getOrThrow()
-                    groupMessageDao.insertMessage(GroupMessageEntity.fromGroupMessage(sentMessage))
-                    Result.success(sentMessage.toDomainGroupMessage())
+                    groupMessageDao.insertMessage(GroupMessageEntity.fromGroupMessage(sentMessageData)) // Mapear de DataModel para Entity
+                    Result.success(sentMessageData.toDomainGroupMessage()) // Mapear de DataModel para DomainModel
                 } else {
-                    // Se falhar, salva localmente com status pendente
-                    val messageEntity =
-                        GroupMessageEntity.fromGroupMessage(dataMessage, SyncStatus.PENDING_UPLOAD)
+                    // Se falhar, salva localmente com status pendente (se você tiver essa lógica)
+                    val messageEntity = GroupMessageEntity.fromGroupMessage(dataMessage, SyncStatus.PENDING_UPLOAD)
                     groupMessageDao.insertMessage(messageEntity)
-                    Result.success(message)
+                    // Retorna sucesso para a UI (mensagem está offline), ou falha se preferir
+                    // Result.success(domainMessage) // Retorna a mensagem original com status pendente
+                    Result.failure(serviceResult.exceptionOrNull() ?: Exception("Failed to send message to service."))
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente
-                val messageEntity = GroupMessageEntity.fromGroupMessage(
-                    message.toDataGroupMessage(),
-                    SyncStatus.PENDING_UPLOAD
-                )
-                groupMessageDao.insertMessage(messageEntity)
+                // Em caso de erro, salva localmente com status pendente (se aplicável)
+                // ou apenas falha
+                Log.e("StudyGroupRepo", "Exception in sendGroupMessage: ${e.message}", e)
                 Result.failure(e)
             }
         }
@@ -423,6 +457,47 @@ class StudyGroupRepository(
                 val downloadUrl = imageRef.downloadUrl.await().toString()
                 Result.success(downloadUrl)
             } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    private suspend fun uploadMessageAttachment(
+        groupId: String,
+        messageId: String, // Para organizar no Storage
+        attachmentUri: Uri,
+        originalFileName: String? // Para tentar manter o nome original
+    ): Result<DomainMessageAttachment> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val fileExtension = applicationContext.contentResolver.getType(attachmentUri)?.substringAfterLast('/')
+                    ?: originalFileName?.substringAfterLast('.')
+                    ?: "bin" // Extensão padrão
+
+                val fileNameInStorage = "attachment_${randomUUID()}.$fileExtension"
+                val attachmentRef = storage.reference.child("study_groups/$groupId/messages/$messageId/$fileNameInStorage")
+
+                attachmentRef.putFile(attachmentUri).await()
+                val downloadUrl = attachmentRef.downloadUrl.await().toString()
+
+                // Obter metadados para tamanho, se possível, ou estimar
+                val metadata = attachmentRef.metadata.await()
+                val sizeBytes = metadata?.sizeBytes ?: 0L // Ou tente obter do URI antes do upload
+
+                val displayName = originalFileName ?: fileNameInStorage
+
+                Result.success(
+                    DomainMessageAttachment(
+                        id = randomUUID().toString(), // ID único para o objeto MessageAttachment
+                        name = displayName,
+                        type = applicationContext.contentResolver.getType(attachmentUri) ?: "application/octet-stream",
+                        url = downloadUrl,
+                        size = sizeBytes,
+                        fileExtension = fileExtension
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e("StudyGroupRepo", "Failed to upload message attachment", e)
                 Result.failure(e)
             }
         }
@@ -620,19 +695,23 @@ class StudyGroupRepository(
 
     private fun MessageAttachment.toDomainMessageAttachment(): ipvc.tp.devhive.domain.model.MessageAttachment {
         return ipvc.tp.devhive.domain.model.MessageAttachment(
+            id = this.id,
+            name = this.name,
             url = this.url,
             type = this.type,
-            name = this.name,
-            size = this.size
+            size = this.size,
+            fileExtension = this.fileExtension
         )
     }
 
     private fun ipvc.tp.devhive.domain.model.MessageAttachment.toDataMessageAttachment(): MessageAttachment {
         return MessageAttachment(
+            id = this.id,
+            name = this.name,
             url = this.url,
             type = this.type,
-            name = this.name,
-            size = this.size
+            size = this.size,
+            fileExtension = this.fileExtension
         )
     }
 

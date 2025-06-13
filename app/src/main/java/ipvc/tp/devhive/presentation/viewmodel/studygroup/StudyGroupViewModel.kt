@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.GroupMessage
-import ipvc.tp.devhive.domain.model.MessageAttachment
 import ipvc.tp.devhive.domain.model.StudyGroup
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.domain.usecase.studygroup.CreateStudyGroupUseCase
@@ -26,6 +25,16 @@ import ipvc.tp.devhive.domain.usecase.user.GetUsersByIdsUseCase
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+sealed class StudyGroupEvent {
+    data class Error(val message: String) : StudyGroupEvent()
+}
+
+sealed class StudyGroupGeneralResult {
+    data class Success<T>(val data: T? = null) : StudyGroupGeneralResult()
+    data class Failure(val message: String) : StudyGroupGeneralResult()
+}
+
 
 @HiltViewModel
 class StudyGroupViewModel @Inject constructor(
@@ -44,37 +53,29 @@ class StudyGroupViewModel @Inject constructor(
 
     private var hasAttemptedInitialGroupLoadForCurrentUser = false
 
-    // Para StudyGroupsFragment
     private val _userStudyGroups = MediatorLiveData<List<StudyGroup>>()
     val userStudyGroups: LiveData<List<StudyGroup>> = _userStudyGroups
     private var currentUserStudyGroupsSource: LiveData<List<StudyGroup>>? = null
 
-    // Para StudyGroupChatActivity e StudyGroupSettingsActivity (detalhes do grupo selecionado)
     private val _selectedStudyGroup = MutableLiveData<StudyGroup?>()
     val selectedStudyGroup: LiveData<StudyGroup?> = _selectedStudyGroup
 
-    // Para StudyGroupChatActivity (mensagens)
     private val _groupMessages = MediatorLiveData<List<GroupMessage>>()
     val groupMessages: LiveData<List<GroupMessage>> = _groupMessages
     private var currentMessagesSource: LiveData<List<GroupMessage>>? = null
 
-    // Para eventos gerais e de erro que não são específicos de uma operação
     private val _generalEvent = MutableLiveData<Event<StudyGroupEvent>?>()
     val generalEvent: LiveData<Event<StudyGroupEvent>?> = _generalEvent
 
-    // Para isLoading geral (usado por várias telas)
-    private val _isLoading = MutableLiveData<Boolean>(false)
+    private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    // Para CreateStudyGroupActivity
-    private val _createGroupResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>() // Usando um Result mais genérico
+    private val _createGroupResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
     val createGroupResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _createGroupResultEvent
 
-    // Para StudyGroupChatActivity (envio de mensagens)
     private val _sendMessageResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
     val sendMessageResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _sendMessageResultEvent
 
-    // Para StudyGroupSettingsActivity
     private val _updateGroupResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
     val updateGroupResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _updateGroupResultEvent
 
@@ -87,11 +88,10 @@ class StudyGroupViewModel @Inject constructor(
     private val _removeMemberResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
     val removeMemberResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _removeMemberResultEvent
 
-    // Para ManageMembersActivity
     private val _groupMembersDetails = MutableLiveData<List<User>>()
     val groupMembersDetails: LiveData<List<User>> = _groupMembersDetails
 
-    private val _isCurrentUserAdmin = MutableLiveData<Boolean>(false)
+    private val _isCurrentUserAdmin = MutableLiveData(false)
     val isCurrentUserAdmin: LiveData<Boolean> = _isCurrentUserAdmin
 
     private val _currentUser = MutableLiveData<User?>()
@@ -109,30 +109,28 @@ class StudyGroupViewModel @Inject constructor(
 
             if (user?.id != previousUserId) {
                 hasAttemptedInitialGroupLoadForCurrentUser = false
-                _userStudyGroups.value = emptyList()
+                _userStudyGroups.value = emptyList() // Resetar grupos se o user mudou
             }
         }
     }
 
     fun loadUserStudyGroups() {
         val user = _currentUser.value
-        if(user == null){
+        if (user == null) {
             _isLoading.value = false
             _generalEvent.value = Event(StudyGroupEvent.Error("Utilizador não autenticado"))
             _userStudyGroups.value = emptyList()
             return
         }
 
-
-        if (hasAttemptedInitialGroupLoadForCurrentUser && currentUserStudyGroupsSource != null) {
+        if (hasAttemptedInitialGroupLoadForCurrentUser && currentUserStudyGroupsSource != null && _isLoading.value == false) {
             Log.d("ViewModel", "loadUserStudyGroups: Already attempted load and have a source. Skipping.")
-            if (_isLoading.value == true) {
-                Log.d("ViewModel", "loadUserStudyGroups: Already loading. Skipping.")
-                return
-            }
             return
         }
-
+        if (_isLoading.value == true) {
+            Log.d("ViewModel", "loadUserStudyGroups: Already loading. Skipping.")
+            return
+        }
 
         Log.d("ViewModel", "loadUserStudyGroups: Proceeding with load for user ${user.id}")
         _isLoading.value = true
@@ -149,7 +147,7 @@ class StudyGroupViewModel @Inject constructor(
 
                 _userStudyGroups.addSource(newSource) { updatedGroups ->
                     Log.d("ViewModel", "Groups received from source. Count: ${updatedGroups.size}")
-                    if (_userStudyGroups.value != updatedGroups){
+                    if (_userStudyGroups.value != updatedGroups) {
                         _userStudyGroups.value = updatedGroups
                     }
                     _isLoading.value = false
@@ -188,20 +186,21 @@ class StudyGroupViewModel @Inject constructor(
         }
     }
 
-    // Usado por StudyGroupChatActivity e StudyGroupSettingsActivity
     fun loadStudyGroupDetails(groupId: String) {
+        if (groupId.isEmpty()) {
+            _generalEvent.value = Event(StudyGroupEvent.Error("ID do grupo inválido."))
+            return
+        }
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // Assumindo que getStudyGroupByIdUseCase é suspend e retorna StudyGroup?
                 val group = getStudyGroupByIdUseCase(groupId)
                 _selectedStudyGroup.value = group
                 if (group == null) {
                     _generalEvent.value = Event(StudyGroupEvent.Error("Grupo não encontrado"))
                 } else {
-                    // Verifica se o currentUser é admin deste grupo
-                    val adminId = group.admins.firstOrNull() ?: "" // Supondo que StudyGroup tem um campo adminId ou admin (User)
-                    _isCurrentUserAdmin.value = _currentUser.value?.id == adminId
+                    val adminIds = group.admins
+                    _isCurrentUserAdmin.value = _currentUser.value?.id?.let { userId -> adminIds.contains(userId) } ?: false
                 }
             } catch (e: Exception) {
                 Log.e("ViewModel", "Erro ao carregar detalhes do grupo $groupId: ${e.message}", e)
@@ -233,13 +232,13 @@ class StudyGroupViewModel @Inject constructor(
                     description = description,
                     categories = categories,
                     isPrivate = isPrivate,
-                    maxMembers = 50,
+                    maxMembers = 50 // Ou outro valor padrão/configurável
                 )
 
                 if (result.isSuccess) {
                     val newGroup = result.getOrNull()
                     if (newGroup != null) {
-                        _createGroupResultEvent.value = Event(StudyGroupGeneralResult.Success(newGroup.id)) // Envia ID ou objeto
+                        _createGroupResultEvent.value = Event(StudyGroupGeneralResult.Success(newGroup.id))
                     } else {
                         _createGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure("Grupo criado, mas dados não retornados."))
                     }
@@ -255,50 +254,83 @@ class StudyGroupViewModel @Inject constructor(
         }
     }
 
-    fun sendGroupMessage(groupId: String, content: String, attachments: List<MessageAttachment> = emptyList()) {
-        val userId = _currentUser.value?.id
-        if (userId == null) {
+    /**
+     * Envia uma mensagem de grupo, potencialmente com um anexo.
+     * O nome original do ficheiro é obtido na Activity/Fragment ao selecionar o ficheiro.
+     */
+    fun sendGroupMessageWithAttachment(
+        groupId: String,
+        content: String,
+        attachmentUri: Uri?,
+        originalAttachmentFileName: String? // Nome original do ficheiro, obtido na UI
+    ) {
+        val user = _currentUser.value
+        if (user == null) {
             _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure("Utilizador não autenticado para enviar mensagem."))
             return
         }
 
+        if (content.isBlank() && attachmentUri == null) {
+            // Não faz sentido enviar uma mensagem completamente vazia
+            _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure("A mensagem não pode estar vazia sem um anexo."))
+            return
+        }
+
+        _isLoading.value = true // Indica que o processo de envio (incluindo upload se houver) começou
+
         viewModelScope.launch {
             try {
+                // A lógica de upload do ficheiro (se attachmentUri não for nulo)
+                // agora está encapsulada dentro do sendGroupMessageUseCase -> StudyGroupRepository
                 val result = sendGroupMessageUseCase(
                     groupId = groupId,
-                    senderId = userId,
                     content = content,
-                    attachments = attachments
+                    attachmentUri = attachmentUri,
+                    originalAttachmentFileName = originalAttachmentFileName
                 )
+
                 if (result.isSuccess) {
-                    _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Success("Mensagem enviada")) // Sucesso
+                    _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Success("Mensagem enviada"))
                 } else {
-                    _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao enviar mensagem."))
+                    _sendMessageResultEvent.value = Event(
+                        StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao enviar mensagem.")
+                    )
                 }
             } catch (e: Exception) {
-                _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure(e.message ?: "Erro inesperado ao enviar mensagem."))
+                Log.e("ViewModel", "Exceção ao enviar mensagem: ${e.message}", e)
+                _sendMessageResultEvent.value = Event(
+                    StudyGroupGeneralResult.Failure(e.message ?: "Erro inesperado ao enviar mensagem.")
+                )
             } finally {
-                // _isLoading.value = false;
+                _isLoading.value = false
             }
         }
     }
 
+
     fun loadGroupMessages(groupId: String) {
+        if (groupId.isEmpty()) return
+
         currentMessagesSource?.let {
             _groupMessages.removeSource(it)
         }
-
+        // _isLoading.value = true; // Opcional: isLoading para mensagens, mas pode ser confuso com o isLoading geral.
+        // LiveData do Room/Firestore deve atualizar automaticamente.
         viewModelScope.launch {
             try {
+                // Supondo que getStudyGroupMessagesUseCase retorna LiveData<List<GroupMessage>>
                 val newSource: LiveData<List<GroupMessage>> = getStudyGroupMessagesUseCase(groupId)
                 currentMessagesSource = newSource
 
                 _groupMessages.addSource(newSource) { messageList ->
                     _groupMessages.value = messageList
+                    // _isLoading.value = false; // Se usou isLoading para mensagens
                 }
             } catch (e: Exception) {
+                Log.e("ViewModel", "Erro ao carregar mensagens do grupo $groupId: ${e.message}", e)
                 _groupMessages.value = emptyList()
                 _generalEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao carregar mensagens"))
+                // _isLoading.value = false; // Se usou isLoading para mensagens
             }
         }
     }
@@ -326,7 +358,6 @@ class StudyGroupViewModel @Inject constructor(
         }
     }
 
-    // --- Funções para StudyGroupSettingsActivity ---
     fun updateStudyGroupDetails(
         groupId: String,
         name: String,
@@ -337,16 +368,18 @@ class StudyGroupViewModel @Inject constructor(
         _isLoading.value = true
         viewModelScope.launch {
             try {
+                // A lógica de upload da imagem (se newImageUri não for nulo)
+                // está encapsulada dentro do updateStudyGroupUseCase -> StudyGroupRepository
                 val result = updateStudyGroupUseCase(
                     groupId = groupId,
                     name = name,
                     description = description,
                     categories = categories,
-                    imageUri = newImageUri,
+                    imageUri = newImageUri
                 )
                 if (result.isSuccess) {
                     _updateGroupResultEvent.value = Event(StudyGroupGeneralResult.Success("Grupo atualizado com sucesso"))
-                    loadStudyGroupDetails(groupId)
+                    loadStudyGroupDetails(groupId) // Recarrega para refletir mudanças
                 } else {
                     _updateGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao atualizar grupo."))
                 }
@@ -382,13 +415,17 @@ class StudyGroupViewModel @Inject constructor(
             _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Failure("Utilizador não autenticado."))
             return
         }
+        // Adicione aqui a lógica para verificar se o currentUserId é admin do grupo, se necessário,
+        // antes de permitir a remoção. Essa lógica pode estar no UseCase ou aqui.
+
         _isLoading.value = true
         viewModelScope.launch {
             try {
+                // Assume que RemoveMemberUseCase lida com as permissões se necessário
                 val result = removeMemberUseCase(groupId, memberIdToRemove)
                 if (result.isSuccess) {
                     _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Success("Membro removido com sucesso."))
-                    loadStudyGroupDetails(groupId)
+                    loadStudyGroupDetails(groupId) // Recarrega para refletir a lista de membros atualizada
                 } else {
                     _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao remover membro."))
                 }
@@ -401,19 +438,9 @@ class StudyGroupViewModel @Inject constructor(
     }
 
 
-    fun clearGeneralEvent() {
-        _generalEvent.value = null
+    override fun onCleared() {
+        super.onCleared()
+        currentUserStudyGroupsSource?.let { _userStudyGroups.removeSource(it) }
+        currentMessagesSource?.let { _groupMessages.removeSource(it) }
     }
-}
-
-// Eventos e Resultados Genéricos
-sealed class StudyGroupEvent {
-    data class Success(val message: String? = null) : StudyGroupEvent()
-    data class Error(val message: String) : StudyGroupEvent()
-}
-
-// Um resultado mais genérico para operações
-sealed class StudyGroupGeneralResult {
-    data class Success<T>(val data: T? = null) : StudyGroupGeneralResult()
-    data class Failure(val message: String) : StudyGroupGeneralResult()
 }

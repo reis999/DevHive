@@ -1,15 +1,28 @@
 package ipvc.tp.devhive.presentation.ui.main.studygroup
 
 import android.app.Activity
+import android.app.DownloadManager
+import android.content.Context
 import android.content.Intent
+import android.graphics.PorterDuff
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -31,12 +44,18 @@ class StudyGroupChatActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityStudyGroupChatBinding
+    private lateinit var attachmentPreviewLayout: ConstraintLayout
+    private lateinit var ivAttachmentPreviewIcon: ImageView
+    private lateinit var tvAttachmentPreviewName: TextView
+    private lateinit var btnRemoveAttachment: ImageButton
     private val viewModel: StudyGroupViewModel by viewModels()
 
     private lateinit var groupMessageAdapter: GroupMessageAdapter
     private var currentUserId: String? = null
     private var studyGroupId: String = ""
     private var isAdapterInitialized = false
+    private var pendingAttachmentUri: Uri? = null
+    private var pendingAttachmentFileName: String? = null
 
     private val groupSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -45,10 +64,21 @@ class StudyGroupChatActivity : AppCompatActivity() {
         }
     }
 
+    private val selectFileLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            handleSelectedFile(it)
+        }
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityStudyGroupChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        attachmentPreviewLayout = binding.attachmentPreviewLayout
+        ivAttachmentPreviewIcon = binding.ivAttachmentPreviewIcon
+        tvAttachmentPreviewName = binding.tvAttachmentPreviewName
+        btnRemoveAttachment = binding.btnRemoveAttachment
 
         studyGroupId = intent.getStringExtra(EXTRA_STUDY_GROUP_ID) ?: ""
         if (studyGroupId.isEmpty()) {
@@ -62,6 +92,14 @@ class StudyGroupChatActivity : AppCompatActivity() {
 
         binding.btnSend.setOnClickListener {
             sendMessage()
+        }
+
+        binding.btnAttachFile.setOnClickListener {
+            openFilePicker()
+        }
+
+        btnRemoveAttachment.setOnClickListener {
+            clearAttachmentPreview()
         }
     }
 
@@ -88,6 +126,10 @@ class StudyGroupChatActivity : AppCompatActivity() {
             }
             isAdapterInitialized = true
             Log.d("ChatActivity", "Adapter initialized/updated with userId: $userId")
+
+            groupMessageAdapter.setOnDownloadClickListener { url, fileName, mimeType ->
+                startDownload(url, fileName, mimeType)
+            }
 
             if (studyGroupId.isNotEmpty()) {
                 viewModel.loadGroupMessages(studyGroupId)
@@ -135,6 +177,10 @@ class StudyGroupChatActivity : AppCompatActivity() {
                 when (result) {
                     is StudyGroupGeneralResult.Success<*> -> {
                         binding.etMessage.text?.clear()
+                        pendingAttachmentUri = null
+                        pendingAttachmentFileName = null
+                        binding.btnAttachFile.clearColorFilter()
+                        clearAttachmentPreview()
                         Log.d("ChatActivity", "Mensagem enviada com sucesso.")
                     }
                     is StudyGroupGeneralResult.Failure -> {
@@ -215,15 +261,86 @@ class StudyGroupChatActivity : AppCompatActivity() {
 
     private fun sendMessage() {
         val messageText = binding.etMessage.text.toString().trim()
-        if (messageText.isEmpty()) {
+
+        if (messageText.isEmpty() && pendingAttachmentUri == null) {
             return
         }
 
         binding.btnSend.isEnabled = false
-        viewModel.sendGroupMessage(
+
+        viewModel.sendGroupMessageWithAttachment(
             groupId = studyGroupId,
-            content = messageText
+            content = messageText,
+            attachmentUri = pendingAttachmentUri,
+            originalAttachmentFileName = pendingAttachmentFileName
         )
+    }
+
+    private fun openFilePicker() {
+        selectFileLauncher.launch("*/*")
+    }
+
+    private fun handleSelectedFile(uri: Uri) {
+        pendingAttachmentUri = uri
+        pendingAttachmentFileName = getFileName(uri)
+
+        if (pendingAttachmentFileName != null) {
+            tvAttachmentPreviewName.text = pendingAttachmentFileName
+            attachmentPreviewLayout.visibility = View.VISIBLE
+            binding.btnAttachFile.setColorFilter(ContextCompat.getColor(this, R.color.primary), PorterDuff.Mode.SRC_IN)
+        } else {
+            clearAttachmentPreview()
+        }
+    }
+
+    private fun getFileName(uri: Uri): String? {
+        var name: String? = null
+        if (uri.scheme == "content") {
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val nameIndex = it.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                    if (nameIndex != -1) {
+                        name = it.getString(nameIndex)
+                    }
+                }
+            }
+        }
+        if (name == null) {
+            name = uri.path
+            val cut = name?.lastIndexOf('/')
+            if (cut != -1 && cut != null) {
+                name = name?.substring(cut + 1)
+            }
+        }
+        return name
+    }
+
+    private fun clearAttachmentPreview() {
+        pendingAttachmentUri = null
+        pendingAttachmentFileName = null
+        attachmentPreviewLayout.visibility = View.GONE
+        tvAttachmentPreviewName.text = ""
+        binding.btnAttachFile.clearColorFilter()
+    }
+
+    private fun startDownload(url: String, fileName: String, mimeType: String) {
+        try {
+            val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val request = DownloadManager.Request(url.toUri())
+                .setTitle(fileName)
+                .setDescription(getString(R.string.downloading_file))
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+                .setMimeType(mimeType)
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(true)
+
+            downloadManager.enqueue(request)
+            Toast.makeText(this, getString(R.string.download_started_param, fileName), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            // ...
+        }
     }
 
     // --- FUNÇÃO DE CONFIRMAÇÃO PARA SAIR DO GRUPO ---

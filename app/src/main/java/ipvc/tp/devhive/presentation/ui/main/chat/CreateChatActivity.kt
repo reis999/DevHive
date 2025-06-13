@@ -14,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.ContributionStats
 import ipvc.tp.devhive.domain.model.User
+import ipvc.tp.devhive.presentation.ui.main.chat.adapters.UserAdapter
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
 import java.util.Date
 

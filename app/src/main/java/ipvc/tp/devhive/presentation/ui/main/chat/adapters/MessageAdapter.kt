@@ -1,4 +1,4 @@
-package ipvc.tp.devhive.presentation.ui.main.chat
+package ipvc.tp.devhive.presentation.ui.main.chat.adapters
 
 import android.view.LayoutInflater
 import android.view.View

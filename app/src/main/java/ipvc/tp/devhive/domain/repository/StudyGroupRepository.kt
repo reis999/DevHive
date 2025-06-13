@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.domain.repository
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.GroupMessage
 import ipvc.tp.devhive.domain.model.StudyGroup
@@ -23,7 +24,15 @@ interface StudyGroupRepository {
     suspend fun leaveStudyGroup(groupId: String, userId: String): Result<Boolean> //
 
     fun getGroupMessagesByStudyGroupId(groupId: String): LiveData<List<GroupMessage>> //
-    suspend fun sendGroupMessage(groupId: String, message: GroupMessage): Result<GroupMessage> //
+    suspend fun sendGroupMessage(
+        groupId: String,
+        messageContent: String,
+        senderId: String,
+        senderName: String,
+        senderImageUrl: String,
+        attachmentUri: Uri?,
+        originalAttachmentFileName: String?
+    ): Result<GroupMessage> //
 
     suspend fun removeMember(groupId: String, memberId: String): Result<Unit> //
     suspend fun isUserAdmin(groupId: String, userId: String): Boolean //
