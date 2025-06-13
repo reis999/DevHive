@@ -40,6 +40,13 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
         const val EXTRA_GROUP_ID_SETTINGS = "extra_group_id_settings"
     }
 
+    private val manageMembersLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            groupId?.let { viewModel.loadStudyGroupDetails(it) }
+            Toast.makeText(this, R.string.member_list_updated, Toast.LENGTH_SHORT).show() // Adicionar string
+        }
+    }
+
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
@@ -67,7 +74,7 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
         }
 
         setupToolbar()
-        setupClickListeners() // Chamado aqui, o listener do botão de cópia será configurado
+        setupClickListeners()
         observeViewModel()
 
         viewModel.loadStudyGroupDetails(groupId!!)
@@ -97,7 +104,10 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
         }
 
         binding.btnManageMembersSettings.setOnClickListener {
-            Toast.makeText(this, R.string.implement_member_management, Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, ManageMembersActivity::class.java).apply {
+                putExtra(ManageMembersActivity.EXTRA_GROUP_ID_MANAGE, groupId)
+            }
+            manageMembersLauncher.launch(intent)
         }
 
         // Listener para o botão de copiar código
@@ -192,11 +202,11 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
             if (isAdmin) {
                 binding.nestedScrollViewSettings.isVisible = true
                 binding.tvNotAdminMessageSettings.isVisible = false
-                populateGroupDetails(group) // Popula nome, descrição, imagem, categorias
+                populateGroupDetails(group)
             } else {
-                binding.nestedScrollViewSettings.isVisible = false // Não admin não vê campos de edição
+                binding.nestedScrollViewSettings.isVisible = false
                 binding.tvNotAdminMessageSettings.isVisible = true
-                binding.tvNotAdminMessageSettings.text = getString(R.string.not_admin_message) // Mensagem padrão
+                binding.tvNotAdminMessageSettings.text = getString(R.string.not_admin_message)
             }
             supportActionBar?.title = if(isAdmin) getString(R.string.settings_for_group, group.name) else getString(R.string.view_settings_for_group, group.name)
 
@@ -214,13 +224,10 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
                 binding.layoutJoinCodeInfoSettings.isVisible = false
             }
 
-        } else if (groupId != null) { // group é null, mas temos um ID (ex: erro ao carregar)
+        } else if (groupId != null) {
             binding.nestedScrollViewSettings.isVisible = false
             binding.layoutJoinCodeInfoSettings.isVisible = false
-            // A mensagem de erro já deve ter sido mostrada pelo generalEvent
-            // binding.tvNotAdminMessageSettings.text = getString(R.string.group_not_found_or_error) // Exemplo
-            // binding.tvNotAdminMessageSettings.isVisible = true
-            supportActionBar?.title = getString(R.string.group_settings) // Título genérico
+            supportActionBar?.title = getString(R.string.group_settings)
         }
     }
 
@@ -238,7 +245,7 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
         binding.chipGroupCategoriesSettings.children.forEach { view ->
             if (view is Chip) {
                 view.isCloseIconVisible = isAdmin
-                view.isEnabled = isAdmin // O chip em si também
+                view.isEnabled = isAdmin
             }
         }
     }
@@ -308,7 +315,6 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
             type = "image/*"
         }
-        // intent.putExtra(EXTRA_GROUP_ID_SETTINGS, groupId) // Não é necessário passar o ID aqui
         if (intent.resolveActivity(packageManager) != null) {
             pickImageLauncher.launch(intent)
         } else {

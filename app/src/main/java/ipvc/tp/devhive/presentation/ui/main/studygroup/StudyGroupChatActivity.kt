@@ -12,11 +12,13 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.databinding.ActivityStudyGroupChatBinding
 import ipvc.tp.devhive.domain.model.GroupMessage
 import ipvc.tp.devhive.domain.model.StudyGroup
+import ipvc.tp.devhive.presentation.ui.main.studygroup.adapters.GroupMessageAdapter
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupEvent
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupGeneralResult
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModel
@@ -34,7 +36,7 @@ class StudyGroupChatActivity : AppCompatActivity() {
     private lateinit var groupMessageAdapter: GroupMessageAdapter
     private var currentUserId: String? = null
     private var studyGroupId: String = ""
-    private var isAdapterInitialized = false // Para controlar a inicialização do adapter
+    private var isAdapterInitialized = false
 
     private val groupSettingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -61,7 +63,11 @@ class StudyGroupChatActivity : AppCompatActivity() {
         binding.btnSend.setOnClickListener {
             sendMessage()
         }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadStudyGroupDetails(studyGroupId)
     }
 
     private fun setupToolbar() {
@@ -71,13 +77,12 @@ class StudyGroupChatActivity : AppCompatActivity() {
     }
 
     private fun initializeAdapterAndRecyclerView(userId: String) {
-
         if (!isAdapterInitialized || currentUserId != userId) {
             currentUserId = userId
             groupMessageAdapter = GroupMessageAdapter(userId)
             binding.recyclerViewMessages.apply {
                 layoutManager = LinearLayoutManager(this@StudyGroupChatActivity).apply {
-                    stackFromEnd = true // Novas mensagens no final
+                    stackFromEnd = true
                 }
                 adapter = groupMessageAdapter
             }
@@ -93,18 +98,16 @@ class StudyGroupChatActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.currentUser.observe(this) { user ->
             if (user != null) {
-                initializeAdapterAndRecyclerView(user.id) // Garante que o adapter está pronto com o user ID
-                // Carrega detalhes e mensagens apenas se o user estiver definido e o ID do grupo também
+                initializeAdapterAndRecyclerView(user.id)
+
                 if (studyGroupId.isNotEmpty()) {
-                    viewModel.loadStudyGroupDetails(studyGroupId) // Carrega/recarrega detalhes do grupo
-                    // As mensagens são carregadas dentro de initializeAdapter ou podem ser chamadas aqui
-                    if (isAdapterInitialized) viewModel.loadGroupMessages(studyGroupId)
+                    viewModel.loadStudyGroupDetails(studyGroupId)
                 }
             } else {
                 Toast.makeText(this, R.string.user_not_auth, Toast.LENGTH_LONG).show()
-                isAdapterInitialized = false // Reseta
+                isAdapterInitialized = false
                 currentUserId = null
-                finish() // Fecha a activity se o user deslogar
+                finish()
             }
         }
 
@@ -113,16 +116,15 @@ class StudyGroupChatActivity : AppCompatActivity() {
                 displayStudyGroupDetails(group)
                 invalidateOptionsMenu()
             } else {
-                if (viewModel.currentUser.value != null) {
-                    Toast.makeText(this, R.string.group_no_longer_available, Toast.LENGTH_LONG)
-                        .show()
+                if (viewModel.currentUser.value != null && isAdapterInitialized) {
+                    Toast.makeText(this, R.string.group_no_longer_available, Toast.LENGTH_LONG).show()
                     finish()
                 }
             }
         }
 
         viewModel.groupMessages.observe(this) { messages ->
-            if (isAdapterInitialized) { // Garante que o adapter existe
+            if (isAdapterInitialized) {
                 displayMessages(messages)
             }
         }
@@ -130,30 +132,24 @@ class StudyGroupChatActivity : AppCompatActivity() {
         viewModel.sendMessageResultEvent.observe(this) { event ->
             event?.getContentIfNotHandled()?.let { result ->
                 binding.btnSend.isEnabled = true
-
                 when (result) {
                     is StudyGroupGeneralResult.Success<*> -> {
                         binding.etMessage.text?.clear()
                         Log.d("ChatActivity", "Mensagem enviada com sucesso.")
                     }
-
                     is StudyGroupGeneralResult.Failure -> {
-                        Toast.makeText(
-                            this,
-                            getString(R.string.error_sending_message_param, result.message),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this, getString(R.string.error_sending_message_param, result.message), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         }
 
-
         viewModel.generalEvent.observe(this) { event ->
             event?.getContentIfNotHandled()?.let { studyEvent ->
                 if (studyEvent is StudyGroupEvent.Error) {
                     Toast.makeText(this, studyEvent.message, Toast.LENGTH_LONG).show()
-                    if (studyEvent.message.contains("não encontrado", ignoreCase = true)) {
+                    if (studyEvent.message.contains("não encontrado", ignoreCase = true) ||
+                        studyEvent.message.contains("not found", ignoreCase = true)) {
                         finish()
                     }
                 }
@@ -163,12 +159,27 @@ class StudyGroupChatActivity : AppCompatActivity() {
         viewModel.isCurrentUserAdmin.observe(this) {
             invalidateOptionsMenu()
         }
+
+        // --- NOVO OBSERVADOR PARA O RESULTADO DE SAIR DO GRUPO ---
+        viewModel.leaveGroupResultEvent.observe(this) { event ->
+            event?.getContentIfNotHandled()?.let { result ->
+                when (result) {
+                    is StudyGroupGeneralResult.Success<*> -> {
+                        Toast.makeText(this, R.string.you_left_group_success, Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                    is StudyGroupGeneralResult.Failure -> {
+                        Toast.makeText(this, getString(R.string.error_leaving_group, result.message), Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
     }
 
     private fun displayStudyGroupDetails(studyGroup: StudyGroup) {
         supportActionBar?.title = studyGroup.name
         binding.tvGroupName.text = studyGroup.name
-        binding.tvMemberCount.text = getString(R.string.member_count, studyGroup.members.size) // Assumindo que members existe
+        binding.tvMemberCount.text = getString(R.string.member_count, studyGroup.members.size)
 
         val imageUrl = studyGroup.imageUrl.ifEmpty { null }
         Glide.with(this)
@@ -185,7 +196,10 @@ class StudyGroupChatActivity : AppCompatActivity() {
         val previousItemCount = groupMessageAdapter.itemCount
         groupMessageAdapter.submitList(messages.toList()) {
             if (messages.isNotEmpty()) {
-                if (groupMessageAdapter.itemCount > previousItemCount || previousItemCount == 0) {
+                val layoutManager = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+
+                if (lastVisibleItemPosition == previousItemCount - 1 || previousItemCount == 0 || groupMessageAdapter.itemCount > previousItemCount) {
                     scrollToLastMessage()
                 }
             }
@@ -200,29 +214,57 @@ class StudyGroupChatActivity : AppCompatActivity() {
     }
 
     private fun sendMessage() {
-        if (currentUserId == null) {
-            Toast.makeText(this, R.string.wait_initializing, Toast.LENGTH_SHORT).show()
-            return
-        }
-
         val messageText = binding.etMessage.text.toString().trim()
         if (messageText.isEmpty()) {
             return
         }
 
         binding.btnSend.isEnabled = false
-
         viewModel.sendGroupMessage(
             groupId = studyGroupId,
             content = messageText
-            // attachments = emptyList() // Opcional
         )
+    }
+
+    // --- FUNÇÃO DE CONFIRMAÇÃO PARA SAIR DO GRUPO ---
+    private fun showLeaveGroupConfirmationDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.leave_group_confirmation_title))
+            .setMessage(getString(R.string.leave_group_confirmation_message))
+            .setNegativeButton(getString(R.string.cancel), null)
+            .setPositiveButton(getString(R.string.leave_group)) { _, _ ->
+                viewModel.leaveStudyGroup(studyGroupId)
+            }
+            .show()
+    }
+
+    // --- ATUALIZADO ---
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.study_group_chat_menu, menu)
+
+        val settingsAdminItem = menu.findItem(R.id.action_group_settings)
+        val leaveGroupMemberItem = menu.findItem(R.id.action_chat_leave_group_member)
+
+        val group = viewModel.selectedStudyGroup.value
+        val currentUser = viewModel.currentUser.value
+        val isAdmin = viewModel.isCurrentUserAdmin.value == true
+
+        if (group != null && currentUser != null) {
+            val isMember = group.members.contains(currentUser.id) || group.admins.contains(currentUser.id) // Admins também são membros
+
+            settingsAdminItem?.isVisible = isAdmin
+            leaveGroupMemberItem?.isVisible = !isAdmin && isMember
+        } else {
+            settingsAdminItem?.isVisible = false
+            leaveGroupMemberItem?.isVisible = false
+        }
+        return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressedDispatcher.onBackPressed()
+                finish()
                 true
             }
             R.id.action_group_settings -> {
@@ -231,19 +273,24 @@ class StudyGroupChatActivity : AppCompatActivity() {
                         putExtra(StudyGroupSettingsActivity.EXTRA_GROUP_ID_SETTINGS, studyGroupId)
                     }
                     groupSettingsLauncher.launch(intent)
-                } else if(viewModel.isCurrentUserAdmin.value == false) {
+                } else {
                     Toast.makeText(this, R.string.only_admin_can_access_settings, Toast.LENGTH_SHORT).show()
+                }
+                true
+            }
+            R.id.action_chat_leave_group_member -> {
+
+                val group = viewModel.selectedStudyGroup.value
+                val currentUser = viewModel.currentUser.value
+                if (group != null && currentUser != null && (group.members.contains(currentUser.id) || group.admins.contains(currentUser.id)) && viewModel.isCurrentUserAdmin.value == false) {
+                    showLeaveGroupConfirmationDialog()
+                } else {
+                    // Caso raro
+                    Toast.makeText(this, R.string.only_members_can_leave, Toast.LENGTH_SHORT).show()
                 }
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.study_group_chat_menu, menu)
-        val settingsItem = menu?.findItem(R.id.action_group_settings)
-        settingsItem?.isVisible = viewModel.isCurrentUserAdmin.value == true && viewModel.selectedStudyGroup.value != null
-        return true
     }
 }

@@ -20,6 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.databinding.FragmentExploreGroupsBinding
 import ipvc.tp.devhive.domain.model.StudyGroup
+import ipvc.tp.devhive.presentation.ui.main.studygroup.adapters.ExploreGroupsAdapter
 import ipvc.tp.devhive.presentation.util.EventObserver
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.ExploreEvent
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.ExploreGroupsViewModel

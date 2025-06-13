@@ -155,7 +155,24 @@
     <string name="copy_join_code">Copiar código de acesso</string>
     <string name="join_code_copied">Código de acesso copiado!</string>
     <string name="join_code_not_available">Código de acesso não disponível</string>
-
+    <string name="leave_group_confirmation_title">Confirmar Saída</string>
+    <string name="leave_group_confirmation_message">Tem a certeza que quer sair deste grupo?</string>
+    <string name="you_left_group_success">Você saiu do grupo com sucesso.</string>
+    <string name="error_leaving_group">Erro ao sair do grupo: %1$s</string>
+    <string name="member_removed_success">Membro removido com sucesso.</string>
+    <string name="error_removing_member">Erro ao remover membro: %1$s</string>
+    <string name="manage_members_title">Gerir Membros</string>
+    <string name="kick_member">Expulsar Membro</string>
+    <string name="kick_member_confirmation_title">Confirmar Expulsão</string>
+    <string name="kick_member_confirmation_message">Tem a certeza que quer expulsar %1$s deste grupo?</string>
+    <string name="cannot_kick_admin">Não pode expulsar outro administrador.</string>
+    <string name="cannot_kick_self">Não se pode expulsar a si mesmo.</string>
+    <string name="no_members_to_manage">Não há outros membros para gerir.</string>
+    <string name="admin">Admin</string>
+    <string name="member">Membro</string>
+    <string name="only_members_can_leave">Apenas membros podem sair do grupo.</string>
+    <string name="group_not_found">Grupo não encontrado.</string>
+    <string name="member_list_updated">Lista de membros atualizada.</string>
 
     <!-- Chat -->
     <string name="new_chat">Nova conversa</string>

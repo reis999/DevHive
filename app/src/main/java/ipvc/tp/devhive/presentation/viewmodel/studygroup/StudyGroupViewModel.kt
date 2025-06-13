@@ -17,9 +17,12 @@ import ipvc.tp.devhive.domain.usecase.studygroup.DeleteStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupByIdUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupMessagesUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupsByUserUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.LeaveStudyGroupUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.RemoveMemberUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.SendGroupMessageUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.UpdateStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
+import ipvc.tp.devhive.domain.usecase.user.GetUsersByIdsUseCase
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,9 +35,11 @@ class StudyGroupViewModel @Inject constructor(
     private val getStudyGroupMessagesUseCase: GetStudyGroupMessagesUseCase,
     private val createStudyGroupUseCase: CreateStudyGroupUseCase,
     private val sendGroupMessageUseCase: SendGroupMessageUseCase,
-    private val updateStudyGroupUseCase: UpdateStudyGroupUseCase, // Adicionado
-    private val deleteStudyGroupUseCase: DeleteStudyGroupUseCase  // Adicionado
-    // Removi removeMemberUseCase por enquanto, pois não estava sendo usado diretamente nas Activities fornecidas
+    private val updateStudyGroupUseCase: UpdateStudyGroupUseCase,
+    private val deleteStudyGroupUseCase: DeleteStudyGroupUseCase,
+    private val removeMemberUseCase: RemoveMemberUseCase,
+    private val leaveStudyGroupUseCase: LeaveStudyGroupUseCase,
+    private val getUsersByIdsUseCase: GetUsersByIdsUseCase
 ) : ViewModel() {
 
     private var hasAttemptedInitialGroupLoadForCurrentUser = false
@@ -75,6 +80,16 @@ class StudyGroupViewModel @Inject constructor(
 
     private val _deleteGroupResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
     val deleteGroupResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _deleteGroupResultEvent
+
+    private val _leaveGroupResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
+    val leaveGroupResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _leaveGroupResultEvent
+
+    private val _removeMemberResultEvent = MutableLiveData<Event<StudyGroupGeneralResult>>()
+    val removeMemberResultEvent: LiveData<Event<StudyGroupGeneralResult>> = _removeMemberResultEvent
+
+    // Para ManageMembersActivity
+    private val _groupMembersDetails = MutableLiveData<List<User>>()
+    val groupMembersDetails: LiveData<List<User>> = _groupMembersDetails
 
     private val _isCurrentUserAdmin = MutableLiveData<Boolean>(false)
     val isCurrentUserAdmin: LiveData<Boolean> = _isCurrentUserAdmin
@@ -145,6 +160,30 @@ class StudyGroupViewModel @Inject constructor(
                 _userStudyGroups.value = emptyList()
                 _generalEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao buscar grupos do utilizador."))
                 hasAttemptedInitialGroupLoadForCurrentUser = false
+            }
+        }
+    }
+
+    fun loadGroupMembersDetails(memberIds: List<String>) {
+        if (memberIds.isEmpty()) {
+            _groupMembersDetails.value = emptyList()
+            return
+        }
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = getUsersByIdsUseCase(memberIds)
+                if (result.isSuccess) {
+                    _groupMembersDetails.value = result.getOrNull() ?: emptyList()
+                } else {
+                    _groupMembersDetails.value = emptyList()
+                    _generalEvent.value = Event(StudyGroupEvent.Error(result.exceptionOrNull()?.message ?: "Erro ao buscar detalhes dos membros."))
+                }
+            } catch (e: Exception) {
+                _groupMembersDetails.value = emptyList()
+                _generalEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro inesperado ao buscar detalhes dos membros."))
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -222,7 +261,6 @@ class StudyGroupViewModel @Inject constructor(
             _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure("Utilizador não autenticado para enviar mensagem."))
             return
         }
-        // _isLoading.value = true; // Pode ter um isLoading específico para envio de msg
 
         viewModelScope.launch {
             try {
@@ -246,25 +284,44 @@ class StudyGroupViewModel @Inject constructor(
     }
 
     fun loadGroupMessages(groupId: String) {
-        // _isLoading.value = true; // Pode ter um isLoading específico para mensagens
         currentMessagesSource?.let {
             _groupMessages.removeSource(it)
         }
 
-        viewModelScope.launch { // Adicionado viewModelScope.launch
+        viewModelScope.launch {
             try {
-                // Assumindo que getStudyGroupMessagesUseCase retorna LiveData<List<GroupMessage>>
                 val newSource: LiveData<List<GroupMessage>> = getStudyGroupMessagesUseCase(groupId)
                 currentMessagesSource = newSource
 
                 _groupMessages.addSource(newSource) { messageList ->
                     _groupMessages.value = messageList
-                    // _isLoading.value = false
                 }
             } catch (e: Exception) {
-                // _isLoading.value = false
                 _groupMessages.value = emptyList()
                 _generalEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao carregar mensagens"))
+            }
+        }
+    }
+
+    fun leaveStudyGroup(groupId: String) {
+        val userId = _currentUser.value?.id
+        if (userId == null) {
+            _leaveGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure("Utilizador não autenticado."))
+            return
+        }
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = leaveStudyGroupUseCase(groupId, userId)
+                if (result.isSuccess) {
+                    _leaveGroupResultEvent.value = Event(StudyGroupGeneralResult.Success("Você saiu do grupo."))
+                } else {
+                    _leaveGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao sair do grupo."))
+                }
+            } catch (e: Exception) {
+                _leaveGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(e.message ?: "Erro inesperado ao sair do grupo."))
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -318,6 +375,31 @@ class StudyGroupViewModel @Inject constructor(
             }
         }
     }
+
+    fun removeMemberFromGroup(groupId: String, memberIdToRemove: String) {
+        val currentUserId = _currentUser.value?.id
+        if (currentUserId == null) {
+            _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Failure("Utilizador não autenticado."))
+            return
+        }
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = removeMemberUseCase(groupId, memberIdToRemove)
+                if (result.isSuccess) {
+                    _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Success("Membro removido com sucesso."))
+                    loadStudyGroupDetails(groupId)
+                } else {
+                    _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao remover membro."))
+                }
+            } catch (e: Exception) {
+                _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Failure(e.message ?: "Erro inesperado ao remover membro."))
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
 
     fun clearGeneralEvent() {
         _generalEvent.value = null

@@ -29,11 +29,14 @@ import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupMessagesUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupsByUserUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.GetStudyGroupsUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.JoinStudyGroupUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.LeaveStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.RemoveMemberUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.SendGroupMessageUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.UpdateStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.sync.SyncDataUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
+import ipvc.tp.devhive.domain.usecase.user.GetUserByIdUseCase
+import ipvc.tp.devhive.domain.usecase.user.GetUsersByIdsUseCase
 import ipvc.tp.devhive.domain.usecase.user.UpdateUserUseCase
 
 @Module
@@ -186,6 +189,13 @@ object AppModule {
     }
 
     @Provides
+    fun provideLeaveStudyGroupUseCase(
+        studyGroupRepository: StudyGroupRepository
+    ): LeaveStudyGroupUseCase {
+        return LeaveStudyGroupUseCase(studyGroupRepository)
+    }
+
+    @Provides
     fun provideCreateStudyGroupUseCase(
         studyGroupRepository: StudyGroupRepository,
         userRepository: UserRepository
@@ -237,4 +247,17 @@ object AppModule {
         return UpdateUserUseCase(userRepository)
     }
 
+    @Provides
+    fun provideGetUserByIdUseCase(
+        userRepository: UserRepository
+    ): GetUserByIdUseCase {
+        return GetUserByIdUseCase(userRepository)
+    }
+
+    @Provides
+    fun provideGetUsersByIdsUseCase(
+        userRepository: UserRepository
+    ): GetUsersByIdsUseCase {
+        return GetUsersByIdsUseCase(userRepository)
+    }
 }

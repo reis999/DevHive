@@ -1,4 +1,4 @@
-package ipvc.tp.devhive.presentation.ui.main.studygroup
+package ipvc.tp.devhive.presentation.ui.main.studygroup.adapters
 
 import android.view.LayoutInflater
 import android.view.View

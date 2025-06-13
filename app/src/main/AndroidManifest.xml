@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Permissões necessárias -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <queries>
+
+        <!-- Para permitir que a app encontre apps de galeria/selecionadores de imagem -->
+        <intent>
+            <action android:name="android.intent.action.PICK" />
+
+            <data android:mimeType="image/*" />
+        </intent>
+        <!-- Opcional, mas comum: para permitir que a app encontre apps que podem abrir imagens -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+
+            <data android:mimeType="image/*" />
+        </intent>
+    </queries>
 
     <application
         android:name=".DevHiveApp"
@@ -17,7 +32,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Devhive"
         tools:targetApi="31">
-
+        <activity
+            android:name=".presentation.ui.main.studygroup.ManageMembersActivity"
+            android:exported="false" />
         <!-- SplashActivity como LAUNCHER -->
         <activity
             android:name=".presentation.ui.splash.SplashActivity"
@@ -25,90 +42,60 @@
             android:theme="@style/Theme.Devhive">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Atividades de Autenticação -->
+        </activity> <!-- Atividades de Autenticação -->
         <activity
             android:name=".presentation.ui.intro.IntroActivity"
             android:exported="false"
             android:theme="@style/Theme.Devhive" />
-
         <activity
             android:name=".presentation.ui.auth.LoginActivity"
             android:exported="false"
             android:theme="@style/Theme.Devhive" />
-
         <activity
             android:name=".presentation.ui.auth.RegisterActivity"
             android:exported="false"
             android:theme="@style/Theme.Devhive" />
-
         <activity
             android:name=".presentation.ui.auth.ForgotPasswordActivity"
             android:exported="false"
-            android:theme="@style/Theme.Devhive" />
-
-        <!-- MainActivity Principal -->
+            android:theme="@style/Theme.Devhive" /> <!-- MainActivity Principal -->
         <activity
             android:name=".presentation.ui.main.MainActivity"
             android:exported="false"
-            android:theme="@style/Theme.Devhive" />
-
-        <!-- Outras Activities -->
+            android:theme="@style/Theme.Devhive" /> <!-- Outras Activities -->
         <activity
             android:name=".presentation.ui.main.material.AddMaterialActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.material.MaterialDetailActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.chat.ChatRoomActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.chat.CreateChatActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.chat.SelectUserActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.studygroup.CreateStudyGroupActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.studygroup.StudyGroupChatActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.studygroup.StudyGroupSettingsActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.profile.EditProfileActivity"
             android:exported="false" />
-
         <activity
             android:name=".presentation.ui.main.profile.UserProfileActivity"
             android:exported="false" />
-
     </application>
 
-    <queries>
-        <!-- Para permitir que a app encontre apps de galeria/selecionadores de imagem -->
-        <intent>
-            <action android:name="android.intent.action.PICK" />
-            <data android:mimeType="image/*" />
-        </intent>
-        <!-- Opcional, mas comum: para permitir que a app encontre apps que podem abrir imagens -->
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:mimeType="image/*" />
-        </intent>
-    </queries>
 </manifest>

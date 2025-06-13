@@ -8,6 +8,7 @@ import ipvc.tp.devhive.domain.model.User
  */
 interface UserRepository {
     suspend fun getUserById(userId: String): User?
+    suspend fun getUsersByIds(userIds: List<String>): Result<List<User>>
     suspend fun getCurrentUser(): User?
     fun observeUserById(userId: String): LiveData<User?>
     suspend fun createUser(user: User): Result<User>

@@ -17,10 +17,10 @@ interface StudyGroupRepository {
 
     suspend fun createStudyGroup(studyGroup: StudyGroup): Result<StudyGroup> //
     suspend fun updateStudyGroup(groupId: String, name: String, description: String, categories: List<String>, imageUri: android.net.Uri? = null): Result<StudyGroup> //
-    suspend fun deleteStudyGroup(groupId: String): Result<Boolean>
+    suspend fun deleteStudyGroup(groupId: String): Result<Boolean> //
 
     suspend fun joinStudyGroup(groupId: String, userId: String): Result<Boolean> //
-    suspend fun leaveStudyGroup(groupId: String, userId: String): Result<Boolean>
+    suspend fun leaveStudyGroup(groupId: String, userId: String): Result<Boolean> //
 
     fun getGroupMessagesByStudyGroupId(groupId: String): LiveData<List<GroupMessage>> //
     suspend fun sendGroupMessage(groupId: String, message: GroupMessage): Result<GroupMessage> //

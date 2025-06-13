@@ -29,6 +29,9 @@ interface StudyGroupDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStudyGroups(studyGroups: List<StudyGroupEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateStudyGroup(studyGroup: StudyGroupEntity)
+
     @Update
     suspend fun updateStudyGroup(studyGroup: StudyGroupEntity)
 
@@ -49,4 +52,5 @@ interface StudyGroupDao {
 
     @Query("SELECT * FROM study_groups WHERE joinCode = :joinCode LIMIT 1")
     suspend fun getStudyGroupByJoinCode(joinCode: String): StudyGroupEntity?
+
 }

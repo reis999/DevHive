@@ -13,6 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.databinding.FragmentStudyGroupsBinding
 import ipvc.tp.devhive.domain.model.StudyGroup
+import ipvc.tp.devhive.presentation.ui.main.studygroup.adapters.StudyGroupAdapter
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupEvent
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModel
 
@@ -119,10 +120,7 @@ class StudyGroupsFragment : Fragment(R.layout.fragment_study_groups) {
 
     override fun onResume() {
         super.onResume()
-        if (viewModel.currentUser.value != null && viewModel.userStudyGroups.value.isNullOrEmpty() && !viewModel.isLoading.value!!) {
-            Log.d("StudyGroupsFragment", "onResume: User logged in, groups are empty, and not loading. Requesting groups.")
-            viewModel.loadUserStudyGroups()
-        }
+        viewModel.loadUserStudyGroups()
     }
 
     override fun onDestroyView() {

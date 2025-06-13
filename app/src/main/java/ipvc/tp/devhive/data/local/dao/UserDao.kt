@@ -15,11 +15,17 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE id = :userId")
     suspend fun getUserById(userId: String): UserEntity?
 
+    @Query("SELECT * FROM users WHERE id IN (:userIds)")
+    suspend fun getUsersByIds(userIds: List<String>): List<UserEntity>
+
     @Query("SELECT * FROM users WHERE id = :userId")
     fun observeUserById(userId: String): LiveData<UserEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUser(user: UserEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUsers(users: List<UserEntity>)
 
     @Update
     suspend fun updateUser(user: UserEntity)
