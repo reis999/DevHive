@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.ui.auth.LoginActivity
 import ipvc.tp.devhive.presentation.ui.intro.IntroActivity
@@ -23,7 +24,7 @@ class SplashActivity : AppCompatActivity() {
             .getBoolean("isFirstRun", true)
 
         // Verifica se o usuário está autenticado
-        val isAuthenticated = false // Aqui seria implementada a verificação de autenticação
+        val isAuthenticated = FirebaseAuth.getInstance().currentUser != null
 
         // Atraso para exibir a tela de splash
         Handler(Looper.getMainLooper()).postDelayed({

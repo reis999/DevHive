@@ -1,6 +1,7 @@
 package ipvc.tp.devhive.data.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.PropertyName
 
 data class Material(
     val id: String = "",
@@ -16,12 +17,14 @@ data class Material(
     val createdAt: Timestamp = Timestamp.now(),
     val updatedAt: Timestamp = Timestamp.now(),
     val categories: List<String> = emptyList(),
-    val isPublic: Boolean = true,
+    @get:PropertyName("isPublic") @set:PropertyName("isPublic") var isPublic: Boolean = true,
     val subject: String = "",
     val views: Int = 0,
-    val likes: Int = 0,
     val downloads: Int = 0,
-    val bookmarked: Boolean = false,
+    val likes: Int = 0,
+    val bookmarks: Int = 0,
+    val bookmarkedBy: List<String> = emptyList(),
+    val likedBy: List<String> = emptyList(),
     val rating: Float = 0f,
     val reviewCount: Int = 0,
     val lastSync: Timestamp = Timestamp.now()

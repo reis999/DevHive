@@ -22,7 +22,27 @@ class GetMaterialsUseCase @Inject constructor(private val materialRepository: Ma
         return materialRepository.getMaterialsBySubject(subject)
     }
 
-    fun bookmarked(): LiveData<List<Material>> {
-        return materialRepository.getBookmarkedMaterials()
+    fun bookmarked(userId: String): LiveData<List<Material>> {
+        return materialRepository.getBookmarkedMaterials(userId)
+    }
+
+    suspend fun byId(materialId: String): Material? {
+        return materialRepository.getMaterialById(materialId)
+    }
+
+    fun search(query: String): LiveData<List<Material>> {
+        return materialRepository.searchMaterials(query)
+    }
+
+    fun searchBySubject(subject: String): LiveData<List<Material>> {
+        return materialRepository.searchMaterialsBySubject(subject)
+    }
+
+    suspend fun getDistinctSubjects(): List<String> {
+        return materialRepository.getDistinctSubjects()
+    }
+
+    fun searchWithSubject(query: String, subject: String?): LiveData<List<Material>> {
+        return materialRepository.searchMaterialsWithSubject(query, subject)
     }
 }

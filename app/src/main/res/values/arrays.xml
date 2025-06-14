@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="subjects">
-        <item>Mathematics</item>
-        <item>Science</item>
-        <item>History</item>
-        <item>Programming</item>
-
+        <item>@string/subject_algorithms</item>
+        <item>@string/subject_programming</item>
+        <item>@string/subject_math</item>
+        <item>@string/subject_os</item>
+        <item>@string/subject_db</item>
+        <item>@string/subject_software_eng</item>
+        <item>@string/subject_ai</item>
     </string-array>
 </resources>

@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.InputType
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
@@ -21,15 +22,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
 import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.User
+import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileEvent
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
+@AndroidEntryPoint
 class EditProfileActivity : AppCompatActivity() {
 
-    private val profileViewModel: ProfileViewModel by viewModels()
+    private val viewModel: ProfileViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivProfile: ImageView
@@ -83,6 +88,22 @@ class EditProfileActivity : AppCompatActivity() {
         btnSave = findViewById(R.id.btn_save)
         progressBar = findViewById(R.id.progress_bar)
 
+        etEmail.apply {
+            isFocusable = false
+            isClickable = false
+            isLongClickable = true
+            inputType = InputType.TYPE_NULL
+            setTextColor(ContextCompat.getColor(context, R.color.gray))
+        }
+
+        etUsername.apply {
+            isFocusable = false
+            isClickable = false
+            isLongClickable = true
+            inputType = InputType.TYPE_NULL
+            setTextColor(ContextCompat.getColor(context, R.color.gray))
+        }
+
         // Configura a toolbar
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -98,6 +119,31 @@ class EditProfileActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             saveProfile()
+        }
+
+        viewModel.userProfile.observe(this) { user ->
+            user?.let { displayUserData(it) }
+        }
+
+        viewModel.isLoading.observe(this) { isLoading ->
+            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            btnSave.isEnabled = !isLoading
+        }
+
+        viewModel.profileEvent.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { profileEvent ->
+                when (profileEvent) {
+                    is ProfileEvent.ProfileUpdated -> {
+                        Toast.makeText(this, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show()
+                        setResult(Activity.RESULT_OK)
+                        finish()
+                    }
+                    is ProfileEvent.Error -> {
+                        Toast.makeText(this, profileEvent.message, Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {}
+                }
+            }
         }
     }
 
@@ -118,9 +164,7 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
     private fun loadProfileData() {
-        // implementação real: usar profileViewModel.getCurrentUser()
-        val mockUser = getMockUser()
-        displayUserData(mockUser)
+        viewModel.loadUserProfile()
     }
 
     private fun displayUserData(user: User) {
@@ -143,29 +187,18 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
     private fun checkPermissionAndOpenGallery() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permissão não concedida, pede ao utilizador
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                )
-            ) {
-                // Mostra uma explicação ao utilizador
-                Toast.makeText(
-                    this,
-                    R.string.permission_rationale,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
-            // Pede a permissão
-            requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+        val permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
         } else {
-            // Permissão já concedida, abre a galeria
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                Toast.makeText(this, R.string.permission_rationale, Toast.LENGTH_LONG).show()
+            }
+            requestPermissionLauncher.launch(permission)
+        } else {
             openGallery()
         }
     }
@@ -196,14 +229,11 @@ class EditProfileActivity : AppCompatActivity() {
 
         // Obtém os valores dos campos
         val name = etName.text.toString().trim()
-        val username = etUsername.text.toString().trim()
-        val email = etEmail.text.toString().trim()
         val bio = etBio.text.toString().trim()
         val institution = etInstitution.text.toString().trim()
         val course = etCourse.text.toString().trim()
 
-        // implementação real: usar profileViewModel.updateProfile()
-        simulateProfileUpdate(name, username, email, bio, institution, course)
+        viewModel.updateProfile(name, bio, institution, course, selectedImageUri)
     }
 
     private fun validateFields(): Boolean {
@@ -214,64 +244,6 @@ class EditProfileActivity : AppCompatActivity() {
             isValid = false
         }
 
-        if (etUsername.text.toString().trim().isEmpty()) {
-            etUsername.error = getString(R.string.field_required)
-            isValid = false
-        }
-
-        val email = etEmail.text.toString().trim()
-        if (email.isEmpty()) {
-            etEmail.error = getString(R.string.field_required)
-            isValid = false
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.error = getString(R.string.invalid_email)
-            isValid = false
-        }
-
         return isValid
-    }
-
-    private fun simulateProfileUpdate(
-        name: String,
-        username: String,
-        email: String,
-        bio: String,
-        institution: String,
-        course: String
-    ) {
-        // Simula um atraso para a atualização
-        btnSave.postDelayed({
-            // Esconde o progresso
-            progressBar.visibility = View.GONE
-            btnSave.isEnabled = true
-
-            // Mostra mensagem de sucesso
-            Toast.makeText(this, R.string.profile_updated, Toast.LENGTH_SHORT).show()
-
-            // Fecha a atividade
-            finish()
-        }, 2000)
-    }
-
-    private fun getMockUser(): User {
-        return User(
-            id = "user123",
-            name = "David Reis",
-            username = "davidreis",
-            email = "david.reis@example.com",
-            profileImageUrl = "",
-            bio = "Estudante de Engenharia Informática no IPVC. Interessado em desenvolvimento mobile e inteligência artificial.",
-            institution = "Instituto Politécnico de Viana do Castelo",
-            course = "Licenciatura em Engenharia Informática",
-            createdAt = Timestamp(java.util.Date()),
-            lastLogin = Timestamp(java.util.Date()),
-            isOnline = true,
-            contributionStats = ipvc.tp.devhive.domain.model.ContributionStats(
-                materials = 12,
-                comments = 45,
-                likes = 78,
-                sessions = 5
-            )
-        )
     }
 }

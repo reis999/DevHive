@@ -27,18 +27,66 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/search_view"
+    <!-- Container para pesquisa e filtros -->
+    <LinearLayout
+        android:id="@+id/search_filter_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:background="@drawable/bg_search"
-        android:elevation="2dp"
-        app:iconifiedByDefault="false"
+        android:orientation="vertical"
+        android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:queryHint="@string/search_materials" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+        <!-- Search Bar com botão para limpar filtros -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_search"
+                android:elevation="2dp"
+                app:iconifiedByDefault="false"
+                app:queryHint="@string/search_materials" />
+
+            <ImageView
+                android:id="@+id/iv_clear_filters"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/clear_filters"
+                android:padding="12dp"
+                android:src="@drawable/ic_clear"
+                android:visibility="gone"
+                app:tint="@color/purple_500" />
+
+        </LinearLayout>
+
+        <!-- Chips para filtros por subject -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_subjects"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="8dp"
+                app:selectionRequired="true"
+                app:singleSelection="true" />
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
@@ -49,7 +97,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_view"
+        app:layout_constraintTop_toBottomOf="@+id/search_filter_container"
         tools:listitem="@layout/item_material" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

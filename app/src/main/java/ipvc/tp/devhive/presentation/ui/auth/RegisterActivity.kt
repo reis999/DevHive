@@ -12,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.ui.main.MainActivity
 import ipvc.tp.devhive.presentation.util.showSnackbar
@@ -20,6 +21,7 @@ import ipvc.tp.devhive.presentation.viewmodel.auth.AuthEvent
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthState
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
 
+@AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
