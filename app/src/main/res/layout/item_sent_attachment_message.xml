@@ -103,8 +103,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginTop="6dp"
-                android:textColor="@color/gray"
-                android:textSize="10sp"
+                android:textColor="@color/white"
+                android:textSize="12sp"
                 tools:text="10:30 AM" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>

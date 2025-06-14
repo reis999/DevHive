@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import ipvc.tp.devhive.data.local.converter.AttachmentListConverter
 import ipvc.tp.devhive.data.local.converter.MapStringAnyConverter
 import ipvc.tp.devhive.data.local.converter.MessageAttachmentListConverter
@@ -36,7 +38,7 @@ import ipvc.tp.devhive.data.local.entity.UserEntity
         StudyGroupEntity::class,
         GroupMessageEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(
@@ -59,6 +61,25 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        private val MIGRATION_1_2 = object :
+            Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE chats ADD COLUMN otherParticipantId TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE chats ADD COLUMN otherParticipantName TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE chats ADD COLUMN otherParticipantImageUrl TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE chats ADD COLUMN otherParticipantOnline INTEGER NOT NULL DEFAULT 0") // SQLite usa INTEGER para Boolean (0 ou 1)
+                db.execSQL("ALTER TABLE chats ADD COLUMN unreadCount INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_2_3 = object :
+            Migration(2, 3) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE chats ADD COLUMN participant1Name TEXT NOT NULL DEFAULT ''")
+                }
+        }
+
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -66,6 +87,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "devhive_database"
                 )
+                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_2_3)
                     .fallbackToDestructiveMigration(false)
                     .build()
                 INSTANCE = instance

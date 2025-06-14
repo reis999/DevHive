@@ -26,14 +26,29 @@ class ChatService(firestore: FirebaseFirestore) {
 
     suspend fun getChatsByUser(userId: String): Result<List<Chat>> {
         return try {
-            val snapshot = chatsCollection
-                .whereArrayContains("participantIds", userId)
+            val snapshot1 = chatsCollection
+                .whereEqualTo("participant1Id", userId)
                 .orderBy("lastMessageAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
+            val chatsFromQuery1 = snapshot1.documents.mapNotNull { doc ->
+                doc.toObject(Chat::class.java)?.copy(id = doc.id)
+            }
 
-            val chats = snapshot.documents.mapNotNull { it.toObject(Chat::class.java) }
-            Result.success(chats)
+            val snapshot2 = chatsCollection
+                .whereEqualTo("participant2Id", userId)
+                .orderBy("lastMessageAt", Query.Direction.DESCENDING)
+                .get()
+                .await()
+            val chatsFromQuery2 = snapshot2.documents.mapNotNull { doc ->
+                doc.toObject(Chat::class.java)?.copy(id = doc.id)
+            }
+
+            val combinedChats = (chatsFromQuery1 + chatsFromQuery2)
+                .distinctBy { it.id }
+                .sortedByDescending { it.lastMessageAt }
+
+            Result.success(combinedChats)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -41,7 +56,6 @@ class ChatService(firestore: FirebaseFirestore) {
 
     suspend fun findChatBetweenUsers(user1Id: String, user2Id: String): Chat? {
         return try {
-            // Busca chats onde user1 é participant1 e user2 é participant2
             val query1 = chatsCollection
                 .whereEqualTo("participant1Id", user1Id)
                 .whereEqualTo("participant2Id", user2Id)
@@ -52,7 +66,6 @@ class ChatService(firestore: FirebaseFirestore) {
                 return query1.documents[0].toObject(Chat::class.java)
             }
 
-            // Busca chats onde user1 é participant2 e user2 é participant1
             val query2 = chatsCollection
                 .whereEqualTo("participant1Id", user2Id)
                 .whereEqualTo("participant2Id", user1Id)

@@ -123,6 +123,20 @@ class UserRepository(
         }
     }
 
+    override suspend fun searchUsers(
+        query: String,
+        excludeUserId: String?
+    ): Result<List<DomainUser>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = userService.searchUsers(query, excludeUserId)
+                return@withContext Result.success(result.map { it.toDomainUser() })
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
     override fun observeUserById(userId: String): LiveData<DomainUser?> {
         appScope.launch {
             refreshUser(userId)

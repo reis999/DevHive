@@ -11,10 +11,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Chat
+import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.util.DateFormatUtils
 
-class ChatAdapter(private val listener: OnChatClickListener) :
-    ListAdapter<Chat, ChatAdapter.ChatViewHolder>(ChatDiffCallback()) {
+class ChatAdapter(
+    private val listener: OnChatClickListener,
+    private val currentUser: User
+) : ListAdapter<Chat, ChatAdapter.ChatViewHolder>(ChatDiffCallback()) {
 
     interface OnChatClickListener {
         fun onChatClick(chat: Chat)
@@ -23,14 +26,19 @@ class ChatAdapter(private val listener: OnChatClickListener) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_chat, parent, false)
-        return ChatViewHolder(view)
+        return ChatViewHolder(view, currentUser, listener)
     }
 
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    inner class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    // Modifique o construtor do ViewHolder também
+    inner class ChatViewHolder(
+        itemView: View,
+        private val currentUser: User,
+        private val clickListener: OnChatClickListener // Adicionado para o click
+    ) : RecyclerView.ViewHolder(itemView) {
         private val ivChatImage: ImageView = itemView.findViewById(R.id.iv_chat_image)
         private val tvChatName: TextView = itemView.findViewById(R.id.tv_chat_name)
         private val tvLastMessage: TextView = itemView.findViewById(R.id.tv_last_message)
@@ -41,18 +49,23 @@ class ChatAdapter(private val listener: OnChatClickListener) :
             itemView.setOnClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    listener.onChatClick(getItem(position))
+                    clickListener.onChatClick(getItem(position))
                 }
             }
         }
 
         fun bind(chat: Chat) {
-            tvChatName.text = chat.otherParticipantName
+
+            if (chat.otherParticipantId == currentUser.id) {
+                tvChatName.text = chat.participant1Name
+            } else {
+                tvChatName.text = chat.otherParticipantName
+            }
+
             tvLastMessage.text = chat.lastMessagePreview
             tvTime.text = DateFormatUtils.getRelativeTimeSpan(chat.lastMessageAt)
 
-            // Simulamos uma contagem de mensagens não lidas
-            val unreadCount = 0 // Em uma implementação real, isso viria do backend
+            val unreadCount = chat.unreadCount
             if (unreadCount > 0) {
                 tvUnreadCount.visibility = View.VISIBLE
                 tvUnreadCount.text = unreadCount.toString()
@@ -60,11 +73,19 @@ class ChatAdapter(private val listener: OnChatClickListener) :
                 tvUnreadCount.visibility = View.GONE
             }
 
-            // Carregamos uma imagem padrão para o chat
-            Glide.with(itemView.context)
-                .load(R.drawable.placeholder_chat)
-                .circleCrop()
-                .into(ivChatImage)
+            if (chat.otherParticipantImageUrl.isNotEmpty()) {
+                Glide.with(itemView.context)
+                    .load(chat.otherParticipantImageUrl)
+                    .placeholder(R.drawable.placeholder_chat)
+                    .error(R.drawable.placeholder_chat)
+                    .circleCrop()
+                    .into(ivChatImage)
+            } else {
+                Glide.with(itemView.context)
+                    .load(R.drawable.placeholder_chat)
+                    .circleCrop()
+                    .into(ivChatImage)
+            }
         }
     }
 

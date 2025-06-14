@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.data.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import ipvc.tp.devhive.data.local.dao.ChatDao
@@ -24,12 +25,10 @@ class ChatRepository(
 ) : DomainChatRepository {
 
     override fun getChatsByUser(userId: String): LiveData<List<ipvc.tp.devhive.domain.model.Chat>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshChatsByUser(userId)
         }
 
-        // Retorna LiveData do banco local
         return chatDao.getChatsByUser(userId).map { entities ->
             entities.map { ChatEntity.toChat(it).toDomainChat() }
         }
@@ -41,6 +40,8 @@ class ChatRepository(
             if (result.isSuccess) {
                 val chats = result.getOrThrow()
                 val entities = chats.map { ChatEntity.fromChat(it) }
+                Log.d("ChatRepository", "Received ${entities.size} chats from Firestore")
+                Log.d("ChatRepository", "Entities: $entities")
                 chatDao.insertChats(entities)
             }
         }
@@ -286,6 +287,7 @@ class ChatRepository(
         return ipvc.tp.devhive.domain.model.Chat(
             id = this.id,
             participant1Id = this.participant1Id,
+            participant1Name = this.participant1Name,
             participant2Id = this.participant2Id,
             lastMessagePreview = this.lastMessagePreview,
             lastMessageAt = this.lastMessageAt,
@@ -303,6 +305,7 @@ class ChatRepository(
         return Chat(
             id = this.id,
             participant1Id = this.participant1Id,
+            participant1Name = this.participant1Name,
             participant2Id = this.participant2Id,
             lastMessagePreview = this.lastMessagePreview,
             lastMessageAt = this.lastMessageAt,

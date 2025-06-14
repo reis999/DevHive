@@ -14,6 +14,10 @@ import ipvc.tp.devhive.domain.usecase.auth.LoginUserUseCase
 import ipvc.tp.devhive.domain.usecase.auth.LogoutUserUseCase
 import ipvc.tp.devhive.domain.usecase.auth.RegisterUserUseCase
 import ipvc.tp.devhive.domain.usecase.chat.CreateChatUseCase
+import ipvc.tp.devhive.domain.usecase.chat.DeleteChatUseCase
+import ipvc.tp.devhive.domain.usecase.chat.GetChatByIdUseCase
+import ipvc.tp.devhive.domain.usecase.chat.GetChatsByUserUseCase
+import ipvc.tp.devhive.domain.usecase.chat.GetMessagesByChatIdUseCase
 import ipvc.tp.devhive.domain.usecase.chat.SendMessageUseCase
 import ipvc.tp.devhive.domain.usecase.comment.CreateCommentUseCase
 import ipvc.tp.devhive.domain.usecase.comment.LikeCommentUseCase
@@ -37,6 +41,7 @@ import ipvc.tp.devhive.domain.usecase.sync.SyncDataUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetUserByIdUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetUsersByIdsUseCase
+import ipvc.tp.devhive.domain.usecase.user.SearchUsersUseCase
 import ipvc.tp.devhive.domain.usecase.user.UpdateUserUseCase
 
 @Module
@@ -111,9 +116,10 @@ object AppModule {
     // Use Cases - Chat
     @Provides
     fun provideCreateChatUseCase(
-        chatRepository: ChatRepository
+        chatRepository: ChatRepository,
+        userRepository: UserRepository
     ): CreateChatUseCase {
-        return CreateChatUseCase(chatRepository)
+        return CreateChatUseCase(chatRepository, userRepository)
     }
 
     @Provides
@@ -121,6 +127,34 @@ object AppModule {
         chatRepository: ChatRepository
     ): SendMessageUseCase {
         return SendMessageUseCase(chatRepository)
+    }
+
+    @Provides
+    fun provideDeleteChatUseCase(
+        chatRepository: ChatRepository
+    ): DeleteChatUseCase {
+        return DeleteChatUseCase(chatRepository)
+    }
+
+    @Provides
+    fun provideGetChatByIdUseCase(
+        chatRepository: ChatRepository
+    ): GetChatByIdUseCase {
+        return GetChatByIdUseCase(chatRepository)
+    }
+
+    @Provides
+    fun provideGetChatsByUserUseCase(
+        chatRepository: ChatRepository
+    ): GetChatsByUserUseCase {
+        return GetChatsByUserUseCase(chatRepository)
+    }
+
+    @Provides
+    fun provideGetMessagesByChatIdUseCase(
+        chatRepository: ChatRepository
+    ): GetMessagesByChatIdUseCase {
+        return GetMessagesByChatIdUseCase(chatRepository)
     }
 
     // Use Cases - Study Group
@@ -259,5 +293,12 @@ object AppModule {
         userRepository: UserRepository
     ): GetUsersByIdsUseCase {
         return GetUsersByIdsUseCase(userRepository)
+    }
+
+    @Provides
+    fun provideSearchUsersUseCase(
+        userRepository: UserRepository
+    ): SearchUsersUseCase {
+        return SearchUsersUseCase(userRepository)
     }
 }

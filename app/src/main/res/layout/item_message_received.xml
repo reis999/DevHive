@@ -1,36 +1,43 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="start"
-    android:padding="4dp">
+    android:paddingStart="8dp"
+    android:paddingEnd="60dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
 
-    <LinearLayout
+    <!-- Opcional: Avatar do remetente -->
+    <!-- <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/iv_sender_avatar_received"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_message_content_received"
+        tools:src="@drawable/profile_placeholder"
+        android:layout_marginEnd="8dp"/> -->
+
+    <TextView
+        android:id="@+id/tv_message_content_received"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="64dp"
         android:background="@drawable/bg_message_received"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="10dp"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Esta é uma mensagem recebida." />
 
-        <TextView
-            android:id="@+id/tv_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp"
-            tools:text="Olá, tudo bem?" />
-
-        <TextView
-            android:id="@+id/tv_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="12sp"
-            tools:text="14:25" />
-
-    </LinearLayout>
-
-</LinearLayout>
+    <TextView
+        android:id="@+id/tv_message_time_received"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:textColor="@color/gray"
+        app:layout_constraintTop_toBottomOf="@id/tv_message_content_received"
+        app:layout_constraintStart_toStartOf="@id/tv_message_content_received"
+        android:layout_marginTop="2dp"
+        tools:text="10:31 AM" />
+</androidx.constraintlayout.widget.ConstraintLayout>

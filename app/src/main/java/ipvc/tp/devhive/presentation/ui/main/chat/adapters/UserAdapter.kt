@@ -32,6 +32,7 @@ class UserAdapter(private val listener: OnUserClickListener) :
     inner class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivUserAvatar: ImageView = itemView.findViewById(R.id.iv_user_avatar)
         private val tvUserName: TextView = itemView.findViewById(R.id.tv_user_name)
+        private val tvUserUserName: TextView = itemView.findViewById(R.id.tv_user_username)
         private val tvUserBio: TextView = itemView.findViewById(R.id.tv_user_bio)
 
         init {
@@ -45,6 +46,7 @@ class UserAdapter(private val listener: OnUserClickListener) :
 
         fun bind(user: User) {
             tvUserName.text = user.name
+            tvUserUserName.text = "@${user.username}"
             tvUserBio.text = user.bio
 
             // Carrega a imagem do usuário

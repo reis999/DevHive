@@ -198,6 +198,9 @@
     <string name="no_users_found">Nenhum utilizador encontrado</string>
     <string name="no_users">Nenhum utilizador</string>
     <string name="try_different_search">Experimente uma pesquisa diferente</string>
+    <string name="no_users_found_search">Nenhum utilizador encontrado</string>
+    <string name="chat_created_successfully">Chat criado com sucesso</string>
+    <string name="error_creating_chat">Erro ao criar chat</string>
 
     <!-- Comentarios -->
     <string name="hint_comment">Escreva um comentário…</string>

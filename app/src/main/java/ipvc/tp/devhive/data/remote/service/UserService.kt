@@ -51,6 +51,22 @@ class UserService(firestore: FirebaseFirestore) {
         }
     }
 
+    suspend fun searchUsers(query: String, excludeUserId: String?): List<User> {
+        return try {
+            val querySnapshot = usersCollection
+                .whereGreaterThanOrEqualTo("name", query)
+                .whereLessThanOrEqualTo("name", query + "\uf8ff")
+                .whereNotEqualTo("id", excludeUserId)
+                .get()
+                .await()
+            querySnapshot.documents.mapNotNull { document ->
+                document.toObject(User::class.java)?.copy(id = document.id)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     suspend fun createUser(user: User): Result<User> {
         return try {
             val userId = user.id.ifEmpty { UUID.randomUUID().toString() }

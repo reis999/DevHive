@@ -2,26 +2,25 @@ package ipvc.tp.devhive.presentation.ui.main.chat
 
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.activity.OnBackPressedCallback
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.firebase.Timestamp
 import dagger.hilt.android.AndroidEntryPoint
 import de.hdodenhof.circleimageview.CircleImageView
 import ipvc.tp.devhive.R
-import ipvc.tp.devhive.data.util.SyncStatus
-import ipvc.tp.devhive.domain.model.Chat
-import ipvc.tp.devhive.domain.model.Message
+import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.ui.main.chat.adapters.MessageAdapter
+import ipvc.tp.devhive.presentation.viewmodel.chat.ChatEvent
 import ipvc.tp.devhive.presentation.viewmodel.chat.ChatViewModel
-import java.util.Date
 
 @AndroidEntryPoint
 class ChatRoomActivity : AppCompatActivity() {
@@ -41,26 +40,38 @@ class ChatRoomActivity : AppCompatActivity() {
     private lateinit var recyclerViewMessages: RecyclerView
     private lateinit var etMessage: EditText
     private lateinit var btnSend: ImageButton
+    private lateinit var progressBarMessages: ProgressBar
 
-    private val messageAdapter = MessageAdapter()
-    private var chatId: String = ""
-    private var otherUserId: String = ""
-    private var currentChat: Chat? = null
+    private lateinit var messageAdapter: MessageAdapter
+    private var currentChatId: String? = null
+    private var currentUserId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_room)
 
-        // Obtém os parâmetros da intent
-        chatId = intent.getStringExtra(EXTRA_CHAT_ID) ?: ""
-        otherUserId = intent.getStringExtra(EXTRA_OTHER_USER_ID) ?: ""
+        currentChatId = intent.getStringExtra(EXTRA_CHAT_ID)
+        val initialOtherUserName = intent.getStringExtra(EXTRA_CHAT_NAME)
+        // val otherUserIdFromIntent = intent.getStringExtra(EXTRA_OTHER_USER_ID) // Se precisar
 
-        if (chatId.isEmpty() && otherUserId.isEmpty()) {
+        if (currentChatId.isNullOrEmpty()) {
+            Toast.makeText(this, "ID do Chat inválido.", Toast.LENGTH_LONG).show()
             finish()
             return
         }
 
-        // Inicializa as views
+        initializeViews()
+        setupToolbar(initialOtherUserName) // Passa o nome inicial se disponível
+        setupRecyclerView() // Adapter será configurado quando tivermos currentUserId
+
+        observeViewModel()
+
+        btnSend.setOnClickListener {
+            sendMessage()
+        }
+    }
+
+    private fun initializeViews() {
         toolbar = findViewById(R.id.toolbar)
         ivOtherUserAvatar = findViewById(R.id.iv_other_user_avatar)
         tvOtherUserName = findViewById(R.id.tv_other_user_name)
@@ -68,175 +79,145 @@ class ChatRoomActivity : AppCompatActivity() {
         recyclerViewMessages = findViewById(R.id.recycler_view_messages)
         etMessage = findViewById(R.id.et_message)
         btnSend = findViewById(R.id.btn_send)
+        progressBarMessages = findViewById(R.id.progress_bar_messages_chat_room)
+    }
 
-        // Configura a toolbar
+    private fun setupToolbar(initialName: String?) {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
+        if (!initialName.isNullOrEmpty()) {
+            tvOtherUserName.text = initialName
+        }
+    }
 
-        // Configura o RecyclerView
+    private fun setupRecyclerView() {
         val layoutManager = LinearLayoutManager(this)
         layoutManager.stackFromEnd = true
         recyclerViewMessages.layoutManager = layoutManager
-        recyclerViewMessages.adapter = messageAdapter
+    }
 
-        // Carrega os detalhes do chat
-        loadChatDetails()
-
-        // Configura o botão de enviar
-        btnSend.setOnClickListener {
-            sendMessage()
+    private fun initializeAdapterIfNeeded(userId: String) {
+        if (!::messageAdapter.isInitialized || currentUserId != userId) {
+            currentUserId = userId
+            messageAdapter = MessageAdapter(userId)
+            recyclerViewMessages.adapter = messageAdapter
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-        val onBackPressedCallback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
+    private fun observeViewModel() {
+        chatViewModel.currentUser.observe(this) { user ->
+            if (user != null) {
+                initializeAdapterIfNeeded(user.id) // Garante que o adapter está pronto
+                currentChatId?.let {
+                    chatViewModel.loadChatDetailsAndMessages(it)
+                    chatViewModel.listenForMessages(it) // Para atualizações em tempo real
+                }
+            } else {
+                Toast.makeText(this, "Usuário não autenticado.", Toast.LENGTH_LONG).show()
                 finish()
             }
         }
-        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
-        return when (item.itemId) {
-            android.R.id.home -> {
-                onBackPressedDispatcher.onBackPressed()
-                true
+        chatViewModel.selectedChat.observe(this) { chat ->
+            // chat pode ser nulo se não for encontrado ou durante o carregamento
+            // Os detalhes do outro usuário serão atualizados por _otherUserDetails
+        }
+
+        chatViewModel.otherUserDetails.observe(this) { otherUser ->
+            otherUser?.let { displayOtherUserDetails(it) }
+        }
+
+        chatViewModel.chatMessages.observe(this) { messages ->
+            if (::messageAdapter.isInitialized) {
+                messageAdapter.submitList(messages) {
+                    // Rola para a última mensagem somente se a lista não estiver vazia
+                    // e, idealmente, apenas se uma nova mensagem foi adicionada pelo usuário atual
+                    // ou se é o carregamento inicial.
+                    if (messages.isNotEmpty()) {
+                        recyclerViewMessages.post { // Use post para garantir que o layout esteja completo
+                            recyclerViewMessages.smoothScrollToPosition(messages.size - 1)
+                        }
+                    }
+                }
             }
-            else -> super.onOptionsItemSelected(item)
+        }
+
+        chatViewModel.isLoading.observe(this) { isLoading ->
+            // Este isLoading é para carregar os detalhes do chat e o primeiro lote de mensagens
+            progressBarMessages.visibility = if (isLoading) View.VISIBLE else View.GONE
+            if (isLoading) {
+                recyclerViewMessages.visibility = View.GONE
+            } else {
+                recyclerViewMessages.visibility = View.VISIBLE
+            }
+        }
+
+        chatViewModel.chatEvent.observe(this) { event ->
+            event?.getContentIfNotHandled()?.let { chatEvent ->
+                when (chatEvent) {
+                    is ChatEvent.SendMessageSuccess -> {
+                        etMessage.text.clear()
+                        // A lista será atualizada pelo chatMessages.observe
+                        // O scroll já é tratado lá.
+                    }
+                    is ChatEvent.SendMessageFailure -> {
+                        Toast.makeText(this, chatEvent.message, Toast.LENGTH_SHORT).show()
+                    }
+                    is ChatEvent.Error -> {
+                        Toast.makeText(this, chatEvent.message, Toast.LENGTH_LONG).show()
+                        // Você pode querer finalizar a activity se for um erro crítico (ex: chat não encontrado)
+                        if (chatEvent.message.contains("Chat não encontrado")) {
+                            // finish()
+                        }
+                    }
+                    else -> { /* Não tratar outros eventos aqui */ }
+                }
+            }
         }
     }
 
-    private fun loadChatDetails() {
-        // implementação real: usar chatViewModel.getChatById(chatId) ou createChat se não existir
-        val mockChat = getMockChat()
-        displayChatDetails(mockChat)
+    private fun displayOtherUserDetails(otherUser: User) {
+        tvOtherUserName.text = otherUser.name // Ou username se preferir
+        tvOtherUserStatus.text = if (otherUser.isOnline == true) getString(R.string.online) else getString(R.string.offline) // Assumindo que User tem isOnline
 
-        // Carrega as mensagens do chat
-        val mockMessages = getMockMessages()
-        displayMessages(mockMessages)
-    }
-
-    private fun displayChatDetails(chat: Chat) {
-        currentChat = chat
-
-        tvOtherUserName.text = chat.otherParticipantName
-        tvOtherUserStatus.text = if (chat.otherParticipantOnline) getString(R.string.online) else getString(R.string.offline)
-
-        // Carrega a imagem do outro utilizador
-        if (chat.otherParticipantImageUrl.isNotEmpty()) {
+        if (!otherUser.profileImageUrl.isNullOrEmpty()) {
             Glide.with(this)
-                .load(chat.otherParticipantImageUrl)
-                .placeholder(R.drawable.profile_placeholder)
+                .load(otherUser.profileImageUrl)
+                .placeholder(R.drawable.profile_placeholder) // Use o placeholder correto
                 .error(R.drawable.profile_placeholder)
                 .circleCrop()
                 .into(ivOtherUserAvatar)
-        }
-    }
-
-    private fun displayMessages(messages: List<Message>) {
-        messageAdapter.submitList(messages)
-        if (messages.isNotEmpty()) {
-            recyclerViewMessages.scrollToPosition(messages.size - 1)
+        } else {
+            ivOtherUserAvatar.setImageResource(R.drawable.profile_placeholder)
         }
     }
 
     private fun sendMessage() {
         val messageText = etMessage.text.toString().trim()
         if (messageText.isEmpty()) {
+            // Permitir enviar apenas anexos no futuro, se necessário.
+            // Por enquanto, uma mensagem de texto é necessária ou um anexo.
             return
         }
 
-        // implementação real: usar chatViewModel.sendMessage(chatId, messageText)
-        val newMessage = Message(
-            id = "msg_" + System.currentTimeMillis(),
-            chatId = chatId,
-            content = messageText,
-            senderUid = "current_user_id",
-            createdAt = Timestamp.now(),
-            attachments = emptyList(),
-            read = false,
-            syncStatus = SyncStatus.SYNCED,
-            lastSync = Timestamp.now(),
-        )
-
-        // Adiciona a mensagem à lista
-        val currentMessages = messageAdapter.currentList.toMutableList()
-        currentMessages.add(newMessage)
-        messageAdapter.submitList(currentMessages)
-
-        // Limpa o campo de texto
-        etMessage.text.clear()
-
-        // Rola para a última mensagem
-        recyclerViewMessages.scrollToPosition(currentMessages.size - 1)
-    }
-
-    private fun getMockChat(): Chat {
-        return Chat(
-            id = chatId.ifEmpty { "chat_${System.currentTimeMillis()}" },
-            participant1Id = "current_user_id",
-            participant2Id = otherUserId.ifEmpty { "other_user_id" },
-            createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)),
-            updatedAt = Timestamp.now(),
-            lastMessageAt = Timestamp(Date(System.currentTimeMillis() - 3600000)),
-            lastMessagePreview = "Olá, como vai?",
-            messageCount = 5,
-            otherParticipantId = otherUserId.ifEmpty { "other_user_id" },
-            otherParticipantName = "Ana Silva",
-            otherParticipantImageUrl = "",
-            otherParticipantOnline = true
-        )
-    }
-
-    private fun getMockMessages(): List<Message> {
-        return listOf(
-            Message(
-                id = "msg1",
+        currentChatId?.let { chatId ->
+            // O currentUserId já deve estar definido via chatViewModel.currentUser
+            chatViewModel.sendMessage(
                 chatId = chatId,
-                content = "Olá, tudo bem?",
-                senderUid = otherUserId.ifEmpty { "other_user_id" },
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)),
-                attachments = emptyList(),
-                read = false,
-                syncStatus = SyncStatus.SYNCED,
-                lastSync = Timestamp.now(),
-            ),
-            Message(
-                id = "msg2",
-                chatId = chatId,
-                content = "Olá! Tudo ótimo, e contigo?",
-                senderUid = "current_user_id",
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 82800000)),
-                attachments = emptyList(),
-                read = false,
-                syncStatus = SyncStatus.SYNCED,
-                lastSync = Timestamp.now(),
-            ),
-            Message(
-                id = "msg3",
-                chatId = chatId,
-                content = "Também estou bem! Preciso de ajuda com um exercício de Kotlin.",
-                senderUid = otherUserId.ifEmpty { "other_user_id" },
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 7200000)),
-                attachments = emptyList(),
-                read = false,
-                syncStatus = SyncStatus.SYNCED,
-                lastSync = Timestamp.now(),
-            ),
-            Message(
-                id = "msg4",
-                chatId = chatId,
-                content = "Claro, pode enviar!",
-                senderUid = "current_user_id",
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 3600000)),
-                attachments = emptyList(),
-                read = false,
-                syncStatus = SyncStatus.SYNCED,
-                lastSync = Timestamp.now(),
+                content = messageText
+                // attachments = listaDeAnexos // Adicionar lógica de anexos depois
             )
-        )
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish() // Volta para a tela anterior
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }
-
-
