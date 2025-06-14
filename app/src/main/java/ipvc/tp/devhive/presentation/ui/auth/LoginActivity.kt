@@ -50,10 +50,6 @@ class LoginActivity : AppCompatActivity() {
         tvRegister = findViewById(R.id.tv_register)
         progressBar = findViewById(R.id.progress_bar)
 
-        // Inicializa o ViewModel
-        // val factory = DevHiveApp.getViewModelFactories().authViewModelFactory
-        //authViewModel = ViewModelProvider(this, factory)[AuthViewModel::class.java]
-
         // Observa o estado de autenticação
         authViewModel.authState.observe(this) { state ->
             when (state) {

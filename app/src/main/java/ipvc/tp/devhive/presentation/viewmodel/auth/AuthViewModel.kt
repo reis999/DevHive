@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.usecase.auth.LoginUserUseCase
 import ipvc.tp.devhive.domain.usecase.auth.LogoutUserUseCase
@@ -31,9 +32,29 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun checkAuthState() {
-        // Aqui seria implementada a verificação de autenticação com Firebase Auth
-        // Por enquanto, definimos como não autenticado
-        _authState.value = AuthState.Unauthenticated
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+        if (currentUserId != null) {
+            _authState.value = AuthState.Authenticated(currentUserId)
+        } else {
+            _authState.value = AuthState.Unauthenticated
+        }
+    }
+
+    fun isAuthenticated(): Boolean {
+        return _authState.value is AuthState.Authenticated
+    }
+
+    fun getCurrentUserId(): String? {
+        val state = _authState.value
+        return if (state is AuthState.Authenticated) {
+            state.userId
+        } else {
+            null
+        }
+    }
+
+    fun refreshAuthState() {
+        checkAuthState()
     }
 
     fun register(

@@ -6,53 +6,73 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Título -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
         android:text="@string/add_comment"
-        android:textSize="18sp"
-        android:textStyle="bold"
         android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="16dp" />
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
+    <!-- Campo de texto para comentário -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        app:boxStrokeColor="?attr/colorPrimary"
-        app:hintTextColor="?attr/colorPrimary">
+        android:hint="@string/comment_hint"
+        app:boxBackgroundMode="outline"
+        app:boxCornerRadiusBottomEnd="8dp"
+        app:boxCornerRadiusBottomStart="8dp"
+        app:boxCornerRadiusTopEnd="8dp"
+        app:boxCornerRadiusTopStart="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_comment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/hint_comment"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textCapSentences"
+            android:maxLength="500"
             android:minLines="3"
-            android:maxLines="6"
-            android:gravity="top"
-            android:inputType="textMultiLine|textCapSentences" />
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Contador de caracteres -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="end"
+        android:text="@string/character_limit"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="12sp" />
+
+    <!-- Botões -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="end">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_cancel"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:text="@string/cancel" />
+            android:text="@string/cancel"
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_submit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/submit" />
+            android:text="@string/submit_comment" />
 
     </LinearLayout>
 

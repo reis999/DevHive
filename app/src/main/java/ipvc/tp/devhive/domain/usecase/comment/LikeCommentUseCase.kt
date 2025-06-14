@@ -2,6 +2,8 @@ package ipvc.tp.devhive.domain.usecase.comment
 
 import ipvc.tp.devhive.domain.repository.CommentRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
+import ipvc.tp.devhive.domain.usecase.user.StatsAction
+import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import javax.inject.Inject
 
 
@@ -10,26 +12,21 @@ import javax.inject.Inject
  */
 class LikeCommentUseCase @Inject constructor(
     private val commentRepository: CommentRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val updateUserStatsUseCase: UpdateUserStatsUseCase
 ) {
 
     suspend operator fun invoke(commentId: String, userId: String): Result<Boolean> {
         val result = commentRepository.likeComment(commentId)
 
         if (result.isSuccess) {
-            // Atualiza as estatísticas de contribuição do autor do comentário
-            val comment = commentRepository.getCommentById(commentId)
-            if (comment != null) {
-                val authorId = comment.userId
-                val author = userRepository.getUserById(authorId)
-
-                if (author != null) {
-                    val updatedStats = author.contributionStats.copy(
-                        likes = author.contributionStats.likes + 1
-                    )
-                    val updatedUser = author.copy(contributionStats = updatedStats)
-                    userRepository.updateUser(updatedUser)
+            try {
+                val comment = commentRepository.getCommentById(commentId)
+                if (comment != null) {
+                    updateUserStatsUseCase(comment.userId, StatsAction.INCREMENT_LIKES)
                 }
+            } catch (e: Exception) {
+                // Não falha se não conseguir atualizar stats
             }
         }
 

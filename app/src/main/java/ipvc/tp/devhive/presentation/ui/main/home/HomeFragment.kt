@@ -20,6 +20,7 @@ import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
 import ipvc.tp.devhive.presentation.util.showSnackbar
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialEvent
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
+import android.widget.Toast
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
@@ -31,13 +32,12 @@ class HomeFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
     private lateinit var progressBar: ProgressBar
     private lateinit var tvEmpty: TextView
 
-    private val materialAdapter = MaterialAdapter(this)
+    private lateinit var materialAdapter: MaterialAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Infla o layout para este fragmento
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
@@ -51,19 +51,25 @@ class HomeFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
         progressBar = view.findViewById(R.id.progress_bar)
         tvEmpty = view.findViewById(R.id.tv_empty)
 
-        // Configura o RecyclerView
+        setupRecyclerView()
+        setupObservers(view)
+        setupListeners()
+    }
+
+    private fun setupRecyclerView() {
+        materialAdapter = MaterialAdapter(this, null)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = materialAdapter
+    }
 
-        // Inicializa o ViewModel
-        // val factory = DevHiveApp.getViewModelFactories().materialViewModelFactory
-        // materialViewModel = ViewModelProvider(this, factory)[MaterialViewModel::class.java]
+    private fun setupObservers(view: View) {
+        materialViewModel.currentUser.observe(viewLifecycleOwner) { user ->
+            updateAdapterWithCurrentUser(user?.id)
+        }
 
-        // Observa a lista de materiais
         materialViewModel.materials.observe(viewLifecycleOwner) { materials ->
             materialAdapter.submitList(materials)
 
-            // Mostra mensagem de lista vazia se não houver materiais
             if (materials.isEmpty()) {
                 tvEmpty.visibility = View.VISIBLE
                 recyclerView.visibility = View.GONE
@@ -72,7 +78,6 @@ class HomeFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
                 recyclerView.visibility = View.VISIBLE
             }
 
-            // Para a animação de carregamento
             swipeRefreshLayout.isRefreshing = false
         }
 
@@ -91,32 +96,47 @@ class HomeFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
                     is MaterialEvent.BookmarkFailure -> {
                         view.showSnackbar(materialEvent.message)
                     }
-                    else -> {} // Ignora outros eventos
+                    else -> {}
                 }
             }
         }
+    }
 
-        // Configura o SwipeRefreshLayout para atualizar a lista
+    private fun updateAdapterWithCurrentUser(userId: String?) {
+        materialAdapter = MaterialAdapter(this, userId)
+        recyclerView.adapter = materialAdapter
+    }
+
+    private fun setupListeners() {
         swipeRefreshLayout.setOnRefreshListener {
-            // falta implementar a lógica para atualizar a lista e recarregar os dados, por exemplo, chamar um método no ViewModel
+            // TODO: Implementar lógica para recarregar dados
             swipeRefreshLayout.isRefreshing = false
         }
 
-        // Configura o FAB para adicionar um novo material
         fabAdd.setOnClickListener {
             startActivity(android.content.Intent(requireContext(), AddMaterialActivity::class.java))
         }
     }
 
     override fun onMaterialClick(material: Material) {
-        // Abre o ecra de detalhes do material
         val intent = android.content.Intent(requireContext(), MaterialDetailActivity::class.java)
         intent.putExtra(MaterialDetailActivity.EXTRA_MATERIAL_ID, material.id)
         startActivity(intent)
     }
 
     override fun onBookmarkClick(material: Material, position: Int) {
-        // Alterna o estado de favorito do material
-        materialViewModel.toggleBookmark(material.id, !material.bookmarked)
+        val currentUserId = materialViewModel.getCurrentUserId()
+
+        if (currentUserId != null) {
+            val isCurrentlyBookmarked = currentUserId in material.bookmarkedBy
+
+            materialViewModel.toggleBookmark(
+                materialId = material.id,
+                userId = currentUserId,
+                isBookmarked = !isCurrentlyBookmarked
+            )
+        } else {
+            Toast.makeText(requireContext(), "É necessário fazer login para marcar favoritos", Toast.LENGTH_SHORT).show()
+        }
     }
 }

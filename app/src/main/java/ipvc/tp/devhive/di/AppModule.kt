@@ -16,15 +16,19 @@ import ipvc.tp.devhive.domain.usecase.auth.RegisterUserUseCase
 import ipvc.tp.devhive.domain.usecase.chat.CreateChatUseCase
 import ipvc.tp.devhive.domain.usecase.chat.SendMessageUseCase
 import ipvc.tp.devhive.domain.usecase.comment.CreateCommentUseCase
+import ipvc.tp.devhive.domain.usecase.comment.GetCommentsUseCase
 import ipvc.tp.devhive.domain.usecase.comment.LikeCommentUseCase
 import ipvc.tp.devhive.domain.usecase.material.CreateMaterialUseCase
+import ipvc.tp.devhive.domain.usecase.material.DeleteMaterialUseCase
 import ipvc.tp.devhive.domain.usecase.material.GetMaterialsUseCase
 import ipvc.tp.devhive.domain.usecase.material.ToggleBookmarkUseCase
+import ipvc.tp.devhive.domain.usecase.material.ToggleMaterialLikeUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.CreateStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.JoinStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.SendGroupMessageUseCase
 import ipvc.tp.devhive.domain.usecase.sync.SyncDataUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
+import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import ipvc.tp.devhive.domain.usecase.user.UpdateUserUseCase
 
 @Module
@@ -56,6 +60,13 @@ object AppModule {
         return LogoutUserUseCase(authRepository ,userRepository)
     }
 
+    @Provides
+    fun provideUpdateUserStatsUseCase(
+        userRepository: UserRepository
+    ): UpdateUserStatsUseCase {
+        return UpdateUserStatsUseCase(userRepository)
+    }
+
     // Use Cases - Material
     @Provides
     fun provideGetMaterialsUseCase(
@@ -67,33 +78,62 @@ object AppModule {
     @Provides
     fun provideCreateMaterialUseCase(
         materialRepository: MaterialRepository,
-        userRepository: UserRepository
+        userRepository: UserRepository,
+        updateUserStatsUseCase: UpdateUserStatsUseCase
     ): CreateMaterialUseCase {
-        return CreateMaterialUseCase(materialRepository, userRepository)
+        return CreateMaterialUseCase(materialRepository, userRepository, updateUserStatsUseCase)
+    }
+
+    @Provides
+    fun provideDeleteMaterialUseCase(
+        materialRepository: MaterialRepository,
+        userRepository: UserRepository,
+        updateUserStatsUseCase: UpdateUserStatsUseCase
+    ): DeleteMaterialUseCase {
+        return DeleteMaterialUseCase(materialRepository, userRepository, updateUserStatsUseCase)
     }
 
     @Provides
     fun provideToggleBookmarkUseCase(
-        materialRepository: MaterialRepository
+        materialRepository: MaterialRepository,
+        userRepository: UserRepository
     ): ToggleBookmarkUseCase {
-        return ToggleBookmarkUseCase(materialRepository)
+        return ToggleBookmarkUseCase(materialRepository, userRepository)
+    }
+
+    @Provides
+    fun provideToggleMaterialLikeUseCase(
+        materialRepository: MaterialRepository,
+        userRepository: UserRepository,
+        updateUserStatsUseCase: UpdateUserStatsUseCase
+    ): ToggleMaterialLikeUseCase {
+        return ToggleMaterialLikeUseCase(materialRepository, userRepository, updateUserStatsUseCase)
     }
 
     // Use Cases - Comment
     @Provides
     fun provideCreateCommentUseCase(
         commentRepository: CommentRepository,
-        userRepository: UserRepository
+        userRepository: UserRepository,
+        updateUserStatsUseCase: UpdateUserStatsUseCase
     ): CreateCommentUseCase {
-        return CreateCommentUseCase(commentRepository, userRepository)
+        return CreateCommentUseCase(commentRepository, userRepository, updateUserStatsUseCase)
     }
 
     @Provides
     fun provideLikeCommentUseCase(
         commentRepository: CommentRepository,
-        userRepository: UserRepository
+        userRepository: UserRepository,
+        updateUserStatsUseCase: UpdateUserStatsUseCase
     ): LikeCommentUseCase {
-        return LikeCommentUseCase(commentRepository, userRepository)
+        return LikeCommentUseCase(commentRepository, userRepository, updateUserStatsUseCase)
+    }
+
+    @Provides
+    fun provideGetCommentsUseCase(
+        commentRepository: CommentRepository
+    ): GetCommentsUseCase {
+        return GetCommentsUseCase(commentRepository)
     }
 
     // Use Cases - Chat

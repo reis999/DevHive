@@ -5,6 +5,8 @@ import ipvc.tp.devhive.domain.model.Attachment
 import ipvc.tp.devhive.domain.model.Comment
 import ipvc.tp.devhive.domain.repository.CommentRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
+import ipvc.tp.devhive.domain.usecase.user.StatsAction
+import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import java.util.UUID
 import javax.inject.Inject
 
@@ -15,7 +17,8 @@ import javax.inject.Inject
  */
 class CreateCommentUseCase @Inject constructor(
     private val commentRepository: CommentRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val updateUserStatsUseCase: UpdateUserStatsUseCase
 ) {
 
     suspend operator fun invoke(
@@ -53,12 +56,11 @@ class CreateCommentUseCase @Inject constructor(
             attachments = attachments
         )
 
-        // Atualiza as estatísticas de contribuição do utilizador
-        val updatedStats = user.contributionStats.copy(
-            comments = user.contributionStats.comments + 1
-        )
-        val updatedUser = user.copy(contributionStats = updatedStats)
-        userRepository.updateUser(updatedUser)
+        try {
+            updateUserStatsUseCase(userId, StatsAction.INCREMENT_COMMENTS)
+        } catch (e: Exception) {
+            // Não falha criação do comentário se não conseguir atualizar stats
+        }
 
         return commentRepository.createComment(newComment)
     }

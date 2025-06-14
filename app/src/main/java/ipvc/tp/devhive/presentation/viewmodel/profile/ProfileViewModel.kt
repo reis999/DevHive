@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.presentation.viewmodel.profile
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -54,28 +55,25 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    // Atualiza o perfil do usuário
-    fun updateProfile(name: String, bio: String, institution: String, course: String) {
+    fun updateProfile(
+        name: String,
+        bio: String,
+        institution: String,
+        course: String,
+        imageUri: Uri? = null
+    ) {
         _isLoading.value = true
 
         viewModelScope.launch {
             try {
-                val currentUser = _userProfile.value
-                if (currentUser != null) {
-                    val updatedUser = currentUser.copy(
-                        name = name,
-                        bio = bio,
-                        institution = institution,
-                        course = course
-                    )
+                val result = updateUserUseCase(name, bio, institution, course, imageUri)
 
-                    val result = updateUserUseCase(updatedUser)
-                    if (result.isSuccess) {
-                        _userProfile.value = updatedUser
-                        _profileEvent.value = Event(ProfileEvent.ProfileUpdated)
-                    } else {
-                        _profileEvent.value = Event(ProfileEvent.Error("Erro ao atualizar perfil"))
-                    }
+                if (result.isSuccess) {
+                    val updatedUser = result.getOrNull()!!
+                    _userProfile.value = updatedUser
+                    _profileEvent.value = Event(ProfileEvent.ProfileUpdated)
+                } else {
+                    _profileEvent.value = Event(ProfileEvent.Error("Erro ao atualizar perfil"))
                 }
             } catch (e: Exception) {
                 _profileEvent.value = Event(ProfileEvent.Error("Erro ao atualizar perfil: ${e.message}"))

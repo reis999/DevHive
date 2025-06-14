@@ -1,17 +1,23 @@
 package ipvc.tp.devhive.data.repository
 
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
+import com.google.firebase.storage.FirebaseStorage
 import ipvc.tp.devhive.data.local.dao.UserDao
 import ipvc.tp.devhive.data.local.entity.UserEntity
 import ipvc.tp.devhive.data.model.User
 import ipvc.tp.devhive.data.remote.service.UserService
 import ipvc.tp.devhive.data.util.FirebaseAuthHelper
 import ipvc.tp.devhive.data.util.SyncStatus
+import ipvc.tp.devhive.domain.usecase.user.StatsAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.UUID.randomUUID
 import ipvc.tp.devhive.domain.model.User as DomainUser
 import ipvc.tp.devhive.domain.repository.UserRepository as DomainUserRepository
 
@@ -19,6 +25,7 @@ import ipvc.tp.devhive.domain.repository.UserRepository as DomainUserRepository
 class UserRepository(
     private val userDao: UserDao,
     private val userService: UserService,
+    private val storage: FirebaseStorage,
     private val appScope: CoroutineScope
 ) : DomainUserRepository {
 
@@ -47,29 +54,23 @@ class UserRepository(
     override suspend fun getCurrentUser(): DomainUser? {
         return withContext(Dispatchers.IO) {
             val currentFirebaseUserId = FirebaseAuthHelper.getCurrentUserId()
-                ?: // Nenhum usuário Firebase logado
+                ?:
                 return@withContext null
 
-            // 1. Tenta obter do DAO local
+            // DAO local
             val localUserEntity = userDao.getUserById(currentFirebaseUserId)
             if (localUserEntity != null) {
-                // Opcional: Você pode adicionar uma lógica para verificar se os dados locais estão "velhos"
-                // e precisam ser atualizados do serviço antes de retornar.
-                // Por agora, retornamos o local se existir.
-                // Lança uma atualização em segundo plano para garantir que está atualizado para a próxima vez.
                 appScope.launch { refreshUser(currentFirebaseUserId) }
                 return@withContext UserEntity.toUser(localUserEntity).toDomainUser()
             }
 
-            // 2. Se não estiver no DAO local, busca do UserService
+            // UserService
             val remoteUser = userService.getUserById(currentFirebaseUserId) // userService.getCurrentUser() também funcionaria aqui
             remoteUser?.let { dataUser ->
-                // Salva o usuário remoto no DAO local para cache
                 userDao.insertUser(UserEntity.fromUser(dataUser, SyncStatus.SYNCED))
                 return@withContext dataUser.toDomainUser()
             }
 
-            // Se não encontrado localmente nem remotamente (ex: usuário deletado no backend mas ainda autenticado no Firebase?)
             return@withContext null
         }
     }
@@ -122,27 +123,121 @@ class UserRepository(
         }
     }
 
-    override suspend fun updateUser(user: ipvc.tp.devhive.domain.model.User): Result<ipvc.tp.devhive.domain.model.User> {
+    override suspend fun updateUser(
+        name: String,
+        bio: String,
+        institution: String,
+        course: String,
+        imageUri: Uri?
+    ): Result<ipvc.tp.devhive.domain.model.User> {
         return withContext(Dispatchers.IO) {
             try {
-                val dataUser = user.toDataUser()
-                // Tenta atualizar no Firestore
-                val result = userService.updateUser(dataUser)
+                val currentUser = getCurrentUser()
+                    ?: return@withContext Result.failure(Exception("Utilizador não encontrado"))
 
+                var profileImageUrl = currentUser.profileImageUrl
+                if (imageUri != null) {
+                    val uploadResult = uploadProfileImage(currentUser.id, imageUri)
+                    if (uploadResult.isSuccess) {
+                        profileImageUrl = uploadResult.getOrNull()!!
+                    } else {
+                        Log.e(
+                            "UserRepository",
+                            "Failed to upload profile image for user ${currentUser.id}",
+                            uploadResult.exceptionOrNull()
+                        )
+                    }
+                }
+
+                val updatedUser = currentUser.copy(
+                    name = name,
+                    bio = bio,
+                    institution = institution,
+                    course = course,
+                    profileImageUrl = profileImageUrl
+                ).toDataUser()
+
+                val result = userService.updateUser(updatedUser)
                 if (result.isSuccess) {
-                    // Se sucesso, atualiza no banco local
-                    userDao.insertUser(UserEntity.fromUser(dataUser))
-                    Result.success(user)
+                    userDao.insertUser(
+                        UserEntity.fromUser(
+                            updatedUser,
+                            SyncStatus.SYNCED
+                        )
+                    )
+                    Result.success(updatedUser.toDomainUser())
                 } else {
-                    // Se falhar, atualiza localmente com status pendente
-                    val userEntity = UserEntity.fromUser(dataUser, SyncStatus.PENDING_UPDATE)
+                    val userEntity = UserEntity.fromUser(
+                        updatedUser,
+                        SyncStatus.PENDING_UPDATE
+                    )
                     userDao.insertUser(userEntity)
-                    Result.success(user)
+                    Result.success(updatedUser.toDomainUser())
                 }
             } catch (e: Exception) {
-                // Em caso de erro, atualiza localmente com status pendente
-                val userEntity = UserEntity.fromUser(user.toDataUser(), SyncStatus.PENDING_UPDATE)
-                userDao.insertUser(userEntity)
+                Result.failure(e)
+            }
+        }
+    }
+
+    private suspend fun uploadProfileImage(userId: String, imageUri: Uri): Result<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val fileName = "profile_${randomUUID()}.jpg"
+                val imageRef = storage.reference.child("profile_images/$userId/$fileName")
+
+                imageRef.putFile(imageUri).await()
+                val downloadUrl = imageRef.downloadUrl.await().toString()
+
+                Result.success(downloadUrl)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun updateUserStats(userId: String, action: StatsAction): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val user = getUserById(userId)
+                    ?: return@withContext Result.failure(Exception("Utilizador não encontrado"))
+
+                val updatedStats = when (action) {
+                    StatsAction.INCREMENT_COMMENTS -> user.contributionStats.copy(
+                        comments = user.contributionStats.comments + 1
+                    )
+                    StatsAction.INCREMENT_LIKES -> user.contributionStats.copy(
+                        likes = user.contributionStats.likes + 1
+                    )
+                    StatsAction.INCREMENT_MATERIALS -> user.contributionStats.copy(
+                        materials = user.contributionStats.materials + 1
+                    )
+                    StatsAction.INCREMENT_SESSIONS -> user.contributionStats.copy(
+                        sessions = user.contributionStats.sessions + 1
+                    )
+                    StatsAction.DECREMENT_MATERIALS -> user.contributionStats.copy(
+                        materials = (user.contributionStats.materials - 1).coerceAtLeast(0)
+                    )
+                    StatsAction.DECREMENT_LIKES -> user.contributionStats.copy(
+                        likes = (user.contributionStats.likes - 1).coerceAtLeast(0)
+                    )
+                    StatsAction.DECREMENT_COMMENTS -> user.contributionStats.copy(
+                        comments = (user.contributionStats.comments - 1).coerceAtLeast(0)
+                    )
+                }
+
+                val updatedUser = user.copy(contributionStats = updatedStats).toDataUser()
+
+                val result = userService.updateUser(updatedUser)
+                if (result.isSuccess) {
+                    userDao.insertUser(UserEntity.fromUser(updatedUser, SyncStatus.SYNCED))
+                    Result.success(true)
+                } else {
+                    val userEntity = UserEntity.fromUser(updatedUser, SyncStatus.PENDING_UPDATE)
+                    userDao.insertUser(userEntity)
+                    Result.success(true)
+                }
+            } catch (e: Exception) {
                 Result.failure(e)
             }
         }

@@ -26,10 +26,14 @@ import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
+import ipvc.tp.devhive.presentation.viewmodel.material.MaterialGeneralResult
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
 
+@AndroidEntryPoint
 class AddMaterialActivity : AppCompatActivity() {
 
     private val materialViewModel: MaterialViewModel by viewModels()
@@ -42,19 +46,18 @@ class AddMaterialActivity : AppCompatActivity() {
     private lateinit var etDescription: EditText
     private lateinit var tilSubject: TextInputLayout
     private lateinit var actvSubject: AutoCompleteTextView
-    private lateinit var tilInstitution: TextInputLayout
-    private lateinit var actvInstitution: AutoCompleteTextView
-    private lateinit var tilCourse: TextInputLayout
-    private lateinit var actvCourse: AutoCompleteTextView
-    private lateinit var etTags: EditText
-    private lateinit var btnAddTag: Button
-    private lateinit var chipGroupTags: ChipGroup
+    private lateinit var tilType: TextInputLayout
+    private lateinit var actvType: AutoCompleteTextView
+    private lateinit var etCategories: EditText
+    private lateinit var btnAddCategory: Button
+    private lateinit var chipGroupCategories: ChipGroup
+    private lateinit var switchPublic: SwitchMaterial
     private lateinit var btnPublish: Button
     private lateinit var progressBar: ProgressBar
 
     private var selectedCoverUri: Uri? = null
     private var selectedFileUri: Uri? = null
-    private val tags = mutableListOf<String>()
+    private val categories = mutableListOf<String>()
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -92,7 +95,14 @@ class AddMaterialActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_material)
 
-        // Inicializa as views
+        initViews()
+        setupToolbar()
+        setupListeners()
+        setupAutoCompleteAdapters()
+        observeViewModel()
+    }
+
+    private fun initViews() {
         toolbar = findViewById(R.id.toolbar)
         ivCover = findViewById(R.id.iv_cover)
         btnSelectCover = findViewById(R.id.btn_select_cover)
@@ -101,22 +111,23 @@ class AddMaterialActivity : AppCompatActivity() {
         etDescription = findViewById(R.id.et_description)
         tilSubject = findViewById(R.id.til_subject)
         actvSubject = findViewById(R.id.actv_subject)
-        tilInstitution = findViewById(R.id.til_institution)
-        actvInstitution = findViewById(R.id.actv_institution)
-        tilCourse = findViewById(R.id.til_course)
-        actvCourse = findViewById(R.id.actv_course)
-        etTags = findViewById(R.id.et_tags)
-        btnAddTag = findViewById(R.id.btn_add_tag)
-        chipGroupTags = findViewById(R.id.chip_group_tags)
+        tilType = findViewById(R.id.til_type)
+        actvType = findViewById(R.id.actv_type)
+        etCategories = findViewById(R.id.et_categories)
+        btnAddCategory = findViewById(R.id.btn_add_category)
+        chipGroupCategories = findViewById(R.id.chip_group_categories)
+        switchPublic = findViewById(R.id.switch_public)
         btnPublish = findViewById(R.id.btn_publish)
         progressBar = findViewById(R.id.progress_bar)
+    }
 
-        // Configura a toolbar
+    private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.add_material)
+    }
 
-        // Configura os listeners
+    private fun setupListeners() {
         btnSelectCover.setOnClickListener {
             checkPermissionAndOpenGallery()
         }
@@ -125,25 +136,59 @@ class AddMaterialActivity : AppCompatActivity() {
             openFilePicker()
         }
 
-        btnAddTag.setOnClickListener {
-            addTag()
+        btnAddCategory.setOnClickListener {
+            addCategory()
         }
 
         btnPublish.setOnClickListener {
             publishMaterial()
         }
 
-        // Configura os adapters para os AutoCompleteTextViews
-        setupAutoCompleteAdapters()
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                finish()
+                if (materialViewModel.isLoading.value == true) {
+                    Toast.makeText(this@AddMaterialActivity, "Upload em progresso...", Toast.LENGTH_SHORT).show()
+                } else {
+                    finish()
+                }
             }
         }
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+    }
+
+    private fun observeViewModel() {
+        materialViewModel.isLoading.observe(this) { isLoading ->
+            if (isLoading) {
+                showProgress()
+            } else {
+                hideProgress()
+            }
+        }
+
+        materialViewModel.createMaterialResultEvent.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { result ->
+                when (result) {
+                    is MaterialGeneralResult.Success -> {
+                        Toast.makeText(this, "Material criado com sucesso!", Toast.LENGTH_LONG).show()
+                        finishActivity()
+                    }
+                    is MaterialGeneralResult.Failure -> {
+                        showError(result.message)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun finishActivity() {
+        val resultIntent = Intent().apply {
+            putExtra("MATERIAL_CREATED", true)
+        }
+        setResult(RESULT_OK, resultIntent)
+        finish()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
                 onBackPressedDispatcher.onBackPressed()
@@ -154,60 +199,38 @@ class AddMaterialActivity : AppCompatActivity() {
     }
 
     private fun setupAutoCompleteAdapters() {
-        // Configura o adapter para as disciplinas
         val subjects = resources.getStringArray(R.array.subjects)
         val subjectAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, subjects)
         actvSubject.setAdapter(subjectAdapter)
 
-        // Configura o adapter para as instituições
-        // implementação real: ir buscar a bd
-        val institutions = arrayOf(
-            "Instituto Politécnico de Viana do Castelo",
-            "Universidade do Minho",
-            "Universidade do Porto",
-            "Universidade de Lisboa",
-            "Instituto Politécnico do Porto"
+        val types = arrayOf(
+            getString(R.string.type_pdf),
+            getString(R.string.type_video),
+            getString(R.string.type_audio),
+            getString(R.string.type_image),
+            getString(R.string.type_document),
+            getString(R.string.type_presentation),
+            getString(R.string.type_spreadsheet),
+            getString(R.string.type_code),
+            getString(R.string.type_other)
         )
-        val institutionAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, institutions)
-        actvInstitution.setAdapter(institutionAdapter)
-
-        // Configura o adapter para os cursos
-        // implementação real: ir buscar a bd
-        val courses = arrayOf(
-            "Engenharia Informática",
-            "Ciência da Computação",
-            "Sistemas de Informação",
-            "Engenharia de Software",
-            "Tecnologias da Informação"
-        )
-        val courseAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, courses)
-        actvCourse.setAdapter(courseAdapter)
+        val typeAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, types)
+        actvType.setAdapter(typeAdapter)
     }
 
     private fun checkPermissionAndOpenGallery() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permissão não concedida, pede ao utilizador
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                )
-            ) {
-                // Mostra uma explicação ao utilizador
-                Toast.makeText(
-                    this,
-                    R.string.permission_rationale,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
-            // Pede a permissão
-            requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+        val permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
         } else {
-            // Permissão já concedida, abre a galeria
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                Toast.makeText(this, R.string.permission_rationale, Toast.LENGTH_LONG).show()
+            }
+            requestPermissionLauncher.launch(permission)
+        } else {
             openGallery()
         }
     }
@@ -221,7 +244,17 @@ class AddMaterialActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = "*/*"
-        val mimeTypes = arrayOf("application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        val mimeTypes = arrayOf(
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "text/plain",
+            "image/*",
+            "video/*",
+            "audio/*"
+        )
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
         selectFileLauncher.launch(intent)
     }
@@ -233,29 +266,37 @@ class AddMaterialActivity : AppCompatActivity() {
             .error(R.drawable.material_placeholder)
             .centerCrop()
             .into(ivCover)
+
+        btnSelectCover.text = getString(R.string.thumbnail_selected)
     }
 
     private fun displaySelectedFile(uri: Uri) {
-        // Obtem o nome do ficheiro
         val fileName = getFileName(uri)
-        btnSelectFile.text = fileName ?: getString(R.string.select_file)
+        btnSelectFile.text = if (fileName != null) {
+            getString(R.string.file_selected, fileName)
+        } else {
+            getString(R.string.file_selected_generic)
+        }
     }
 
     private fun getFileName(uri: Uri): String? {
         val cursor = contentResolver.query(uri, null, null, null, null)
         return cursor?.use {
             val nameIndex = it.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
-            it.moveToFirst()
-            it.getString(nameIndex)
+            if (nameIndex >= 0 && it.moveToFirst()) {
+                it.getString(nameIndex)
+            } else null
         }
     }
 
-    private fun addTag() {
-        val tag = etTags.text.toString().trim()
-        if (tag.isNotEmpty() && !tags.contains(tag)) {
-            tags.add(tag)
-            addChip(tag)
-            etTags.text.clear()
+    private fun addCategory() {
+        val category = etCategories.text.toString().trim()
+        if (category.isNotEmpty() && !categories.contains(category)) {
+            categories.add(category)
+            addChip(category)
+            etCategories.text.clear()
+        } else if (category.isNotEmpty()) {
+            Toast.makeText(this, "Categoria já adicionada", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -264,45 +305,50 @@ class AddMaterialActivity : AppCompatActivity() {
         chip.text = text
         chip.isCloseIconVisible = true
         chip.setOnCloseIconClickListener {
-            chipGroupTags.removeView(chip)
-            tags.remove(text)
+            chipGroupCategories.removeView(chip)
+            categories.remove(text)
         }
-        chipGroupTags.addView(chip)
+        chipGroupCategories.addView(chip)
     }
 
     private fun publishMaterial() {
-        // Valida os campos
         if (!validateFields()) {
             return
         }
 
-        // Mostra o progresso
-        progressBar.visibility = View.VISIBLE
-        btnPublish.isEnabled = false
-
-        // Obtém os valores dos campos
         val title = etTitle.text.toString().trim()
         val description = etDescription.text.toString().trim()
         val subject = actvSubject.text.toString().trim()
-        val institution = actvInstitution.text.toString().trim()
-        val course = actvCourse.text.toString().trim()
+        val type = actvType.text.toString().trim()
+        val isPublic = switchPublic.isChecked
 
-        // implementação real: usar materialViewModel.createMaterial()
-        simulateUpload(title, description, subject, institution, course, tags)
+        materialViewModel.createMaterial(
+            title = title,
+            description = description,
+            type = type,
+            subject = subject,
+            categories = categories,
+            isPublic = isPublic,
+            fileUri = selectedFileUri!!,
+            thumbnailUri = selectedCoverUri
+        )
     }
 
-    // valida os campos
     private fun validateFields(): Boolean {
         var isValid = true
 
         if (etTitle.text.toString().trim().isEmpty()) {
             etTitle.error = getString(R.string.field_required)
             isValid = false
+        } else {
+            etTitle.error = null
         }
 
         if (etDescription.text.toString().trim().isEmpty()) {
             etDescription.error = getString(R.string.field_required)
             isValid = false
+        } else {
+            etDescription.error = null
         }
 
         if (actvSubject.text.toString().trim().isEmpty()) {
@@ -312,18 +358,11 @@ class AddMaterialActivity : AppCompatActivity() {
             tilSubject.error = null
         }
 
-        if (actvInstitution.text.toString().trim().isEmpty()) {
-            tilInstitution.error = getString(R.string.field_required)
+        if (actvType.text.toString().trim().isEmpty()) {
+            tilType.error = getString(R.string.field_required)
             isValid = false
         } else {
-            tilInstitution.error = null
-        }
-
-        if (actvCourse.text.toString().trim().isEmpty()) {
-            tilCourse.error = getString(R.string.field_required)
-            isValid = false
-        } else {
-            tilCourse.error = null
+            tilType.error = null
         }
 
         if (selectedFileUri == null) {
@@ -334,25 +373,37 @@ class AddMaterialActivity : AppCompatActivity() {
         return isValid
     }
 
-    private fun simulateUpload(
-        title: String,
-        description: String,
-        subject: String,
-        institution: String,
-        course: String,
-        tags: List<String>
-    ) {
-        // Simula um atraso para o upload
-        btnPublish.postDelayed({
-            // Esconde o progresso
-            progressBar.visibility = View.GONE
-            btnPublish.isEnabled = true
+    private fun showProgress() {
+        progressBar.visibility = View.VISIBLE
+        btnPublish.isEnabled = false
+        btnSelectFile.isEnabled = false
+        btnSelectCover.isEnabled = false
+        btnAddCategory.isEnabled = false
 
-            // Mostra mensagem de sucesso
-            Toast.makeText(this, R.string.material_published, Toast.LENGTH_SHORT).show()
+        etTitle.isEnabled = false
+        etDescription.isEnabled = false
+        actvSubject.isEnabled = false
+        actvType.isEnabled = false
+        etCategories.isEnabled = false
+        switchPublic.isEnabled = false
+    }
 
-            // Fecha a atividade
-            finish()
-        }, 2000)
+    private fun hideProgress() {
+        progressBar.visibility = View.GONE
+        btnPublish.isEnabled = true
+        btnSelectFile.isEnabled = true
+        btnSelectCover.isEnabled = true
+        btnAddCategory.isEnabled = true
+
+        etTitle.isEnabled = true
+        etDescription.isEnabled = true
+        actvSubject.isEnabled = true
+        actvType.isEnabled = true
+        etCategories.isEnabled = true
+        switchPublic.isEnabled = true
+    }
+
+    private fun showError(message: String) {
+        Toast.makeText(this, "Erro: $message", Toast.LENGTH_LONG).show()
     }
 }

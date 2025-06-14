@@ -10,10 +10,11 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ipvc.tp.devhive.R
+import ipvc.tp.devhive.data.util.FirebaseAuthHelper.getCurrentUserId
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.presentation.util.DateFormatUtils
 
-class MaterialAdapter(private val listener: OnMaterialClickListener) :
+class MaterialAdapter(private val listener: OnMaterialClickListener, private val currentUserId: String?) :
     ListAdapter<Material, MaterialAdapter.MaterialViewHolder>(MaterialDiffCallback()) {
 
     interface OnMaterialClickListener {
@@ -69,14 +70,16 @@ class MaterialAdapter(private val listener: OnMaterialClickListener) :
                 .centerCrop()
                 .into(ivThumbnail)
 
-            // Atualiza o ícone de favorito
-            val bookmarkIcon = if (material.bookmarked) {
+            val isBookmarked = currentUserId != null && currentUserId in material.bookmarkedBy
+
+            val bookmarkIcon = if (isBookmarked) {
                 R.drawable.ic_bookmark
             } else {
                 R.drawable.ic_bookmark_border
             }
             ivBookmark.setImageResource(bookmarkIcon)
         }
+
     }
 
     class MaterialDiffCallback : DiffUtil.ItemCallback<Material>() {
