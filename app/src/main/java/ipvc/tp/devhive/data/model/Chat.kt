@@ -5,6 +5,7 @@ import com.google.firebase.Timestamp
 data class Chat(
     val id: String = "",
     val participant1Id: String = "",
+    val participant1Name: String = "",
     val participant2Id: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val updatedAt: Timestamp = Timestamp.now(),

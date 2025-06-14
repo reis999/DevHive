@@ -3,10 +3,10 @@ package ipvc.tp.devhive.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
+import com.google.firebase.Timestamp
 import ipvc.tp.devhive.data.local.converter.StringListConverter
 import ipvc.tp.devhive.data.model.StudyGroup
 import ipvc.tp.devhive.data.util.SyncStatus
-import com.google.firebase.Timestamp
 
 @Entity(tableName = "study_groups")
 @TypeConverters(StringListConverter::class)

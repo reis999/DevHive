@@ -13,18 +13,16 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayout
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.databinding.FragmentProfileBinding
-import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.presentation.ui.auth.LoginActivity
+import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileEvent
+import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
-import ipvc.tp.devhive.presentation.ui.profile.EditProfileActivity
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
-import androidx.appcompat.app.AlertDialog
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
@@ -50,7 +48,6 @@ class ProfileFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
 
         setupRecyclerView()
         setupTabs()
-        setupMenu()
         setupListeners()
         loadUserProfile()
         observeViewModel()
@@ -89,55 +86,28 @@ class ProfileFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
         })
     }
 
-    private fun setupMenu() {
-        binding.toolbar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_settings -> {
-                    Toast.makeText(requireContext(), "Configurações", Toast.LENGTH_SHORT).show()
-                    // TODO: Implementar navegação para configurações
-                    true
-                }
-                R.id.action_logout -> {
-                    showLogoutConfirmationDialog()
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    private fun showLogoutConfirmationDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Confirmar Saída")
-            .setMessage("Tem a certeza que pretende sair?")
-            .setPositiveButton("Sair") { _, _ ->
-                performLogout()
-            }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
-    }
-
-    private fun performLogout() {
-        try {
-            FirebaseAuth.getInstance().signOut()
-
-            val intent = Intent(requireContext(), LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-
-            requireActivity().finish()
-
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Erro ao fazer logout: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun setupListeners() {
         binding.fabEditProfile.setOnClickListener {
             val intent = Intent(requireContext(), EditProfileActivity::class.java)
             editProfileLauncher.launch(intent)
+        }
+
+        binding.toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_logout -> {
+                    profileViewModel.logout()
+                    val intent = Intent(requireContext(), LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    requireActivity().finish()
+                    true
+                }
+                R.id.action_settings -> {
+                    // settings (later)
+                    true
+                }
+                else -> false
+            }
         }
     }
 
@@ -212,6 +182,28 @@ class ProfileFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
                 binding.recyclerViewMaterials.adapter = materialAdapter
 
                 loadUserMaterials()
+                Glide.with(this).load(user.profileImageUrl)
+                    .placeholder(R.drawable.profile_placeholder)
+                    .error(R.drawable.profile_placeholder)
+                    .into(binding.ivProfile)
+            } else {
+                requireActivity().finish()
+            }
+        }
+
+        profileViewModel.profileEvent.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { profileEvent ->
+                when (profileEvent) {
+                    is ProfileEvent.Error -> {
+                        Toast.makeText(context, profileEvent.message, Toast.LENGTH_SHORT).show()
+                    }
+
+                    is ProfileEvent.LogoutSuccess -> {
+                        Toast.makeText(context, "Logout successful", Toast.LENGTH_SHORT).show()
+                    }
+
+                    else -> {}
+                }
             }
         }
     }

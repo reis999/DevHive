@@ -1,4 +1,4 @@
-package ipvc.tp.devhive.presentation.ui.profile
+package ipvc.tp.devhive.presentation.ui.main.profile
 
 import android.Manifest
 import android.app.Activity

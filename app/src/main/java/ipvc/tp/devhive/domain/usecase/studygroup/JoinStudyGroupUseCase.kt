@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.domain.usecase.studygroup
 
+import ipvc.tp.devhive.domain.model.StudyGroup
 import ipvc.tp.devhive.domain.repository.StudyGroupRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 import javax.inject.Inject
@@ -15,42 +16,44 @@ class JoinStudyGroupUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(joinMethod: JoinMethod): Result<Boolean> {
-        // Verifica se o utilizador está logado
         val currentUser = userRepository.getCurrentUser() ?: return Result.failure(
             IllegalStateException("Utilizador não está logado")
         )
 
-        val group = when (joinMethod) {
+        val groupResult: Result<StudyGroup?> = when (joinMethod) {
             is JoinMethod.ByGroupId -> {
                 // Busca grupo por ID
-                studyGroupRepository.getStudyGroupById(joinMethod.groupId) ?: return Result.failure(
-                    IllegalArgumentException("Grupo não encontrado")
-                )
+                val g = studyGroupRepository.getStudyGroupById(joinMethod.groupId)
+                if (g != null) Result.success(g) else Result.failure(IllegalArgumentException("Grupo não encontrado"))
             }
             is JoinMethod.ByJoinCode -> {
-                // Busca grupo pelo código de acesso
-                val groups = studyGroupRepository.getStudyGroupsByUser(currentUser.id).value ?: emptyList()
-                groups.find { it.joinCode == joinMethod.joinCode } ?: return Result.failure(
-                    IllegalArgumentException("Código de acesso inválido")
-                )
+                // Busca grupo pelo código de acesso diretamente
+                studyGroupRepository.getStudyGroupByJoinCode(joinMethod.joinCode)
             }
         }
 
-        // Verifica se o grupo já está cheio
+        if (groupResult.isFailure) {
+            return Result.failure(groupResult.exceptionOrNull() ?: IllegalStateException("Erro ao buscar grupo"))
+        }
+
+        val group = groupResult.getOrNull()
+            ?: return Result.failure(IllegalArgumentException("Grupo não encontrado ou código de acesso inválido"))
+
+        if (joinMethod is JoinMethod.ByJoinCode && !group.isPrivate) {
+            return Result.failure(IllegalArgumentException("Este código de acesso é para um grupo que não é privado ou o código é inválido."))
+        }
+
+        if (group.members.contains(currentUser.id)) {
+            return Result.success(true) // Já é membro
+        }
+
         if (group.members.size >= group.maxMembers) {
             return Result.failure(IllegalStateException("O grupo já atingiu o número máximo de membros"))
         }
 
-        // Verifica se o utilizador já é membro
-        if (group.members.contains(currentUser.id)) {
-            return Result.success(true) // Já é membro, retorna sucesso
-        }
-
-        // Adiciona o utilizador ao grupo
         return studyGroupRepository.joinStudyGroup(group.id, currentUser.id)
     }
 
-    // Métodos de conveniência para facilitar o uso
     suspend fun joinByGroupId(groupId: String): Result<Boolean> {
         return invoke(JoinMethod.ByGroupId(groupId))
     }

@@ -1,8 +1,8 @@
 package ipvc.tp.devhive.data.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.google.firebase.Timestamp
 import ipvc.tp.devhive.data.local.dao.ChatDao
 import ipvc.tp.devhive.data.local.dao.MessageDao
 import ipvc.tp.devhive.data.local.entity.ChatEntity
@@ -11,7 +11,6 @@ import ipvc.tp.devhive.data.model.Chat
 import ipvc.tp.devhive.data.model.Message
 import ipvc.tp.devhive.data.remote.service.ChatService
 import ipvc.tp.devhive.data.util.SyncStatus
-import ipvc.tp.devhive.domain.model.MessageAttachment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,12 +25,10 @@ class ChatRepository(
 ) : DomainChatRepository {
 
     override fun getChatsByUser(userId: String): LiveData<List<ipvc.tp.devhive.domain.model.Chat>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshChatsByUser(userId)
         }
 
-        // Retorna LiveData do banco local
         return chatDao.getChatsByUser(userId).map { entities ->
             entities.map { ChatEntity.toChat(it).toDomainChat() }
         }
@@ -43,6 +40,8 @@ class ChatRepository(
             if (result.isSuccess) {
                 val chats = result.getOrThrow()
                 val entities = chats.map { ChatEntity.fromChat(it) }
+                Log.d("ChatRepository", "Received ${entities.size} chats from Firestore")
+                Log.d("ChatRepository", "Entities: $entities")
                 chatDao.insertChats(entities)
             }
         }
@@ -288,6 +287,7 @@ class ChatRepository(
         return ipvc.tp.devhive.domain.model.Chat(
             id = this.id,
             participant1Id = this.participant1Id,
+            participant1Name = this.participant1Name,
             participant2Id = this.participant2Id,
             lastMessagePreview = this.lastMessagePreview,
             lastMessageAt = this.lastMessageAt,
@@ -305,6 +305,7 @@ class ChatRepository(
         return Chat(
             id = this.id,
             participant1Id = this.participant1Id,
+            participant1Name = this.participant1Name,
             participant2Id = this.participant2Id,
             lastMessagePreview = this.lastMessagePreview,
             lastMessageAt = this.lastMessageAt,
@@ -348,19 +349,23 @@ class ChatRepository(
 
     private fun ipvc.tp.devhive.data.model.MessageAttachment.toDomain(): ipvc.tp.devhive.domain.model.MessageAttachment {
         return ipvc.tp.devhive.domain.model.MessageAttachment(
+            id = this.id,
             type = this.type,
             url = this.url,
             name = this.name,
-            size = this.size
+            size = this.size,
+            fileExtension = this.fileExtension
         )
     }
 
     private fun ipvc.tp.devhive.domain.model.MessageAttachment.toData(): ipvc.tp.devhive.data.model.MessageAttachment {
         return ipvc.tp.devhive.data.model.MessageAttachment(
+            id = this.id,
             type = this.type,
             url = this.url,
             name = this.name,
-            size = this.size
+            size = this.size,
+            fileExtension =  this.fileExtension
         )
     }
 

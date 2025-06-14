@@ -20,8 +20,28 @@
     <fragment
         android:id="@+id/studyGroupsFragment"
         android:name="ipvc.tp.devhive.presentation.ui.main.studygroup.StudyGroupsFragment"
-        android:label="@string/study_groups"
-        tools:layout="@layout/fragment_study_groups" />
+        android:label="@string/title_study_groups"
+        tools:layout="@layout/fragment_study_groups">
+    </fragment>
+
+    <activity
+        android:id="@+id/studyGroupChatActivity"
+        android:name="ipvc.tp.devhive.presentation.ui.main.studygroup.StudyGroupChatActivity"
+        android:label="activity_study_group_chat"
+        tools:layout="@layout/activity_study_group_chat" />
+
+    <fragment
+        android:id="@+id/navigation_explore_groups"
+        android:name="ipvc.tp.devhive.presentation.ui.main.studygroup.ExploreGroupsFragment"
+        android:label="@string/title_explore_groups"
+        tools:layout="@layout/fragment_explore_groups">
+    </fragment>
+
+    <activity
+        android:id="@+id/createStudyGroupActivity"
+        android:name="ipvc.tp.devhive.presentation.ui.main.studygroup.CreateStudyGroupActivity"
+        android:label="activity_create_study_group"
+        tools:layout="@layout/activity_create_study_group" />
 
     <fragment
         android:id="@+id/chatFragment"

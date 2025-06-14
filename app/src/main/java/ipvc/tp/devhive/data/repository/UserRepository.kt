@@ -29,18 +29,15 @@ class UserRepository(
     private val appScope: CoroutineScope
 ) : DomainUserRepository {
 
-    override suspend fun getUserById(userId: String): ipvc.tp.devhive.domain.model.User? {
+    override suspend fun getUserById(userId: String): DomainUser? {
         return withContext(Dispatchers.IO) {
-            // Primeiro tenta obter do banco de dados local
             val localUser = userDao.getUserById(userId)
 
             if (localUser != null) {
                 UserEntity.toUser(localUser).toDomainUser()
             } else {
-                // Se não encontrar localmente, busca do Firestore
                 val remoteUser = userService.getUserById(userId)
 
-                // Se encontrar remotamente, salva no banco local
                 if (remoteUser != null) {
                     userDao.insertUser(UserEntity.fromUser(remoteUser))
                     remoteUser.toDomainUser()
@@ -50,6 +47,65 @@ class UserRepository(
             }
         }
     }
+
+    override suspend fun getUsersByIds(userIds: List<String>): Result<List<ipvc.tp.devhive.domain.model.User>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (userIds.isEmpty()) {
+                    return@withContext Result.success(emptyList())
+                }
+
+                val localUsers = userDao.getUsersByIds(userIds)
+                val localUserMap = localUsers.associateBy { it.id }
+
+                val missingUserIds = userIds.filter { userId ->
+                    !localUserMap.containsKey(userId)
+                }
+
+                if (missingUserIds.isEmpty()) {
+                    val domainUsers = localUsers.map { UserEntity.toUser(it).toDomainUser() }
+                    return@withContext Result.success(domainUsers)
+                }
+
+                val remoteResult = userService.getUsersByIds(missingUserIds)
+
+                if (remoteResult.isFailure) {
+                    val availableUsers = localUsers.map { UserEntity.toUser(it).toDomainUser() }
+                    return@withContext Result.success(availableUsers)
+                }
+
+                val remoteUsers = remoteResult.getOrThrow()
+
+                if (remoteUsers.isNotEmpty()) {
+                    val remoteUserEntities = remoteUsers.map { user ->
+                        UserEntity.fromUser(user, SyncStatus.SYNCED)
+                    }
+                    userDao.insertUsers(remoteUserEntities)
+                }
+
+                val allUsers = mutableListOf<ipvc.tp.devhive.domain.model.User>()
+                allUsers.addAll(localUsers.map { UserEntity.toUser(it).toDomainUser() })
+                allUsers.addAll(remoteUsers.map { it.toDomainUser() })
+
+                val userMap = allUsers.associateBy { it.id }
+                val orderedUsers = userIds.mapNotNull { userId ->
+                    userMap[userId]
+                }
+
+                Result.success(orderedUsers)
+
+            } catch (e: Exception) {
+                try {
+                    val localUsers = userDao.getUsersByIds(userIds)
+                    val domainUsers = localUsers.map { UserEntity.toUser(it).toDomainUser() }
+                    Result.success(domainUsers)
+                } catch (localException: Exception) {
+                    Result.failure(e)
+                }
+            }
+        }
+    }
+
 
     override suspend fun getCurrentUser(): DomainUser? {
         return withContext(Dispatchers.IO) {
@@ -64,8 +120,7 @@ class UserRepository(
                 return@withContext UserEntity.toUser(localUserEntity).toDomainUser()
             }
 
-            // UserService
-            val remoteUser = userService.getUserById(currentFirebaseUserId) // userService.getCurrentUser() também funcionaria aqui
+            val remoteUser = userService.getUserById(currentFirebaseUserId)
             remoteUser?.let { dataUser ->
                 userDao.insertUser(UserEntity.fromUser(dataUser, SyncStatus.SYNCED))
                 return@withContext dataUser.toDomainUser()
@@ -75,13 +130,25 @@ class UserRepository(
         }
     }
 
-    override fun observeUserById(userId: String): LiveData<ipvc.tp.devhive.domain.model.User?> {
-        // Busca do Firestore para atualizar o cache local
+    override suspend fun searchUsers(
+        query: String,
+        excludeUserId: String?
+    ): Result<List<DomainUser>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = userService.searchUsers(query, excludeUserId)
+                return@withContext Result.success(result.map { it.toDomainUser() })
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    override fun observeUserById(userId: String): LiveData<DomainUser?> {
         appScope.launch {
             refreshUser(userId)
         }
 
-        // Retorna LiveData do banco local
         return userDao.observeUserById(userId).map { entity ->
             entity?.let { UserEntity.toUser(it).toDomainUser() }
         }
@@ -96,26 +163,22 @@ class UserRepository(
         }
     }
 
-    override suspend fun createUser(user: ipvc.tp.devhive.domain.model.User): Result<ipvc.tp.devhive.domain.model.User> {
+    override suspend fun createUser(user: DomainUser): Result<DomainUser> {
         return withContext(Dispatchers.IO) {
             try {
                 val dataUser = user.toDataUser()
-                // Tenta criar no Firestore
                 val result = userService.createUser(dataUser)
 
                 if (result.isSuccess) {
-                    // Se sucesso, salva no banco local
                     val createdUser = result.getOrThrow()
                     userDao.insertUser(UserEntity.fromUser(createdUser))
                     Result.success(createdUser.toDomainUser())
                 } else {
-                    // Se falhar, salva localmente com status pendente
                     val userEntity = UserEntity.fromUser(dataUser, SyncStatus.PENDING_UPLOAD)
                     userDao.insertUser(userEntity)
                     Result.success(user)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente
                 val userEntity = UserEntity.fromUser(user.toDataUser(), SyncStatus.PENDING_UPLOAD)
                 userDao.insertUser(userEntity)
                 Result.failure(e)
@@ -246,15 +309,12 @@ class UserRepository(
     override suspend fun deleteUser(userId: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Tenta deletar no Firestore
                 val result = userService.deleteUser(userId)
 
                 if (result.isSuccess) {
-                    // Se sucesso, remove do banco local
                     userDao.deleteUserById(userId)
                     Result.success(true)
                 } else {
-                    // Se falhar, marca como pendente de deleção
                     val user = userDao.getUserById(userId)
                     if (user != null) {
                         val updatedUser = user.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -263,7 +323,6 @@ class UserRepository(
                     Result.success(false)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, marca como pendente de deleção
                 val user = userDao.getUserById(userId)
                 if (user != null) {
                     val updatedUser = user.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -280,7 +339,6 @@ class UserRepository(
                 val result = userService.updateUserOnlineStatus(userId, isOnline)
 
                 if (result.isSuccess) {
-                    // Atualiza o status online no banco local
                     val user = userDao.getUserById(userId)
                     if (user != null) {
                         val updatedUser = user.copy(isOnline = isOnline)
@@ -327,7 +385,7 @@ class UserRepository(
     }
 
     // Funções de extensão para converter entre modelos data e domain
-    private fun User.toDomainUser(): ipvc.tp.devhive.domain.model.User {
+    private fun User.toDomainUser(): DomainUser {
         return ipvc.tp.devhive.domain.model.User(
             id = this.id,
             name = this.name,
@@ -337,7 +395,7 @@ class UserRepository(
             course = this.course,
             institution = this.institution,
             bio = this.bio,
-            isOnline = this.isOnline,
+            isOnline = this.online,
             createdAt = this.createdAt,
             lastLogin = this.lastLogin,
             contributionStats = ipvc.tp.devhive.domain.model.ContributionStats(
@@ -349,7 +407,7 @@ class UserRepository(
         )
     }
 
-    private fun ipvc.tp.devhive.domain.model.User.toDataUser(): User {
+    private fun DomainUser.toDataUser(): User {
         return User(
             id = this.id,
             name = this.name,
@@ -359,7 +417,7 @@ class UserRepository(
             course = this.course,
             institution = this.institution,
             bio = this.bio,
-            isOnline = this.isOnline,
+            online = this.isOnline,
             createdAt = this.createdAt,
             lastLogin = this.lastLogin,
             contributionStats = ipvc.tp.devhive.data.model.ContributionStats(

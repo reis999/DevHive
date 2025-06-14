@@ -66,6 +66,4 @@ object NetworkModule {
         return StudyGroupService(firestore)
     }
 
-
-
 }

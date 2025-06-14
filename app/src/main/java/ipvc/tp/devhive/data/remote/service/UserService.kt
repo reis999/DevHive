@@ -1,5 +1,7 @@
 package ipvc.tp.devhive.data.remote.service
 
+import android.util.Log
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import ipvc.tp.devhive.data.model.User
@@ -20,6 +22,48 @@ class UserService(firestore: FirebaseFirestore) {
             }
         } catch (e: Exception) {
             null
+        }
+    }
+
+    suspend fun getUsersByIds(userIds: List<String>): Result<List<User>> {
+        return try {
+            if (userIds.isEmpty()) {
+                Result.success(emptyList())
+            } else {
+                val remoteUsers = mutableListOf<User>()
+                userIds.chunked(30).forEach { chunk ->
+                    if (chunk.isNotEmpty()) {
+                        val querySnapshot = usersCollection
+                            .whereIn(FieldPath.documentId(), chunk)
+                            .get()
+                            .await()
+                        val usersFromChunk = querySnapshot.documents.mapNotNull { document ->
+                            document.toObject(User::class.java)?.copy(id = document.id)
+                        }
+                        remoteUsers.addAll(usersFromChunk)
+                    }
+                }
+                Result.success(remoteUsers)
+            }
+        } catch (e: Exception) {
+            Log.e("UserServiceImpl", "Error fetching users by IDs from Firestore: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun searchUsers(query: String, excludeUserId: String?): List<User> {
+        return try {
+            val querySnapshot = usersCollection
+                .whereGreaterThanOrEqualTo("name", query)
+                .whereLessThanOrEqualTo("name", query + "\uf8ff")
+                .whereNotEqualTo("id", excludeUserId)
+                .get()
+                .await()
+            querySnapshot.documents.mapNotNull { document ->
+                document.toObject(User::class.java)?.copy(id = document.id)
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 
@@ -54,7 +98,7 @@ class UserService(firestore: FirebaseFirestore) {
 
     suspend fun updateUserOnlineStatus(userId: String, isOnline: Boolean): Result<Boolean> {
         return try {
-            usersCollection.document(userId).update("isOnline", isOnline).await()
+            usersCollection.document(userId).update("online", isOnline).await()
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)

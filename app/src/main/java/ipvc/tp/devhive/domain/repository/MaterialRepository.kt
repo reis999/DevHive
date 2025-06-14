@@ -3,7 +3,6 @@ package ipvc.tp.devhive.domain.repository
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.Material
-import kotlinx.coroutines.flow.Flow
 
 /**
  * Interface de repositório para operações relacionadas a materiais de estudo

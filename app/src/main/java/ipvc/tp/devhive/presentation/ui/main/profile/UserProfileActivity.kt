@@ -3,20 +3,20 @@ package ipvc.tp.devhive.presentation.ui.main.profile
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.tabs.TabLayout
-import com.google.firebase.Timestamp
 import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Material
@@ -25,18 +25,22 @@ import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
+import ipvc.tp.devhive.presentation.viewmodel.profile.ViewedProfileEvent
 
 @AndroidEntryPoint
 class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClickListener {
 
     companion object {
+        const val EXTRA_CURRENT_USER_ID = "extra_current_user_id"
         const val EXTRA_USER_ID = "extra_user_id"
     }
 
     private val profileViewModel: ProfileViewModel by viewModels()
     private val materialViewModel: MaterialViewModel by viewModels()
 
+    // Views do Layout Original
     private lateinit var toolbar: Toolbar
+    private lateinit var collapsingToolbar: CollapsingToolbarLayout
     private lateinit var ivProfileImage: ImageView
     private lateinit var tvUserName: TextView
     private lateinit var tvUserBio: TextView
@@ -44,102 +48,121 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     private lateinit var tvFollowersCount: TextView
     private lateinit var tvFollowingCount: TextView
     private lateinit var tabLayout: TabLayout
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var recyclerViewMaterials: RecyclerView
+
+    // Views adicionadas para feedback
+    private lateinit var tvNoMaterialsMessage: TextView
+    private lateinit var profileLoadingProgressBar: ProgressBar
+    private lateinit var materialsListProgressBar: ProgressBar
 
     private lateinit var materialAdapter: MaterialAdapter
-    private var userId: String = ""
-    private var currentUser: User? = null
+    private var viewedUserId: String = ""
+    private var currentUserId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_profile)
 
-        // Obtém o ID do usuário da intent
-        userId = intent.getStringExtra(EXTRA_USER_ID) ?: ""
-        if (userId.isEmpty()) {
+        viewedUserId = intent.getStringExtra(EXTRA_USER_ID) ?: ""
+        currentUserId = intent.getStringExtra(EXTRA_CURRENT_USER_ID) ?: ""
+        if (viewedUserId.isEmpty()) {
+            Toast.makeText(this, "ID de utilizador inválido.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
         initializeViews()
-        setupToolbar()
-        setupRecyclerView()
+        setupToolbarAndCollapsingToolbar()
+
+        materialAdapter = MaterialAdapter(this, currentUserId)
+        recyclerViewMaterials.layoutManager = GridLayoutManager(this, 2) // Ou como preferir
+        recyclerViewMaterials.adapter = materialAdapter
+        recyclerViewMaterials.isNestedScrollingEnabled = false // Importante para CollapsingToolbar
+
         setupTabs()
-        loadUserProfile()
+        loadUserProfileData()
+        observeViewedUserProfile()
+        observeMaterialViewModelLoading()
+        observeProfileEvents()
     }
 
     private fun initializeViews() {
         toolbar = findViewById(R.id.toolbar)
+        collapsingToolbar = findViewById(R.id.collapsing_toolbar)
         ivProfileImage = findViewById(R.id.iv_profile_image)
         tvUserName = findViewById(R.id.tv_user_name)
         tvUserBio = findViewById(R.id.tv_user_bio)
+
+        // Estatísticas
         tvMaterialCount = findViewById(R.id.tv_material_count)
-        tvFollowersCount = findViewById(R.id.tv_followers_count)
-        tvFollowingCount = findViewById(R.id.tv_following_count)
+        tvFollowersCount = findViewById(R.id.tv_followers_count) // Mapeado para Likes
+        tvFollowingCount = findViewById(R.id.tv_following_count) // Mapeado para Comments
+
         tabLayout = findViewById(R.id.tab_layout)
-        recyclerView = findViewById(R.id.recycler_view)
+        recyclerViewMaterials = findViewById(R.id.recycler_view) // ID original
+
+        // ProgressBars e TextView para "sem materiais" (precisam ser adicionadas ao XML)
+        // Se não estiverem no XML, crie-as programaticamente ou adicione-as.
+        // Por agora, vamos assumir que você as adicionará ao XML dentro do NestedScrollView,
+        // talvez envolvendo o RecyclerView e o TextView em um FrameLayout.
+        // Exemplo de como obter, assumindo que foram adicionadas:
+        profileLoadingProgressBar = findViewById(R.id.pb_profile_section_loading) // ID de exemplo
+        materialsListProgressBar = findViewById(R.id.pb_materials_section_loading) // ID de exemplo
+        tvNoMaterialsMessage = findViewById(R.id.tv_no_materials_message) // ID de exemplo
+
+        profileLoadingProgressBar.visibility = View.GONE
+        materialsListProgressBar.visibility = View.GONE
+        tvNoMaterialsMessage.visibility = View.GONE
     }
 
-    private fun setupToolbar() {
+    private fun setupToolbarAndCollapsingToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        collapsingToolbar.title = " " // Título será definido dinamicamente ou pode ficar vazio
+        // para dar mais espaço ao nome do usuário no layout colapsado.
     }
 
-    private fun setupRecyclerView() {
-        materialAdapter = MaterialAdapter(this, null)
-        recyclerView.layoutManager = GridLayoutManager(this, 2)
-        recyclerView.adapter = materialAdapter
+    private fun loadUserProfileData() {
+        profileViewModel.loadUserProfileById(viewedUserId)
     }
 
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val onBackPressedCallback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                finish()
+    private fun observeViewedUserProfile() {
+        profileViewModel.viewedUserProfile.observe(this) { user ->
+            profileLoadingProgressBar.visibility = View.GONE // Esconde o loader do perfil
+            if (user != null) {
+                displayUserProfileInfo(user)
+                if (tabLayout.selectedTabPosition == -1) {
+                    tabLayout.getTabAt(0)?.select()
+                } else {
+                    handleTabSelection(tabLayout.selectedTabPosition)
+                }
             }
         }
-        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
-        return when (item.itemId) {
-            android.R.id.home -> {
-                onBackPressedDispatcher.onBackPressed()
-                true
+
+        profileViewModel.isLoadingViewedProfile.observe(this) { isLoading ->
+            // Você pode mostrar um loader geral ou um loader na área do CollapsingToolbar
+            profileLoadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            if(isLoading) { // Esconde o conteúdo enquanto carrega
+                findViewById<LinearLayout>(R.id.appBarLayout).alpha = 0.3f // Exemplo
+            } else {
+                findViewById<LinearLayout>(R.id.appBarLayout).alpha = 1.0f
             }
-            else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun loadUserProfile() {
-        // implementação real: usar profileViewModel.getUserById(userId)
-        val mockUser = getMockUser()
-        displayUserProfile(mockUser)
-
-        // Carrega os materiais do utilizador por padrão
-        loadUserMaterials()
-    }
-
-    private fun displayUserProfile(user: User) {
-        currentUser = user
-        supportActionBar?.title = user.name
-
+    private fun displayUserProfileInfo(user: User) {
         tvUserName.text = user.name
-        tvUserBio.text = user.bio.ifEmpty { getString(R.string.no_bio) }
+        tvUserBio.text = user.bio.ifEmpty { getString(R.string.no_bio_available) }
 
-        // implementação real: estes valores viriam do backend
-        tvMaterialCount.text = "12"
-        tvFollowersCount.text = "156"
-        tvFollowingCount.text = "89"
+        tvMaterialCount.text = user.contributionStats.materials.toString()
+        tvFollowersCount.text = user.contributionStats.likes.toString()
+        tvFollowingCount.text = user.contributionStats.comments.toString()
 
-        // Carrega a imagem do perfil
-        if (user.profileImageUrl.isNotEmpty()) {
-            Glide.with(this)
-                .load(user.profileImageUrl)
-                .placeholder(R.drawable.profile_placeholder)
-                .error(R.drawable.profile_placeholder)
-                .circleCrop()
-                .into(ivProfileImage)
-        } else {
-            ivProfileImage.setImageResource(R.drawable.profile_placeholder)
-        }
+        Glide.with(this)
+            .load(user.profileImageUrl)
+            .placeholder(R.drawable.profile_placeholder)
+            .error(R.drawable.profile_placeholder)
+            .into(ivProfileImage)
     }
 
     private fun setupTabs() {
@@ -148,27 +171,96 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                when (tab?.position) {
-                    0 -> loadUserMaterials()
-                    1 -> loadUserFavorites()
-                }
+                handleTabSelection(tab?.position ?: 0)
             }
-
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+                handleTabSelection(tab?.position ?: 0)
+            }
         })
     }
 
-    private fun loadUserMaterials() {
-        // implementação real: usar profileViewModel.getUserMaterials(userId)
-        val mockMaterials = getMockUserMaterials()
-        materialAdapter.submitList(mockMaterials)
+    private fun handleTabSelection(position: Int) {
+        if (profileViewModel.viewedUserProfile.value == null && profileViewModel.isLoadingViewedProfile.value == false) {
+            return
+        }
+        materialAdapter.submitList(emptyList())
+        tvNoMaterialsMessage.visibility = View.GONE
+        recyclerViewMaterials.visibility = View.GONE
+
+        when (position) {
+            0 -> loadUserCreatedMaterials()
+            1 -> loadUserFavoriteMaterials()
+        }
     }
 
-    private fun loadUserFavorites() {
-        // implementação real: usar profileViewModel.getUserFavorites(userId)
-        val mockFavorites = getMockUserFavorites()
-        materialAdapter.submitList(mockFavorites)
+    private fun loadUserCreatedMaterials() {
+        recyclerViewMaterials.visibility = View.GONE
+        materialViewModel.getMaterialsByUser(viewedUserId).observe(this) { materials ->
+            displayMaterialsInList(materials, isUserMaterials = true)
+        }
+    }
+
+    private fun loadUserFavoriteMaterials() {
+        recyclerViewMaterials.visibility = View.GONE
+        materialViewModel.getBookmarkedMaterials(viewedUserId).observe(this) { materials ->
+            displayMaterialsInList(materials, isUserMaterials = false)
+        }
+    }
+
+    private fun displayMaterialsInList(materials: List<Material>, isUserMaterials: Boolean) {
+        if (materials.isEmpty()) {
+            tvNoMaterialsMessage.visibility = View.VISIBLE
+            recyclerViewMaterials.visibility = View.GONE
+            val messageResId = if (isUserMaterials) {
+                R.string.no_materials_created_by_this_user
+            } else {
+                R.string.this_user_has_no_favorites
+            }
+            tvNoMaterialsMessage.text = getString(messageResId)
+        } else {
+            tvNoMaterialsMessage.visibility = View.GONE
+            recyclerViewMaterials.visibility = View.VISIBLE
+            materialAdapter.submitList(materials)
+        }
+    }
+
+    private fun observeMaterialViewModelLoading() {
+        materialViewModel.isLoading.observe(this) { isLoading ->
+            materialsListProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            if (isLoading) {
+                tvNoMaterialsMessage.visibility = View.GONE
+                recyclerViewMaterials.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun observeProfileEvents() {
+        profileViewModel.viewedProfileEvent.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { viewedEvent ->
+                when (viewedEvent) {
+                    is ViewedProfileEvent.Error -> {
+                        Toast.makeText(this, viewedEvent.message, Toast.LENGTH_LONG).show()
+                        if (profileViewModel.viewedUserProfile.value == null) {
+                            // Atualiza a UI para mostrar o erro de forma mais proeminente
+                            tvUserName.text = getString(R.string.error_loading_profile)
+                            tvUserBio.text = viewedEvent.message
+                            // Poderia limpar/ocultar as estatísticas também
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onMaterialClick(material: Material) {
@@ -178,103 +270,6 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     }
 
     override fun onBookmarkClick(material: Material, position: Int) {
-        val currentUserId = materialViewModel.getCurrentUserId()
-
-        if (currentUserId != null) {
-            val isCurrentlyBookmarked = currentUserId in material.bookmarkedBy
-
-            materialViewModel.toggleBookmark(
-                materialId = material.id,
-                userId = currentUserId,
-                isBookmarked = !isCurrentlyBookmarked
-            )
-        } else {
-            Toast.makeText(this, "É necessário fazer login para marcar favoritos", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun getMockUser(): User {
-        return User(
-            id = userId,
-            name = "Ana Silva",
-            username = "ana_silva",
-            email = "ana.silva@email.com",
-            bio = "Estudante de Engenharia Informática apaixonada por tecnologia e programação.",
-            profileImageUrl = "",
-            institution = "Instituto Politécnico de Viana do Castelo",
-            course = "Engenharia Informática",
-            createdAt = Timestamp(java.util.Date()),
-            lastLogin = Timestamp(java.util.Date()),
-            isOnline = true,
-            contributionStats = ipvc.tp.devhive.domain.model.ContributionStats(
-                materials = 4,
-                comments = 12,
-                likes = 8,
-                sessions = 4
-            )
-
-        )
-    }
-
-    private fun getMockUserMaterials(): List<Material> {
-        // implementação real: retornar materiais do utilizador
-        return listOf(
-            Material(
-                id = "material1",
-                title = "Guia de Kotlin",
-                description = "Guia completo sobre Kotlin",
-                ownerUid = userId,
-                ownerName = "Ana Silva",
-                ownerImageUrl = "",
-                thumbnailUrl = "",
-                contentUrl = "",
-                type = "pdf",
-                fileSize = 1024,
-                categories = listOf("Kotlin", "Programação"),
-                subject = "Programação",
-                downloads = 45,
-                views = 123,
-                likes = 28,
-                bookmarks = 0,
-                bookmarkedBy = listOf(),
-                likedBy = listOf(),
-                createdAt = Timestamp(java.util.Date()),
-                updatedAt = Timestamp(java.util.Date()),
-                isPublic = true,
-                rating = 4.2f,
-                reviewCount = 15
-            )
-        )
-    }
-
-    private fun getMockUserFavorites(): List<Material> {
-        // implementação real: retornar materiais favoritos do utilizador
-        return listOf(
-            Material(
-                id = "material2",
-                title = "Android Development",
-                description = "Curso de desenvolvimento Android",
-                ownerUid = "other_user",
-                ownerName = "João Santos",
-                ownerImageUrl = "",
-                thumbnailUrl = "",
-                contentUrl = "",
-                type = "pdf",
-                fileSize = 2048,
-                categories = listOf("Android", "Mobile"),
-                subject = "Desenvolvimento Mobile",
-                downloads = 67,
-                views = 201,
-                likes = 42,
-                bookmarks = 0,
-                bookmarkedBy = listOf(),
-                likedBy = listOf(),
-                createdAt = Timestamp(java.util.Date()),
-                updatedAt = Timestamp(java.util.Date()),
-                isPublic = true,
-                rating = 4.5f,
-                reviewCount = 30
-            )
-        )
+        TODO("Not yet implemented")
     }
 }

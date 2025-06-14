@@ -1,7 +1,9 @@
 package ipvc.tp.devhive.data.model
 
+import android.os.Parcelable
 import com.google.firebase.Timestamp
 import ipvc.tp.devhive.data.util.SyncStatus
+import kotlinx.parcelize.Parcelize
 
 data class Message(
     val id: String = "",
@@ -15,9 +17,12 @@ data class Message(
     val lastSync: Timestamp = Timestamp.now()
 )
 
+@Parcelize
 data class MessageAttachment(
+    val id: String = "",
+    val name: String = "",
     val type: String = "",
     val url: String = "",
-    val name: String = "",
-    val size: Long = 0
-)
+    val size: Long = 0L,
+    val fileExtension: String = ""
+): Parcelable

@@ -132,7 +132,7 @@ class AuthViewModel @Inject constructor(
     }
 
     fun resetPassword(email: String) {
-        // Implementação da recuperação de senha
+        // TODO: Implementar a lógica para enviar um email de recuperação de senha
         _authEvent.value = Event(AuthEvent.PasswordResetSent)
     }
 }

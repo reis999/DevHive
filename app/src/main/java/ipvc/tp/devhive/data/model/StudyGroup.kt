@@ -1,6 +1,7 @@
 package ipvc.tp.devhive.data.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.PropertyName
 
 data class StudyGroup(
     val id: String = "",
@@ -13,7 +14,7 @@ data class StudyGroup(
     val members: List<String> = emptyList(),
     val admins: List<String> = emptyList(),
     val categories: List<String> = emptyList(),
-    val isPrivate: Boolean = false,
+    @get:PropertyName("isPrivate") @set:PropertyName("isPrivate") var isPrivate: Boolean = false,
     val joinCode: String = "",
     val maxMembers: Int = 100,
     val lastMessageAt: Timestamp? = null,

@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.data.remote.service
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
@@ -10,6 +11,19 @@ import java.util.UUID
 
 class StudyGroupService(firestore: FirebaseFirestore) {
     private val studyGroupsCollection = firestore.collection("studyGroups")
+
+    suspend fun getStudyGroups(): Result<List<StudyGroup>> {
+        return try {
+            val snapshot = studyGroupsCollection
+                .orderBy("updatedAt", Query.Direction.DESCENDING)
+                .get()
+                .await()
+            val studyGroups = snapshot.documents.mapNotNull { it.toObject(StudyGroup::class.java) }
+            Result.success(studyGroups)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     suspend fun getStudyGroupById(studyGroupId: String): StudyGroup? {
         return try {
@@ -33,6 +47,7 @@ class StudyGroupService(firestore: FirebaseFirestore) {
                 .await()
 
             val studyGroups = snapshot.documents.mapNotNull { it.toObject(StudyGroup::class.java) }
+            Log.d("StudyGroupService", "Study groups: $studyGroups")
             Result.success(studyGroups)
         } catch (e: Exception) {
             Result.failure(e)
@@ -148,6 +163,38 @@ class StudyGroupService(firestore: FirebaseFirestore) {
             val studyGroups = snapshot.documents.mapNotNull { it.toObject(StudyGroup::class.java) }
             Result.success(studyGroups)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getAllPublicStudyGroups(): Result<List<StudyGroup>> {
+        return try {
+            val querySnapshot = studyGroupsCollection
+                .whereEqualTo("isPrivate", false)
+                .orderBy("name", Query.Direction.ASCENDING)
+                .get()
+                .await()
+            val groups = querySnapshot.documents.mapNotNull { it.toObject(StudyGroup::class.java) }
+            Result.success(groups)
+        } catch (e: Exception) {
+            Log.e("StudyGroupService", "Error fetching public study groups", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getStudyGroupByJoinCode(joinCode: String): Result<StudyGroup?> {
+        return try {
+            val querySnapshot = studyGroupsCollection
+                .whereEqualTo("joinCode", joinCode)
+                .whereEqualTo("isPrivate", true)
+                .limit(1)
+                .get()
+                .await()
+
+            val group = querySnapshot.documents.firstOrNull()?.toObject(StudyGroup::class.java)
+            Result.success(group)
+        } catch (e: Exception) {
+            Log.e("StudyGroupService", "Error fetching group by join code", e)
             Result.failure(e)
         }
     }

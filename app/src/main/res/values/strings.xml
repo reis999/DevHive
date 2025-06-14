@@ -22,12 +22,13 @@
     <string name="google_login_not_implemented">Login com Google não implementado</string>
     <string name="register_success">Registo realizado com sucesso!</string>
     <string name="name_required">Nome é obrigatório</string>
-    <string name="username_required">Nome de usuário é obrigatório</string>
+    <string name="username_required">Nome de utilizador é obrigatório</string>
     <string name="password_too_short">A senha deve ter no mínimo 6 caracteres</string>
     <string name="institution_required">Instituição é obrigatória</string>
     <string name="course_required">Curso é obrigatório</string>
     <string name="logout_confirmation">Deseja realmente sair?</string>
     <string name="invalid_email">Email inválido</string>
+    <string name="user_not_auth">Utilizador não autenticado</string>
 
     <!-- Navegação -->
     <string name="home">Início</string>
@@ -125,7 +126,7 @@
 
     <!-- Grupos de Estudo -->
     <string name="create_study_group">Criar grupo de estudo</string>
-    <string name="join_study_group">Entrar em um grupo</string>
+    <string name="join_study_group">Entrar no grupo</string>
     <string name="group_name">Nome do grupo</string>
     <string name="group_description">Descrição do grupo</string>
     <string name="group_categories">Categorias</string>
@@ -133,14 +134,85 @@
     <string name="group_max_members">Número máximo de membros</string>
     <string name="create_group">Criar grupo</string>
     <string name="join_with_code">Entrar com código</string>
-    <string name="enter_join_code">Digite o código de acesso</string>
-    <string name="join">Entrar</string>
     <string name="member_count">%1$d membros</string>
     <string name="leave_group">Sair do grupo</string>
     <string name="invite_members">Convidar membros</string>
     <string name="study_group_created">Grupo criado com sucesso</string>
     <string name="no_study_groups_found">Não foram encontrados grupos</string>
     <string name="group_image">Imagem de Grupo</string>
+    <string name="create_private">Grupo Privado?</string>
+    <string name="member_count_format">%1$d membros</string>
+    <string name="group_settings">Definições do Grupo</string>
+    <string name="group_cover_image">Imagem de capa do grupo</string>
+    <string name="change_cover_image">Alterar Imagem</string>
+    <string name="add_category">Adicionar categoria</string>
+    <string name="add_short">Adic.</string>
+    <string name="manage_members">Gerir Membros</string>
+    <string name="save_changes">Guardar Alterações</string>
+    <string name="delete_group">Apagar Grupo</string>
+    <string name="delete_group_confirmation_title">Confirmar Eliminação</string>
+    <string name="delete_group_confirmation_message">Tem a certeza que quer apagar este grupo? Esta ação não pode ser desfeita.</string>
+    <string name="not_admin_message">Apenas administradores podem alterar as definições deste grupo.</string>
+    <string name="changes_saved_success">Alterações guardadas com sucesso!</string>
+    <string name="group_deleted_success">Grupo apagado com sucesso.</string>
+    <string name="error_saving_changes">Erro ao guardar alterações: %1$s</string>
+    <string name="error_deleting_group">Erro ao apagar grupo: %1$s</string>
+    <string name="select_image_title">Selecionar Imagem</string>
+    <string name="placeholder_group_description">placeholder_group</string>
+    <string name="category_already_exists">Categoria já existe</string>
+    <string name="add_at_least_one_category">Adicione pelo menos uma categoria</string>
+    <string name="group_settings_updated">Definições do grupo atualizadas</string>
+    <string name="group_id_not_provided">ID do grupo não fornecido</string>
+    <string name="group_no_longer_available">Grupo não mais disponível</string>
+    <string name="only_admin_can_access_settings">Apenas administradores podem acessar as definições deste grupo</string>
+    <string name="error_sending_message_param">Erro ao enviar mensagem: %1$s</string>
+    <string name="wait_initializing">Aguarde a inicialização</string>
+    <string name="only_admin_can_save_changes">Apenas administradores podem guardar alterações</string>
+    <string name="no_app_to_pick_image">Nenhum aplicativo para selecionar imagem</string>
+    <string name="only_admin_can_delete_group">Apenas administradores podem apagar grupos</string>
+    <string name="view_settings_for_group">Ver definições para o grupo "%1$s"</string>
+    <string name="settings_for_group">Definições para o grupo "%1$s"</string>
+    <string name="implement_member_management">Função não implementada</string>
+    <string name="please_enter_the_join_code">Por favor, insira o código de acesso do grupo.</string>
+    <string name="title_explore_groups">Explorar Grupos</string>
+    <string name="join_code_cannot_be_empty">O código de acesso não pode estar vazio.</string>
+    <string name="enter_join_code">Insira o código de acesso</string>
+    <string name="join_group_title">Entrar no Grupo</string>
+    <string name="join_public_group_confirmation">Tem a certeza que quer entrar no grupo público \"%1$s\"?</string>
+    <string name="join_private_group_title">Entrar no Grupo Privado: %1$s</string>
+    <string name="enter_join_code_for_group">Para entrar no grupo privado \"%1$s\", por favor insira o código de acesso.</string>
+    <string name="join">Entrar</string>
+    <string name="no_public_groups_found">Nenhum grupo público encontrado.</string>
+    <string name="join_private_group_with_code">Entrar com código</string>
+    <string name="join_code_label_private">Código de Acesso (Grupo Privado)</string>
+    <string name="join_code_helper_text_admin">Partilhe este código para outros entrarem no grupo.</string>
+    <string name="copy_join_code">Copiar código de acesso</string>
+    <string name="join_code_copied">Código de acesso copiado!</string>
+    <string name="join_code_not_available">Código de acesso não disponível</string>
+    <string name="leave_group_confirmation_title">Confirmar Saída</string>
+    <string name="leave_group_confirmation_message">Tem a certeza que quer sair deste grupo?</string>
+    <string name="you_left_group_success">Você saiu do grupo com sucesso.</string>
+    <string name="error_leaving_group">Erro ao sair do grupo: %1$s</string>
+    <string name="member_removed_success">Membro removido com sucesso.</string>
+    <string name="error_removing_member">Erro ao remover membro: %1$s</string>
+    <string name="manage_members_title">Gerir Membros</string>
+    <string name="kick_member">Expulsar Membro</string>
+    <string name="kick_member_confirmation_title">Confirmar Expulsão</string>
+    <string name="kick_member_confirmation_message">Tem a certeza que quer expulsar %1$s deste grupo?</string>
+    <string name="cannot_kick_admin">Não pode expulsar outro administrador.</string>
+    <string name="cannot_kick_self">Não se pode expulsar a si mesmo.</string>
+    <string name="no_members_to_manage">Não há outros membros para gerir.</string>
+    <string name="admin">Admin</string>
+    <string name="member">Membro</string>
+    <string name="only_members_can_leave">Apenas membros podem sair do grupo.</string>
+    <string name="group_not_found">Grupo não encontrado.</string>
+    <string name="member_list_updated">Lista de membros atualizada.</string>
+    <string name="attach_file">Anexar Ficheiro</string>
+    <string name="file_ready_to_upload">Ficheiro pronto para upload: %1$s</string>
+    <string name="remove_attachment">Remover Anexo</string>
+    <string name="download_file">Baixar Ficheiro</string>
+    <string name="download_started_param">Download iniciado para o ficheiro: %1$s</string>
+    <string name="downloading_file">A fazer download do ficheiro…</string>
 
     <!-- Chat -->
     <string name="new_chat">Nova conversa</string>
@@ -160,6 +232,9 @@
     <string name="no_users_found">Nenhum utilizador encontrado</string>
     <string name="no_users">Nenhum utilizador</string>
     <string name="try_different_search">Experimente uma pesquisa diferente</string>
+    <string name="no_users_found_search">Nenhum utilizador encontrado</string>
+    <string name="chat_created_successfully">Chat criado com sucesso</string>
+    <string name="error_creating_chat">Erro ao criar chat</string>
 
     <!-- Comentarios -->
     <string name="hint_comment">Escreva um comentário…</string>
@@ -170,7 +245,7 @@
     <string name="edit_profile">Editar perfil</string>
     <string name="logout">Sair</string>
     <string name="full_name">Nome completo</string>
-    <string name="username">Nome de usuário</string>
+    <string name="username">Nome de utilizador</string>
     <string name="bio">Biografia</string>
     <string name="university">Universidade</string>
     <string name="course">Curso</string>
@@ -184,6 +259,10 @@
     <string name="profile_updated">Perfil atualizado com sucesso</string>
     <string name="followers">Seguidores</string>
     <string name="following">A seguir</string>
+    <string name="no_materials_created_by_this_user">Nenhum material criado por este utilizador</string>
+    <string name="this_user_has_no_favorites">Este utilizador não tem materiais favoritos</string>
+    <string name="error_loading_profile">Erro ao carregar perfil</string>
+    <string name="no_bio_available">Sem biografia disponível</string>
 
     <!-- Erros e Mensagens -->
     <string name="error_login">Erro ao fazer login. Verifique suas credenciais.</string>

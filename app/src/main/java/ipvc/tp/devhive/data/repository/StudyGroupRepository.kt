@@ -1,7 +1,12 @@
 package ipvc.tp.devhive.data.repository
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
+import com.google.firebase.Timestamp
+import com.google.firebase.storage.FirebaseStorage
 import ipvc.tp.devhive.data.local.dao.GroupMessageDao
 import ipvc.tp.devhive.data.local.dao.StudyGroupDao
 import ipvc.tp.devhive.data.local.entity.GroupMessageEntity
@@ -14,23 +19,47 @@ import ipvc.tp.devhive.data.util.SyncStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.UUID.randomUUID
+import ipvc.tp.devhive.domain.model.GroupMessage as DomainGroupMessage
+import ipvc.tp.devhive.domain.model.MessageAttachment as DomainMessageAttachment
 import ipvc.tp.devhive.domain.repository.StudyGroupRepository as DomainStudyGroupRepository
 
 class StudyGroupRepository(
     private val studyGroupDao: StudyGroupDao,
     private val groupMessageDao: GroupMessageDao,
     private val studyGroupService: StudyGroupService,
-    private val appScope: CoroutineScope
+    private val appScope: CoroutineScope,
+    private val storage: FirebaseStorage,
+    private val applicationContext: Context
 ) : DomainStudyGroupRepository {
 
+    override suspend fun getStudyGroups(): LiveData<List<ipvc.tp.devhive.domain.model.StudyGroup>> {
+        withContext(Dispatchers.IO) {
+            val result = studyGroupService.getStudyGroups()
+            if (result.isSuccess) {
+                val groups = result.getOrThrow()
+                val entities = groups.map { StudyGroupEntity.fromStudyGroup(it) }
+                studyGroupDao.insertStudyGroups(entities)
+            } else {
+                Log.e(
+                    "StudyGroupRepo",
+                    "Falha ao buscar grupos da rede: ${result.exceptionOrNull()?.message}"
+                )
+            }
+        }
+
+        return studyGroupDao.getStudyGroups().map { entities ->
+            entities.map { StudyGroupEntity.toStudyGroup(it).toDomainStudyGroup() }
+        }
+    }
+
     override fun getStudyGroupsByUser(userId: String): LiveData<List<ipvc.tp.devhive.domain.model.StudyGroup>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshStudyGroupsByUser(userId)
         }
 
-        // Retorna LiveData do banco local
         return studyGroupDao.getStudyGroupsByUser(userId).map { entities ->
             entities.map { StudyGroupEntity.toStudyGroup(it).toDomainStudyGroup() }
         }
@@ -38,27 +67,56 @@ class StudyGroupRepository(
 
     private suspend fun refreshStudyGroupsByUser(userId: String) {
         withContext(Dispatchers.IO) {
-            val result = studyGroupService.getStudyGroupsByUser(userId)
-            if (result.isSuccess) {
-                val groups = result.getOrThrow()
-                val entities = groups.map { StudyGroupEntity.fromStudyGroup(it) }
-                studyGroupDao.insertStudyGroups(entities)
+            Log.d("StudyGroupRepo", "Iniciando refresh para userId: $userId")
+            try {
+                val result = studyGroupService.getStudyGroupsByUser(userId)
+
+                if (result.isSuccess) {
+                    val groups = result.getOrThrow()
+
+                    if (groups.isNotEmpty()) {
+                        val entities = groups.map {
+                            val entity = StudyGroupEntity.fromStudyGroup(it)
+                            Log.d(
+                                "StudyGroupRepo",
+                                "Mapeando StudyGroup (dados) ${it.id} para StudyGroupEntity: $entity"
+                            )
+                            entity
+                        }
+                        studyGroupDao.insertStudyGroups(entities)
+
+                    } else {
+                        Log.d(
+                            "StudyGroupRepo",
+                            "Rede retornou lista vazia (não deveria acontecer com o log do service)."
+                        )
+                    }
+                } else {
+                    Log.e(
+                        "StudyGroupRepo",
+                        "Falha ao buscar grupos da rede para userId $userId: ${result.exceptionOrNull()?.message}",
+                        result.exceptionOrNull()
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(
+                    "StudyGroupRepo",
+                    "Exceção em refreshStudyGroupsByUser para userId $userId: ${e.message}",
+                    e
+                )
             }
         }
     }
 
     override suspend fun getStudyGroupById(groupId: String): ipvc.tp.devhive.domain.model.StudyGroup? {
         return withContext(Dispatchers.IO) {
-            // Primeiro tenta obter do banco de dados local
             val localGroup = studyGroupDao.getStudyGroupById(groupId)
 
             if (localGroup != null) {
                 StudyGroupEntity.toStudyGroup(localGroup).toDomainStudyGroup()
             } else {
-                // Se não encontrar localmente, busca do Firestore
                 val remoteGroup = studyGroupService.getStudyGroupById(groupId)
 
-                // Se encontrar remotamente, salva no banco local
                 if (remoteGroup != null) {
                     studyGroupDao.insertStudyGroup(StudyGroupEntity.fromStudyGroup(remoteGroup))
                     remoteGroup.toDomainStudyGroup()
@@ -98,46 +156,84 @@ class StudyGroupRepository(
                 val result = studyGroupService.createStudyGroup(dataStudyGroup)
 
                 if (result.isSuccess) {
-                    // Se sucesso, salva no banco local
                     val createdGroup = result.getOrThrow()
                     studyGroupDao.insertStudyGroup(StudyGroupEntity.fromStudyGroup(createdGroup))
                     Result.success(createdGroup.toDomainStudyGroup())
                 } else {
-                    // Se falhar, salva localmente com status pendente
-                    val groupEntity = StudyGroupEntity.fromStudyGroup(dataStudyGroup, SyncStatus.PENDING_UPLOAD)
+                    val groupEntity =
+                        StudyGroupEntity.fromStudyGroup(dataStudyGroup, SyncStatus.PENDING_UPLOAD)
                     studyGroupDao.insertStudyGroup(groupEntity)
                     Result.success(studyGroup)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente
-                val groupEntity = StudyGroupEntity.fromStudyGroup(studyGroup.toDataStudyGroup(), SyncStatus.PENDING_UPLOAD)
+                val groupEntity = StudyGroupEntity.fromStudyGroup(
+                    studyGroup.toDataStudyGroup(),
+                    SyncStatus.PENDING_UPLOAD
+                )
                 studyGroupDao.insertStudyGroup(groupEntity)
                 Result.failure(e)
             }
         }
     }
 
-    override suspend fun updateStudyGroup(studyGroup: ipvc.tp.devhive.domain.model.StudyGroup): Result<ipvc.tp.devhive.domain.model.StudyGroup> {
+    override suspend fun updateStudyGroup(
+        groupId: String,
+        name: String,
+        description: String,
+        categories: List<String>,
+        imageUri: Uri?
+    ): Result<ipvc.tp.devhive.domain.model.StudyGroup> {
         return withContext(Dispatchers.IO) {
             try {
-                val dataStudyGroup = studyGroup.toDataStudyGroup()
+                val existingStudyGroupEntity = studyGroupDao.getStudyGroupById(groupId)
+                    ?: return@withContext Result.failure(Exception("Study group not found with id: $groupId"))
+
+                val existingStudyGroup = StudyGroupEntity.toStudyGroup(existingStudyGroupEntity)
+
+                var imageUrl = existingStudyGroup.imageUrl
+                if (imageUri != null) {
+                    val uploadResult = uploadGroupImage(groupId, imageUri)
+                    if (uploadResult.isSuccess) {
+                        imageUrl = uploadResult.getOrNull()!!
+                    } else {
+                        Log.e(
+                            "StudyGroupRepo",
+                            "Failed to upload image for group $groupId",
+                            uploadResult.exceptionOrNull()
+                        )
+                    }
+                }
+
+                val updatedStudyGroup = existingStudyGroup.copy(
+                    name = name,
+                    description = description,
+                    categories = categories,
+                    imageUrl = imageUrl,
+                    updatedAt = Timestamp.now()
+                )
+
                 // Tenta atualizar no Firestore
-                val result = studyGroupService.updateStudyGroup(dataStudyGroup)
+                val result = studyGroupService.updateStudyGroup(updatedStudyGroup)
 
                 if (result.isSuccess) {
                     // Se sucesso, atualiza no banco local
-                    studyGroupDao.insertStudyGroup(StudyGroupEntity.fromStudyGroup(dataStudyGroup))
-                    Result.success(studyGroup)
+                    studyGroupDao.insertStudyGroup(
+                        StudyGroupEntity.fromStudyGroup(
+                            updatedStudyGroup,
+                            SyncStatus.SYNCED
+                        )
+                    )
+                    Result.success(updatedStudyGroup.toDomainStudyGroup())
                 } else {
                     // Se falhar, atualiza localmente com status pendente
-                    val groupEntity = StudyGroupEntity.fromStudyGroup(dataStudyGroup, SyncStatus.PENDING_UPDATE)
+                    val groupEntity = StudyGroupEntity.fromStudyGroup(
+                        updatedStudyGroup,
+                        SyncStatus.PENDING_UPDATE
+                    )
                     studyGroupDao.insertStudyGroup(groupEntity)
-                    Result.success(studyGroup)
+                    Result.success(updatedStudyGroup.toDomainStudyGroup())
                 }
             } catch (e: Exception) {
-                // Em caso de erro, atualiza localmente com status pendente
-                val groupEntity = StudyGroupEntity.fromStudyGroup(studyGroup.toDataStudyGroup(), SyncStatus.PENDING_UPDATE)
-                studyGroupDao.insertStudyGroup(groupEntity)
                 Result.failure(e)
             }
         }
@@ -214,7 +310,6 @@ class StudyGroupRepository(
                         studyGroupDao.updateStudyGroup(updatedGroup)
                     }
                 }
-
                 result
             } catch (e: Exception) {
                 Result.failure(e)
@@ -245,29 +340,171 @@ class StudyGroupRepository(
         }
     }
 
-    override suspend fun sendGroupMessage(groupId: String, message: ipvc.tp.devhive.domain.model.GroupMessage): Result<ipvc.tp.devhive.domain.model.GroupMessage> {
+    override suspend fun sendGroupMessage(
+        groupId: String,
+        messageContent: String,
+        senderId: String,
+        senderName: String,
+        senderImageUrl: String,
+        attachmentUri: Uri?,
+        originalAttachmentFileName: String?
+    ): Result<DomainGroupMessage> {
         return withContext(Dispatchers.IO) {
             try {
-                val dataMessage = message.toDataGroupMessage()
-                // Tenta enviar para o Firestore
-                val result = studyGroupService.sendGroupMessage(groupId, dataMessage)
+                val messageId = randomUUID().toString()
+                var uploadedAttachments = listOf<DomainMessageAttachment>()
 
-                if (result.isSuccess) {
-                    // Se sucesso, salva no banco local
-                    val sentMessage = result.getOrThrow()
-                    groupMessageDao.insertMessage(GroupMessageEntity.fromGroupMessage(sentMessage))
-                    Result.success(sentMessage.toDomainGroupMessage())
+                if (attachmentUri != null) {
+                    val uploadResult = uploadMessageAttachment(groupId, messageId, attachmentUri, originalAttachmentFileName)
+                    if (uploadResult.isSuccess) {
+                        uploadedAttachments = listOf(uploadResult.getOrThrow())
+                    } else {
+                        return@withContext Result.failure(
+                            uploadResult.exceptionOrNull() ?: Exception("Failed to upload attachment.")
+                        )
+                    }
+                }
+
+                val domainMessage = DomainGroupMessage(
+                    id = messageId,
+                    studyGroupId = groupId,
+                    content = messageContent,
+                    senderUid = senderId,
+                    senderName = senderName,
+                    senderImageUrl = senderImageUrl,
+                    createdAt =Timestamp(java.util.Date()),
+                    attachments = uploadedAttachments
+                )
+
+                val dataMessage = domainMessage.toDataGroupMessage()
+
+                val serviceResult = studyGroupService.sendGroupMessage(groupId, dataMessage)
+
+                if (serviceResult.isSuccess) {
+                    val sentMessageData = serviceResult.getOrThrow()
+                    groupMessageDao.insertMessage(GroupMessageEntity.fromGroupMessage(sentMessageData))
+                    Result.success(sentMessageData.toDomainGroupMessage())
                 } else {
-                    // Se falhar, salva localmente com status pendente
+
                     val messageEntity = GroupMessageEntity.fromGroupMessage(dataMessage, SyncStatus.PENDING_UPLOAD)
                     groupMessageDao.insertMessage(messageEntity)
-                    Result.success(message)
+                    Result.failure(serviceResult.exceptionOrNull() ?: Exception("Failed to send message to service."))
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente
-                val messageEntity = GroupMessageEntity.fromGroupMessage(message.toDataGroupMessage(), SyncStatus.PENDING_UPLOAD)
-                groupMessageDao.insertMessage(messageEntity)
+                // Em caso de erro, salva localmente com status pendente (se aplicável)
+                // ou apenas falha
+                Log.e("StudyGroupRepo", "Exception in sendGroupMessage: ${e.message}", e)
                 Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun removeMember(groupId: String, memberId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            val remoteRemoveResult = studyGroupService.removeMember(groupId, memberId)
+
+            if (remoteRemoveResult.isSuccess && remoteRemoveResult.getOrNull() == true) {
+                try {
+                    val updatedStudyGroupDataModel =
+                        studyGroupService.getStudyGroupById(groupId)
+
+                    if (updatedStudyGroupDataModel != null) {
+                        val studyGroupEntity = mapDataModelToEntity(updatedStudyGroupDataModel)
+                        studyGroupDao.insertOrUpdateStudyGroup(studyGroupEntity)
+                        Result.success(Unit)
+                    } else {
+                        Log.w(
+                            "StudyGroupRepo",
+                            "Membro removido remotamente, mas falha ao buscar grupo atualizado do Firestore."
+                        )
+                        Result.success(Unit)
+                    }
+                } catch (e: Exception) {
+                    Log.e(
+                        "StudyGroupRepo",
+                        "Erro ao sincronizar Room após remoção remota: ${e.message}",
+                        e
+                    )
+                    Result.failure(
+                        Exception(
+                            "Membro removido remotamente, mas falha ao sincronizar dados locais.",
+                            e
+                        )
+                    )
+                }
+            } else {
+                Result.failure(
+                    remoteRemoveResult.exceptionOrNull()
+                        ?: Exception("Falha ao remover membro do serviço.")
+                )
+            }
+        }
+    }
+
+    private suspend fun uploadGroupImage(groupId: String, imageUri: Uri): Result<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val fileName = "group_cover_${randomUUID()}.jpg"
+                val imageRef = storage.reference.child("study_group_images/$groupId/$fileName")
+
+                imageRef.putFile(imageUri).await()
+
+                val downloadUrl = imageRef.downloadUrl.await().toString()
+                Result.success(downloadUrl)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    private suspend fun uploadMessageAttachment(
+        groupId: String,
+        messageId: String, // Para organizar no Storage
+        attachmentUri: Uri,
+        originalFileName: String? // Para tentar manter o nome original
+    ): Result<DomainMessageAttachment> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val fileExtension = applicationContext.contentResolver.getType(attachmentUri)?.substringAfterLast('/')
+                    ?: originalFileName?.substringAfterLast('.')
+                    ?: "bin" // Extensão padrão
+
+                val fileNameInStorage = "attachment_${randomUUID()}.$fileExtension"
+                val attachmentRef = storage.reference.child("study_groups/$groupId/messages/$messageId/$fileNameInStorage")
+
+                attachmentRef.putFile(attachmentUri).await()
+                val downloadUrl = attachmentRef.downloadUrl.await().toString()
+
+                // Obter metadados para tamanho, se possível, ou estimar
+                val metadata = attachmentRef.metadata.await()
+                val sizeBytes = metadata?.sizeBytes ?: 0L // Ou tente obter do URI antes do upload
+
+                val displayName = originalFileName ?: fileNameInStorage
+
+                Result.success(
+                    DomainMessageAttachment(
+                        id = randomUUID().toString(), // ID único para o objeto MessageAttachment
+                        name = displayName,
+                        type = applicationContext.contentResolver.getType(attachmentUri) ?: "application/octet-stream",
+                        url = downloadUrl,
+                        size = sizeBytes,
+                        fileExtension = fileExtension
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e("StudyGroupRepo", "Failed to upload message attachment", e)
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun isUserAdmin(groupId: String, userId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val studyGroup = studyGroupService.getStudyGroupById(groupId)
+                studyGroup?.admins?.contains(userId) ?: false
+            } catch (e: Exception) {
+                false
             }
         }
     }
@@ -285,6 +522,7 @@ class StudyGroupRepository(
                             studyGroupDao.updateSyncStatus(groupEntity.id, SyncStatus.SYNCED)
                         }
                     }
+
                     SyncStatus.PENDING_UPDATE -> {
                         val group = StudyGroupEntity.toStudyGroup(groupEntity)
                         val result = studyGroupService.updateStudyGroup(group)
@@ -292,6 +530,7 @@ class StudyGroupRepository(
                             studyGroupDao.updateSyncStatus(groupEntity.id, SyncStatus.SYNCED)
                         }
                     }
+
                     SyncStatus.PENDING_DELETE -> {
                         val result = studyGroupService.deleteStudyGroup(groupEntity.id)
                         if (result.isSuccess) {
@@ -311,18 +550,76 @@ class StudyGroupRepository(
                 when (messageEntity.syncStatus) {
                     SyncStatus.PENDING_UPLOAD -> {
                         val message = GroupMessageEntity.toGroupMessage(messageEntity)
-                        val result = studyGroupService.sendGroupMessage(messageEntity.studyGroupId, message)
+                        val result =
+                            studyGroupService.sendGroupMessage(messageEntity.studyGroupId, message)
                         if (result.isSuccess) {
                             groupMessageDao.updateSyncStatus(messageEntity.id, SyncStatus.SYNCED)
                         }
                     }
-                    // Mensagens geralmente não são atualizadas ou excluídas, mas poderíamos implementar se necessário
                 }
             }
         }
     }
 
-    // Funções de extensão para converter entre modelos data e domain
+    override fun getPublicStudyGroups(): LiveData<List<ipvc.tp.devhive.domain.model.StudyGroup>> {
+        appScope.launch {
+            refreshPublicStudyGroups()
+        }
+        return studyGroupDao.getAllPublicStudyGroups().map { entities ->
+            entities.map { StudyGroupEntity.toStudyGroup(it).toDomainStudyGroup() }
+        }
+    }
+
+    private suspend fun refreshPublicStudyGroups() {
+        withContext(Dispatchers.IO) {
+            try {
+                val result = studyGroupService.getAllPublicStudyGroups()
+                if (result.isSuccess) {
+                    val groups = result.getOrThrow()
+                    val entities = groups.map { StudyGroupEntity.fromStudyGroup(it) }
+                    studyGroupDao.insertStudyGroups(entities)
+                } else {
+                    Log.e(
+                        "StudyGroupRepo",
+                        "Failed to refresh public groups: ${result.exceptionOrNull()?.message}"
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("StudyGroupRepo", "Exception in refreshPublicStudyGroups: ${e.message}", e)
+            }
+        }
+    }
+
+    override suspend fun getStudyGroupByJoinCode(joinCode: String): Result<ipvc.tp.devhive.domain.model.StudyGroup?> {
+        return withContext(Dispatchers.IO) {
+            val localEntity = studyGroupDao.getStudyGroupByJoinCode(joinCode)
+            if (localEntity != null && localEntity.isPrivate) {
+                return@withContext Result.success(
+                    StudyGroupEntity.toStudyGroup(localEntity).toDomainStudyGroup()
+                )
+            }
+
+            val remoteResult = studyGroupService.getStudyGroupByJoinCode(joinCode)
+            if (remoteResult.isSuccess) {
+                val remoteGroup = remoteResult.getOrNull()
+                remoteGroup?.let {
+                    studyGroupDao.insertStudyGroup(StudyGroupEntity.fromStudyGroup(it))
+                    Result.success(it.toDomainStudyGroup())
+                } ?: Result.success(null)
+            } else {
+                Log.e(
+                    "StudyGroupRepo",
+                    "Failed to fetch group by join code from service",
+                    remoteResult.exceptionOrNull()
+                )
+                Result.failure(
+                    remoteResult.exceptionOrNull()
+                        ?: Exception("Unknown error fetching group by join code")
+                )
+            }
+        }
+    }
+
     private fun StudyGroup.toDomainStudyGroup(): ipvc.tp.devhive.domain.model.StudyGroup {
         return ipvc.tp.devhive.domain.model.StudyGroup(
             id = this.id,
@@ -393,21 +690,28 @@ class StudyGroupRepository(
 
     private fun MessageAttachment.toDomainMessageAttachment(): ipvc.tp.devhive.domain.model.MessageAttachment {
         return ipvc.tp.devhive.domain.model.MessageAttachment(
+            id = this.id,
+            name = this.name,
             url = this.url,
             type = this.type,
-            name = this.name,
-            size = this.size
+            size = this.size,
+            fileExtension = this.fileExtension
         )
     }
 
-    // Função para converter domain.model.MessageAttachment para data.model.MessageAttachment
     private fun ipvc.tp.devhive.domain.model.MessageAttachment.toDataMessageAttachment(): MessageAttachment {
         return MessageAttachment(
+            id = this.id,
+            name = this.name,
             url = this.url,
             type = this.type,
-            name = this.name,
-            size = this.size
+            size = this.size,
+            fileExtension = this.fileExtension
         )
+    }
+
+    private fun mapDataModelToEntity(dataModel: StudyGroup): StudyGroupEntity {
+        return StudyGroupEntity.fromStudyGroup(dataModel)
     }
 }
 
