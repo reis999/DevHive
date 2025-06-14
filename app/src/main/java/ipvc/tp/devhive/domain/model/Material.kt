@@ -22,9 +22,11 @@ data class Material(
     val isPublic: Boolean,
     val subject: String,
     val views: Int,
-    val likes: Int,
     val downloads: Int,
-    val bookmarked: Boolean,
+    val likes: Int,
+    val bookmarks: Int,
+    val bookmarkedBy: List<String>,
+    val likedBy: List<String>,
     val rating: Float,
     val reviewCount: Int
 )

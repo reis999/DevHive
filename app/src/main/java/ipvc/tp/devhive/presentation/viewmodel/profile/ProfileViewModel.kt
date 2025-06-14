@@ -1,6 +1,7 @@
 package ipvc.tp.devhive.presentation.viewmodel.profile
 
 import android.util.Log
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.domain.usecase.auth.LogoutUserUseCase
+import ipvc.tp.devhive.domain.usecase.material.GetMaterialsUseCase
 import ipvc.tp.devhive.domain.usecase.material.GetUserFavoriteMaterialsUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetUserByIdUseCase
@@ -23,7 +25,7 @@ class ProfileViewModel @Inject constructor(
     private val updateUserUseCase: UpdateUserUseCase,
     private val logoutUserUseCase: LogoutUserUseCase,
     private val getUserByIdUseCase: GetUserByIdUseCase,
-    private val getMaterialsByOwnerUseCase: GetMaterialsByOwnerUseCase,
+    private val getMaterialsUseCase: GetMaterialsUseCase,
     private val getUserFavoriteMaterialsUseCase: GetUserFavoriteMaterialsUseCase
 ) : ViewModel() {
 
@@ -80,27 +82,25 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(name: String, bio: String, institution: String, course: String) {
+    fun updateProfile(
+        name: String,
+        bio: String,
+        institution: String,
+        course: String,
+        imageUri: Uri? = null
+    ) {
         _isLoading.value = true
 
         viewModelScope.launch {
             try {
-                val currentUser = _userProfile.value
-                if (currentUser != null) {
-                    val updatedUser = currentUser.copy(
-                        name = name,
-                        bio = bio,
-                        institution = institution,
-                        course = course
-                    )
+                val result = updateUserUseCase(name, bio, institution, course, imageUri)
 
-                    val result = updateUserUseCase(updatedUser)
-                    if (result.isSuccess) {
-                        _userProfile.value = updatedUser
-                        _profileEvent.value = Event(ProfileEvent.ProfileUpdated)
-                    } else {
-                        _profileEvent.value = Event(ProfileEvent.Error("Erro ao atualizar perfil"))
-                    }
+                if (result.isSuccess) {
+                    val updatedUser = result.getOrNull()!!
+                    _userProfile.value = updatedUser
+                    _profileEvent.value = Event(ProfileEvent.ProfileUpdated)
+                } else {
+                    _profileEvent.value = Event(ProfileEvent.Error("Erro ao atualizar perfil"))
                 }
             } catch (e: Exception) {
                 _profileEvent.value = Event(ProfileEvent.Error("Erro ao atualizar perfil: ${e.message}"))
@@ -168,9 +168,9 @@ class ProfileViewModel @Inject constructor(
         _viewedProfileMaterials.value = emptyList()
         viewModelScope.launch {
             try {
-                val result = getMaterialsByOwnerUseCase(userId)
+                val result = getMaterialsUseCase.byUser(userId)
                 result.fold(
-                    onSuccess = { materials ->
+                    onSuccess = { materials: List<Material> ->
                         _viewedProfileMaterials.value = materials
                     },
                     onFailure = {
@@ -196,7 +196,7 @@ class ProfileViewModel @Inject constructor(
             try {
                 val result = getUserFavoriteMaterialsUseCase(userId)
                 result.fold(
-                    onSuccess = { materials ->
+                    onSuccess = { materials: List<Material> ->
                         val loggedInUserId = _userProfile.value?.id
                         val processedMaterials = materials.map { material ->
                             material.copy(bookmarked = loggedInUserId?.let { material.bookmarkedBy.contains(it) } ?: false)

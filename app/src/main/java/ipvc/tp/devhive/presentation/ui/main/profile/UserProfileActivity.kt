@@ -5,10 +5,13 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -20,6 +23,7 @@ import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
+import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
 @AndroidEntryPoint
@@ -30,6 +34,7 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     }
 
     private val profileViewModel: ProfileViewModel by viewModels()
+    private val materialViewModel: MaterialViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var ivProfileImage: ImageView
@@ -41,7 +46,7 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     private lateinit var tabLayout: TabLayout
     private lateinit var recyclerView: RecyclerView
 
-    private val materialAdapter = MaterialAdapter(this)
+    private lateinit var materialAdapter: MaterialAdapter
     private var userId: String = ""
     private var currentUser: User? = null
 
@@ -81,9 +86,11 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     }
 
     private fun setupRecyclerView() {
+        materialAdapter = MaterialAdapter(this, null)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
         recyclerView.adapter = materialAdapter
     }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -171,11 +178,19 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     }
 
     override fun onBookmarkClick(material: Material, position: Int) {
-        // implementação real: usar materialViewModel.toggleBookmark()
-        val updatedMaterial = material.copy(bookmarked = !material.bookmarked)
-        val currentList = materialAdapter.currentList.toMutableList()
-        currentList[position] = updatedMaterial
-        materialAdapter.submitList(currentList)
+        val currentUserId = materialViewModel.getCurrentUserId()
+
+        if (currentUserId != null) {
+            val isCurrentlyBookmarked = currentUserId in material.bookmarkedBy
+
+            materialViewModel.toggleBookmark(
+                materialId = material.id,
+                userId = currentUserId,
+                isBookmarked = !isCurrentlyBookmarked
+            )
+        } else {
+            Toast.makeText(this, "É necessário fazer login para marcar favoritos", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun getMockUser(): User {
@@ -220,7 +235,9 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
                 downloads = 45,
                 views = 123,
                 likes = 28,
-                bookmarked = false,
+                bookmarks = 0,
+                bookmarkedBy = listOf(),
+                likedBy = listOf(),
                 createdAt = Timestamp(java.util.Date()),
                 updatedAt = Timestamp(java.util.Date()),
                 isPublic = true,
@@ -249,7 +266,9 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
                 downloads = 67,
                 views = 201,
                 likes = 42,
-                bookmarked = true,
+                bookmarks = 0,
+                bookmarkedBy = listOf(),
+                likedBy = listOf(),
                 createdAt = Timestamp(java.util.Date()),
                 updatedAt = Timestamp(java.util.Date()),
                 isPublic = true,

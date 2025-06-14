@@ -64,17 +64,34 @@
     <string name="add_comment">Adicionar comentário</string>
     <string name="write_comment">Escreva um comentário…</string>
     <string name="bookmark">Favoritar</string>
-    <string name="share">Compartilhar</string>
-    <string name="download">Baixar</string>
-    <string name="views">%1$d visualizações</string>
-    <string name="downloads">%1$d downloads</string>
-    <string name="bookmarks">%1$d favoritos</string>
+    <string name="share">Partilhar</string>
+    <string name="like">Curtir</string>
+    <string name="download">Descarregar</string>
+    <string name="views">Visualizações</string>
+    <string name="downloads">Downloads</string>
+    <string name="bookmarks">Favoritos</string>
     <string name="uploaded_by">Enviado por %1$s</string>
     <string name="uploaded_on">Enviado em %1$s</string>
     <string name="material_published">Material publicado com sucesso</string>
     <string name="share_material_message">A partilhar o material "%1$s" criado por %2$s, acesse %3$s</string>
     <string name="share_via">Compartilhar via</string>
     <string name="search_materials">Procurar Materiais</string>
+    <string name="categories">Categorias</string>
+    <string name="make_public">Tornar Público</string>
+    <string name="comment_hint">Escreve o teu comentário...</string>
+    <string name="character_limit">0/500</string>
+    <string name="submit_comment">Publicar</string>
+    <string name="comment_liked">Comentário curtido!</string>
+    <string name="login_required_to_comment">É necessário iniciar sessão para comentar</string>
+    <string name="login_required_to_like">É necessário iniciar sessão para curtir</string>
+    <string name="material_liked">Material curtido!</string>
+    <string name="material_unliked">Like removido</string>
+    <string name="clear_filters">Limpar filtros</string>
+    <string name="all_subjects">Todos</string>
+    <string name="no_materials_created">Nenhum material publicado</string>
+    <string name="no_favorites_yet">Nenhum material favorito ainda</string>
+    <string name="my_favorites">Meu favoritos</string>
+
 
     <!-- Adicionar Material -->
     <string name="material_cover">Capa do Material</string>
@@ -82,11 +99,29 @@
     <string name="title">Título</string>
     <string name="description">Descrição</string>
     <string name="subject">Assunto</string>
+    <string name="subject_algorithms">Algoritmos e Estruturas de Dados</string>
+    <string name="subject_programming">Programação</string>
+    <string name="subject_math">Matemática</string>
+    <string name="subject_os">Sistemas Operativos</string>
+    <string name="subject_db">Bases de Dados</string>
+    <string name="subject_software_eng">Engenharia de Software</string>
+    <string name="subject_ai">Inteligência Artificial</string>
     <string name="tags">Etiquetas</string>
     <string name="add">Adicionar</string>
     <string name="type_message">Escrever mensagem</string>
-
-    <!-- Detalhes do Material -->
+    <string name="type_pdf">PDF</string>
+    <string name="type_video">Vídeo</string>
+    <string name="type_audio">Áudio</string>
+    <string name="type_image">Imagem</string>
+    <string name="type_document">Documento</string>
+    <string name="type_presentation">Apresentação</string>
+    <string name="type_spreadsheet">Planilha</string>
+    <string name="type_code">Código</string>
+    <string name="type_other">Outro</string>
+    <string name="thumbnail_selected">✓ Thumbnail selecionada</string>
+    <string name="file_selected">✓ %1$s</string>
+    <string name="file_selected_generic">✓ Arquivo selecionado</string>
+    <string name="attached_file">Ficheiro Anexado</string>
     <string name="no_comments">Sem Comentários</string>
 
     <!-- Grupos de Estudo -->
@@ -254,7 +289,7 @@
 
     <!-- Geral -->
     <string name="back">Voltar</string>
-    <string name="delete">Excluir</string>
+    <string name="delete">Eliminar</string>
     <string name="edit">Editar</string>
     <string name="search">Buscar</string>
     <string name="loading">Carregando…</string>

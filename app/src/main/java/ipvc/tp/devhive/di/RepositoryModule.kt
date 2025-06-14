@@ -88,9 +88,10 @@ object RepositoryModule {
     fun provideMaterialRepository(
         materialDao: MaterialDao,
         materialService: MaterialService,
+        storage: FirebaseStorage,
         @ApplicationScope scope: CoroutineScope
     ): DomainMaterialRepository {
-        return DataMaterialRepository(materialDao, materialService, scope)
+        return DataMaterialRepository(materialDao, materialService, storage, scope)
     }
 
     @Provides
@@ -111,9 +112,10 @@ object RepositoryModule {
     fun provideUserRepository(
         userDao: UserDao,
         userService: UserService,
-        @ApplicationScope scope: CoroutineScope
+        firebaseStorage: FirebaseStorage,
+        @ApplicationScope appScope: CoroutineScope
     ): DomainUserRepository {
-        return DataUserRepository(userDao, userService, scope)
+        return DataUserRepository(userDao, userService, firebaseStorage, appScope)
     }
 
 }

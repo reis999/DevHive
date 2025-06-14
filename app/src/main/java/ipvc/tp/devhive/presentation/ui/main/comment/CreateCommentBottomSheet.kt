@@ -8,10 +8,17 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
+import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
 import ipvc.tp.devhive.presentation.viewmodel.comment.CommentViewModel
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CreateCommentBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
@@ -29,6 +36,8 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
     }
 
     private val commentViewModel: CommentViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels()
+
     private lateinit var etComment: EditText
     private lateinit var btnSubmit: Button
     private lateinit var btnCancel: Button
@@ -58,6 +67,13 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
         initializeViews(view)
         setupClickListeners()
         observeEvents()
+
+        // Verifica se o utilizador está autenticado
+        if (!authViewModel.isAuthenticated()) {
+            Toast.makeText(requireContext(), R.string.login_required_to_comment, Toast.LENGTH_SHORT).show()
+            dismiss()
+            return
+        }
 
         // Foca no campo de texto
         etComment.requestFocus()
@@ -118,17 +134,36 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
             return
         }
 
+        // Verifica se ainda está autenticado antes de submeter
+        if (!authViewModel.isAuthenticated()) {
+            Toast.makeText(
+                requireContext(),
+                R.string.login_required_to_comment,
+                Toast.LENGTH_SHORT
+            ).show()
+            dismiss()
+            return
+        }
+
         // Desabilita o botão para evitar múltiplos cliques
         btnSubmit.isEnabled = false
 
-        // Simula o ID do usuário atual (em uma implementação real, viria do sistema de autenticação)
-        val currentUserId = "current_user_id"
-
-        commentViewModel.createComment(
-            materialId = materialId,
-            userUid = currentUserId,
-            content = commentText,
-            parentCommentId = parentCommentId
-        )
+        val userId = authViewModel.getCurrentUserId()
+        if (userId != null) {
+            commentViewModel.createComment(
+                materialId = materialId,
+                userUid = userId,
+                content = commentText,
+                parentCommentId = parentCommentId
+            )
+        } else {
+            Toast.makeText(
+                requireContext(),
+                R.string.login_required_to_comment,
+                Toast.LENGTH_SHORT
+            ).show()
+            btnSubmit.isEnabled = true
+            dismiss()
+        }
     }
 }

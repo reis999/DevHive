@@ -288,14 +288,15 @@
 
             </androidx.cardview.widget.CardView>
 
-            <TextView
-                android:id="@+id/tv_my_materials_label"
-                android:layout_width="wrap_content"
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="@string/my_materials"
-                android:textSize="16sp"
-                android:textStyle="bold"
+                android:background="?attr/colorSurface"
+                app:tabGravity="fill"
+                app:tabMode="fixed"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/card_stats" />
 
@@ -307,21 +308,22 @@
                 android:nestedScrollingEnabled="false"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_my_materials_label"
+                app:layout_constraintTop_toBottomOf="@+id/tab_layout"
                 tools:itemCount="3"
                 tools:listitem="@layout/item_material" />
 
             <TextView
                 android:id="@+id/tv_no_materials"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
                 android:text="@string/no_materials_yet"
+                android:textColor="@android:color/darker_gray"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_my_materials_label" />
-
+                app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.core.widget.NestedScrollView>

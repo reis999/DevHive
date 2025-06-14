@@ -1,17 +1,22 @@
 package ipvc.tp.devhive.presentation.ui.main.material
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -19,7 +24,7 @@ import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.domain.model.Comment
 import ipvc.tp.devhive.domain.model.Material
@@ -27,10 +32,15 @@ import ipvc.tp.devhive.presentation.ui.main.comment.CommentAdapter
 import ipvc.tp.devhive.presentation.ui.main.comment.CreateCommentBottomSheet
 import ipvc.tp.devhive.presentation.ui.main.profile.UserProfileActivity
 import ipvc.tp.devhive.presentation.util.DateFormatUtils
+import ipvc.tp.devhive.presentation.viewmodel.auth.AuthState
+import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
 import ipvc.tp.devhive.presentation.viewmodel.comment.CommentViewModel
+import ipvc.tp.devhive.presentation.viewmodel.material.MaterialEvent
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
-import java.util.Date
+import ipvc.tp.devhive.presentation.viewmodel.comment.CommentEvent
+import java.util.Locale
 
+@AndroidEntryPoint
 class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClickListener {
 
     companion object {
@@ -39,6 +49,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
 
     private val materialViewModel: MaterialViewModel by viewModels()
     private val commentViewModel: CommentViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels()
 
     private lateinit var toolbar: Toolbar
     private lateinit var collapsingToolbar: CollapsingToolbarLayout
@@ -54,6 +65,10 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     private lateinit var recyclerViewComments: RecyclerView
     private lateinit var tvNoComments: TextView
     private lateinit var fabAddComment: FloatingActionButton
+    private lateinit var containerFileInfo: CardView
+    private lateinit var tvFileType: TextView
+    private lateinit var tvFileName: TextView
+
 
     private val commentAdapter = CommentAdapter(this)
     private var materialId: String = ""
@@ -74,8 +89,9 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         initializeViews()
         setupToolbar()
         setupRecyclerView()
-        loadMaterialDetails()
+        setupObservers()
         setupClickListeners()
+        loadMaterialDetails()
     }
 
     private fun initializeViews() {
@@ -93,6 +109,9 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         recyclerViewComments = findViewById(R.id.recycler_view_comments)
         tvNoComments = findViewById(R.id.tv_no_comments)
         fabAddComment = findViewById(R.id.fab_add_comment)
+        containerFileInfo = findViewById(R.id.container_file_info)
+        tvFileType = findViewById(R.id.tv_file_type)
+        tvFileName = findViewById(R.id.tv_file_name)
     }
 
     private fun setupToolbar() {
@@ -105,6 +124,150 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         recyclerViewComments.adapter = commentAdapter
     }
 
+    private fun setupObservers() {
+        // Observa o material
+        materialViewModel.material.observe(this) { material ->
+            material?.let {
+                displayMaterialDetails(it)
+            }
+        }
+
+        // Observa o estado de loading
+        materialViewModel.isLoadingMaterial.observe(this) { isLoading ->
+            // TODO: Implementar loading UI se necessário
+        }
+
+        materialViewModel.isDeletingMaterial.observe(this) { isDeleting ->
+            // TODO: Mostrar progress durante eliminação se necessário
+        }
+
+        // Observa eventos do material
+        materialViewModel.materialEvent.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { materialEvent ->
+                handleMaterialEvent(materialEvent)
+            }
+        }
+
+        // Observa os comentários do material
+        commentViewModel.getCommentsByMaterial(materialId).observe(this) { comments ->
+            displayComments(comments)
+        }
+
+        // Observa eventos dos comentários
+        commentViewModel.commentEvent.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { commentEvent ->
+                handleCommentEvent(commentEvent)
+            }
+        }
+
+        // Observa o estado de autenticação
+        authViewModel.authState.observe(this) { authState ->
+            updateUIBasedOnAuthState(authState)
+        }
+    }
+
+    private fun handleMaterialEvent(event: MaterialEvent) {
+        when (event) {
+            is MaterialEvent.BookmarkToggled -> {
+                val messageResId = if (event.bookmarked)
+                    R.string.material_bookmarked
+                else
+                    R.string.material_bookmark_removed
+                Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
+                materialViewModel.getMaterialById(materialId)
+
+                val currentUserId = authViewModel.getCurrentUserId()
+                currentMaterial?.let { material ->
+                    if (currentUserId != null) {
+                        val newBookmarkedBy = if (event.bookmarked) {
+                            if (currentUserId !in material.bookmarkedBy) {
+                                material.bookmarkedBy + currentUserId
+                            } else {
+                                material.bookmarkedBy
+                            }
+                        } else {
+                            material.bookmarkedBy - currentUserId
+                        }
+
+                        currentMaterial = material.copy(
+                            bookmarkedBy = newBookmarkedBy,
+                            bookmarks = newBookmarkedBy.size
+                        )
+                        invalidateOptionsMenu()
+                    }
+                }
+            }
+            is MaterialEvent.BookmarkFailure -> {
+                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
+            }
+            is MaterialEvent.LikeToggled -> {
+                val messageResId = if (event.isLiked)
+                    R.string.material_liked
+                else
+                    R.string.material_unliked
+                Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
+                materialViewModel.getMaterialById(materialId)
+
+                val currentUserId = authViewModel.getCurrentUserId()
+                currentMaterial?.let { material ->
+                    if (currentUserId != null) {
+                        val newLikedBy = if (event.isLiked) {
+                            if (currentUserId !in material.likedBy) material.likedBy + currentUserId else material.likedBy
+                        } else {
+                            material.likedBy - currentUserId
+                        }
+
+                        currentMaterial = material.copy(
+                            likedBy = newLikedBy,
+                            likes = newLikedBy.size
+                        )
+                        invalidateOptionsMenu()
+                    }
+                }
+            }
+            is MaterialEvent.LikeFailure -> {
+                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
+            }
+            is MaterialEvent.DownloadSuccess -> {
+                startDownload(event.contentUrl)
+                Toast.makeText(this, R.string.downloading_material, Toast.LENGTH_SHORT).show()
+                materialViewModel.getMaterialById(materialId)
+            }
+            is MaterialEvent.DownloadFailure -> {
+                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
+            }
+            is MaterialEvent.DeleteSuccess -> {
+                Toast.makeText(this, "Material eliminado com sucesso!", Toast.LENGTH_SHORT).show()
+                setResult(RESULT_OK)
+                finish()
+            }
+            is MaterialEvent.DeleteFailure -> {
+                Toast.makeText(this, "Erro ao eliminar: ${event.message}", Toast.LENGTH_LONG).show()
+            }
+            is MaterialEvent.ShowMessage -> {
+                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+            }
+        }
+    }
+
+    private fun handleCommentEvent(event: CommentEvent) {
+        when (event) {
+            is CommentEvent.CreateSuccess -> {
+                Toast.makeText(this, R.string.comment_created_success, Toast.LENGTH_SHORT).show()
+            }
+            is CommentEvent.CreateFailure -> {
+                Toast.makeText(this, "Erro ao criar comentário: ${event.message}", Toast.LENGTH_SHORT).show()
+            }
+            is CommentEvent.LikeSuccess -> {
+                Toast.makeText(this, R.string.comment_liked, Toast.LENGTH_SHORT).show()
+            }
+            is CommentEvent.LikeFailure -> {
+                Toast.makeText(this, "Erro ao curtir comentário: ${event.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     private fun setupClickListeners() {
         fabAddComment.setOnClickListener {
@@ -123,6 +286,34 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.material_detail_menu, menu)
+
+        currentMaterial?.let { material ->
+            val currentUserId = authViewModel.getCurrentUserId()
+
+            val bookmarkItem = menu.findItem(R.id.action_bookmark)
+            val isBookmarked = currentUserId != null && currentUserId in material.bookmarkedBy
+            val bookmarkIconRes = if (isBookmarked) {
+                R.drawable.ic_bookmark
+            } else {
+                R.drawable.ic_bookmark_border
+            }
+            bookmarkItem.setIcon(bookmarkIconRes)
+
+            val likeItem = menu.findItem(R.id.action_like)
+            val isLiked = currentUserId != null && currentUserId in material.likedBy
+
+            val likeIconRes = if (isLiked) {
+                R.drawable.ic_favorite_filled
+            } else {
+                R.drawable.ic_favorite_outline
+            }
+            likeItem.setIcon(likeIconRes)
+
+            val deleteItem = menu.findItem(R.id.action_delete)
+            val isOwner = currentUserId != null && currentUserId == material.ownerUid
+            deleteItem.isVisible = isOwner
+        }
+
         return true
     }
 
@@ -133,9 +324,14 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             }
         }
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
         return when (item.itemId) {
             android.R.id.home -> {
                 onBackPressedDispatcher.onBackPressed()
+                true
+            }
+            R.id.action_like -> {
+                toggleMaterialLike()
                 true
             }
             R.id.action_bookmark -> {
@@ -150,18 +346,20 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
                 shareMaterial()
                 true
             }
+            R.id.action_delete -> {
+                showDeleteConfirmationDialog()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
     private fun loadMaterialDetails() {
-        // implementação real: usar materialViewModel.getMaterialById(materialId)
-        val mockMaterial = getMockMaterial()
-        displayMaterialDetails(mockMaterial)
+        // Carrega o material pelo ID usando o ViewModel
+        materialViewModel.getMaterialById(materialId)
 
-        // Carrega os comentários do material
-        val mockComments = getMockComments()
-        displayComments(mockComments)
+        // Os comentários são carregados automaticamente através do observador
+        // commentViewModel.getCommentsByMaterial(materialId) já está sendo observado
     }
 
     private fun displayMaterialDetails(material: Material) {
@@ -169,7 +367,6 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
 
         collapsingToolbar.title = material.title
 
-        // Carrega a imagem de capa
         if (material.thumbnailUrl.isNotEmpty()) {
             Glide.with(this)
                 .load(material.thumbnailUrl)
@@ -178,7 +375,6 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
                 .into(ivMaterialCover)
         }
 
-        // Carrega a imagem do autor
         if (material.ownerImageUrl.isNotEmpty()) {
             Glide.with(this)
                 .load(material.ownerImageUrl)
@@ -191,9 +387,9 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         tvAuthorName.text = material.ownerName
         tvUploadDate.text = DateFormatUtils.formatFullDate(material.createdAt.toDate())
         tvDescription.text = material.description
-        tvDownloads.text = material.downloads.toString()
-        tvViews.text = material.views.toString()
-        tvLikes.text = material.likes.toString()
+        tvDownloads.text = String.format(Locale.getDefault(), "%,d", material.downloads)
+        tvViews.text = String.format(Locale.getDefault(), "%,d", material.views)
+        tvLikes.text = String.format(Locale.getDefault(), "%,d", material.likedBy.size)
 
         // Adiciona as tags
         chipGroupTags.removeAllViews()
@@ -205,8 +401,93 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             chipGroupTags.addView(chip)
         }
 
+        displayFileInfo(material)
+
         // Atualiza o ícone de favorito no menu
         invalidateOptionsMenu()
+    }
+
+    private fun displayFileInfo(material: Material) {
+        val typeText = "Tipo: ${getFileTypeDisplayName(material.type)}"
+        tvFileType.text = typeText
+
+        val fileName = extractFileNameFromUrl(material.contentUrl)
+        tvFileName.text = if (fileName.isNotEmpty()) {
+            fileName
+        } else {
+            "${material.title}.${getFileExtension(material.type)}"
+        }
+
+        val fileSizeText = if (material.fileSize > 0) {
+            " • ${formatFileSize(material.fileSize)}"
+        } else {
+            ""
+        }
+
+        val fullTypeText = typeText + fileSizeText
+        tvFileType.text = fullTypeText
+
+        containerFileInfo.visibility = if (material.contentUrl.isNotEmpty()) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+    }
+
+    private fun getFileTypeDisplayName(type: String): String {
+        return when (type.lowercase()) {
+            "pdf" -> getString(R.string.type_pdf)
+            "video" -> getString(R.string.type_video)
+            "audio" -> getString(R.string.type_audio)
+            "image" -> getString(R.string.type_image)
+            "document" -> getString(R.string.type_document)
+            "presentation" -> getString(R.string.type_presentation)
+            "spreadsheet" -> getString(R.string.type_spreadsheet)
+            "code" -> getString(R.string.type_code)
+            else -> getString(R.string.type_other)
+        }
+    }
+
+    private fun extractFileNameFromUrl(url: String): String {
+        return try {
+            if (url.isEmpty()) return ""
+
+            val uri = Uri.parse(url)
+            val pathSegments = uri.pathSegments
+
+            val lastSegment = pathSegments.lastOrNull { it.contains(".") } ?: pathSegments.lastOrNull() ?: ""
+
+            val decodedSegment = Uri.decode(lastSegment)
+
+            val fileName = decodedSegment.substringAfterLast("/")
+
+            fileName
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    private fun formatFileSize(sizeInBytes: Long): String {
+        return when {
+            sizeInBytes < 1024 -> "$sizeInBytes B"
+            sizeInBytes < 1024 * 1024 -> String.format(Locale.getDefault(), "%.1f KB", sizeInBytes / 1024.0)
+            sizeInBytes < 1024 * 1024 * 1024 -> String.format(Locale.getDefault(), "%.1f MB", sizeInBytes / (1024.0 * 1024.0))
+            else -> String.format(Locale.getDefault(), "%.1f GB", sizeInBytes / (1024.0 * 1024.0 * 1024.0))
+        }
+    }
+
+    private fun getFileExtension(type: String): String {
+        return when (type.lowercase()) {
+            "pdf", getString(R.string.type_pdf) -> "pdf"
+            "video", getString(R.string.type_video) -> "mp4"
+            "audio", getString(R.string.type_audio) -> "mp3"
+            "image", getString(R.string.type_image) -> "jpg"
+            "document", getString(R.string.type_document) -> "docx"
+            "presentation", getString(R.string.type_presentation) -> "pptx"
+            "spreadsheet", getString(R.string.type_spreadsheet) -> "xlsx"
+            "code", getString(R.string.type_code) -> "kt"
+            else -> "file"
+        }
     }
 
     private fun displayComments(comments: List<Comment>) {
@@ -220,29 +501,71 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         }
     }
 
-    private fun toggleBookmark() {
+    private fun showDeleteConfirmationDialog() {
         currentMaterial?.let {
-            // Alterna o estado de favorito
-            val newBookmarkState = !it.bookmarked
-            materialViewModel.toggleBookmark(it.id, newBookmarkState)
+            AlertDialog.Builder(this)
+                .setTitle("Eliminar Material")
+                .setMessage("Tens a certeza que desejas eliminar este material? Esta ação não pode ser desfeita.")
+                .setPositiveButton("Eliminar") { _, _ ->
+                    deleteMaterial()
+                }
+                .setNegativeButton("Cancelar", null)
+                .setIcon(R.drawable.ic_warning)
+                .show()
+        }
+    }
 
-            // Atualiza o material atual
-            currentMaterial = it.copy(bookmarked = newBookmarkState)
+    private fun deleteMaterial() {
+        materialViewModel.deleteMaterial(materialId)
+    }
 
-            // Atualiza o ícone no menu
-            invalidateOptionsMenu()
+    private fun toggleMaterialLike() {
+        if (authViewModel.isAuthenticated()) {
+            currentMaterial?.let { material ->
+                val userId = authViewModel.getCurrentUserId()
+                if (userId != null) {
+                    val isCurrentlyLiked = userId in material.likedBy
+                    val newLikeState = !isCurrentlyLiked
+                    materialViewModel.toggleMaterialLike(material.id, userId, newLikeState)
+                }
+            }
+        } else {
+            Toast.makeText(this, R.string.login_required_to_like, Toast.LENGTH_SHORT).show()
+            // navigateToLogin()
+        }
+    }
 
-            // Mostra mensagem de confirmação
-            val messageResId = if (newBookmarkState) R.string.material_bookmarked else R.string.material_bookmark_removed
-            Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
+    private fun toggleBookmark() {
+        if (authViewModel.isAuthenticated()) {
+            currentMaterial?.let { material ->
+                val userId = authViewModel.getCurrentUserId()
+                if (userId != null) {
+                    val isCurrentlyBookmarked = userId in material.bookmarkedBy
+                    val newBookmarkState = !isCurrentlyBookmarked
+
+                    materialViewModel.toggleBookmark(
+                        materialId = material.id,
+                        userId = userId,
+                        isBookmarked = newBookmarkState
+                    )
+                }
+            }
+        } else {
+            Toast.makeText(this, "É necessário fazer login para marcar favoritos", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun downloadMaterial() {
-        // Simula o download do material
-        Toast.makeText(this, R.string.downloading_material, Toast.LENGTH_SHORT).show()
+        materialViewModel.downloadMaterial(materialId)
+    }
 
-        // implementação real: usar materialViewModel.downloadMaterial(materialId)
+    private fun startDownload(contentUrl: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(contentUrl))
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Erro ao abrir download: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun shareMaterial() {
@@ -263,81 +586,54 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         }
     }
 
+    private fun updateUIBasedOnAuthState(authState: AuthState) {
+        when (authState) {
+            is AuthState.Authenticated -> {
+                fabAddComment.isEnabled = true
+                fabAddComment.alpha = 1.0f
+            }
+            is AuthState.Unauthenticated -> {
+                fabAddComment.isEnabled = true
+                fabAddComment.alpha = 0.7f
+            }
+            is AuthState.Loading -> {
+                fabAddComment.isEnabled = false
+                fabAddComment.alpha = 0.5f
+            }
+            is AuthState.Error -> {
+                fabAddComment.isEnabled = false
+                fabAddComment.alpha = 0.5f
+            }
+        }
+    }
+
     private fun showAddCommentDialog() {
-        val bottomSheet = CreateCommentBottomSheet.newInstance(materialId)
-        bottomSheet.show(supportFragmentManager, "CreateCommentBottomSheet")
+        if (authViewModel.isAuthenticated()) {
+            val bottomSheet = CreateCommentBottomSheet.newInstance(materialId)
+            bottomSheet.show(supportFragmentManager, "CreateCommentBottomSheet")
+        } else {
+            Toast.makeText(this, R.string.login_required_to_comment, Toast.LENGTH_SHORT).show()
+            // Opcionalmente, podes navegar para a tela de login
+            // navigateToLogin()
+        }
     }
 
     override fun onCommentLikeClick(comment: Comment, position: Int) {
-        // Simula o utilizador atual
-        val currentUserId = "current_user_id" // simulaçao
-        commentViewModel.likeComment(comment.id, currentUserId)
+        if (authViewModel.isAuthenticated()) {
+            val userId = authViewModel.getCurrentUserId()
+            if (userId != null) {
+                commentViewModel.likeComment(comment.id, userId)
+            }
+        } else {
+            Toast.makeText(this, R.string.login_required_to_like, Toast.LENGTH_SHORT).show()
+            // Opcionalmente, podes navegar para a tela de login
+            // navigateToLogin()
+        }
     }
 
     override fun onUserClick(userId: String) {
         val intent = Intent(this, UserProfileActivity::class.java)
         intent.putExtra(UserProfileActivity.EXTRA_USER_ID, userId)
         startActivity(intent)
-    }
-
-    private fun getMockMaterial(): Material {
-        // Simulamos um material para fins de demonstração
-        return Material(
-            id = materialId,
-            title = "Introdução à Programação em Kotlin",
-            description = "Este material apresenta os conceitos básicos da linguagem Kotlin, incluindo sintaxe, estruturas de controle, funções e classes. Ideal para iniciantes que desejam aprender a programar em Kotlin.",
-            ownerUid = "user123",
-            ownerName = "David Reis",
-            ownerImageUrl = "",
-            thumbnailUrl = "",
-            contentUrl = "",
-            type = "pdf",
-            fileSize = 2048,
-            categories = listOf("Kotlin", "Programação", "Iniciante"),
-            subject = "Programação",
-            downloads = 125,
-            views = 342,
-            likes = 78,
-            bookmarked = false,
-            createdAt = Timestamp(java.util.Date()),
-            updatedAt = Timestamp(java.util.Date()),
-            isPublic = true,
-            rating = 4.5f,
-            reviewCount = 10
-        )
-    }
-
-    private fun getMockComments(): List<Comment> {
-        // Simulamos alguns comentários para fins de demonstração
-        return listOf(
-            Comment(
-                id = "comment1",
-                materialId = materialId,
-                userId = "user456",
-                userName = "Ana Silva",
-                userImageUrl = "",
-                content = "Excelente material! Muito bem explicado e fácil de entender.",
-                likes = 12,
-                liked = false,
-                parentCommentId = null,
-                attachments = emptyList(),
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 86400000)), // 1 dia atrás
-                updatedAt = Timestamp(Date(System.currentTimeMillis() - 86400000))
-            ),
-            Comment(
-                id = "comment2",
-                materialId = materialId,
-                userId = "user789",
-                userName = "João Pereira",
-                userImageUrl = "",
-                content = "Ajudou-me muito a entender os conceitos básicos de Kotlin. Recomendo!",
-                likes = 8,
-                liked = true,
-                parentCommentId = null,
-                attachments = emptyList(),
-                createdAt = Timestamp(Date(System.currentTimeMillis() - 172800000)), // 2 dias atrás
-                updatedAt = Timestamp(Date(System.currentTimeMillis() - 172800000))
-            )
-        )
     }
 }
