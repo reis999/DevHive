@@ -346,8 +346,8 @@ class StudyGroupRepository(
         senderId: String,
         senderName: String,
         senderImageUrl: String,
-        attachmentUri: Uri?, // NOVO: URI do anexo a ser carregado
-        originalAttachmentFileName: String? // NOVO: Nome original para exibição
+        attachmentUri: Uri?,
+        originalAttachmentFileName: String?
     ): Result<DomainGroupMessage> {
         return withContext(Dispatchers.IO) {
             try {
@@ -376,23 +376,18 @@ class StudyGroupRepository(
                     attachments = uploadedAttachments
                 )
 
-                // Converte para Data Model para enviar ao Firestore
-                val dataMessage = domainMessage.toDataGroupMessage() // Você precisará deste mapeador
+                val dataMessage = domainMessage.toDataGroupMessage()
 
-                // Tenta enviar para o Firestore
                 val serviceResult = studyGroupService.sendGroupMessage(groupId, dataMessage)
 
                 if (serviceResult.isSuccess) {
                     val sentMessageData = serviceResult.getOrThrow()
-                    // Se sucesso, salva no banco local
-                    groupMessageDao.insertMessage(GroupMessageEntity.fromGroupMessage(sentMessageData)) // Mapear de DataModel para Entity
-                    Result.success(sentMessageData.toDomainGroupMessage()) // Mapear de DataModel para DomainModel
+                    groupMessageDao.insertMessage(GroupMessageEntity.fromGroupMessage(sentMessageData))
+                    Result.success(sentMessageData.toDomainGroupMessage())
                 } else {
-                    // Se falhar, salva localmente com status pendente (se você tiver essa lógica)
+
                     val messageEntity = GroupMessageEntity.fromGroupMessage(dataMessage, SyncStatus.PENDING_UPLOAD)
                     groupMessageDao.insertMessage(messageEntity)
-                    // Retorna sucesso para a UI (mensagem está offline), ou falha se preferir
-                    // Result.success(domainMessage) // Retorna a mensagem original com status pendente
                     Result.failure(serviceResult.exceptionOrNull() ?: Exception("Failed to send message to service."))
                 }
             } catch (e: Exception) {

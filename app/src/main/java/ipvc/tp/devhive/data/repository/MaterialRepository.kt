@@ -224,6 +224,12 @@ class MaterialRepository(
         }
     }
 
+    override suspend fun getUserBookmarks(userId: String): LiveData<List<ipvc.tp.devhive.domain.model.Material>> {
+        return materialDao.getUserBookmarks(userId).map { entities ->
+            entities.map { MaterialEntity.toMaterial(it).toDomainMaterial() }
+        }
+    }
+
     override suspend fun toggleBookmark(materialId: String, bookmarked: Boolean): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {

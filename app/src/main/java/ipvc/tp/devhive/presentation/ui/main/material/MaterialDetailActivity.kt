@@ -275,7 +275,6 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     }
 
     override fun onUserClick(userId: String) {
-        // Navega para o perfil do utilizador
         val intent = Intent(this, UserProfileActivity::class.java)
         intent.putExtra(UserProfileActivity.EXTRA_USER_ID, userId)
         startActivity(intent)

@@ -7,6 +7,7 @@
     tools:context=".presentation.ui.main.profile.UserProfileActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
@@ -41,7 +42,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:textColor="@android:color/white"
+                    android:textColor="@android:color/black"
                     android:textSize="24sp"
                     android:textStyle="bold"
                     tools:text="Ana Silva" />
@@ -50,10 +51,10 @@
                     android:id="@+id/tv_user_bio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
                     android:alpha="0.9"
+                    android:gravity="center"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
                     tools:text="Estudante de Engenharia Informática" />
 
             </LinearLayout>
@@ -132,7 +133,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/followers"
+                        android:text="@string/likes"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="14sp" />
 
@@ -157,7 +158,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/following"
+                        android:text="@string/comments"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="14sp" />
 

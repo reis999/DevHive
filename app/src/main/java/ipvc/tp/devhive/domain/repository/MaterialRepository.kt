@@ -2,7 +2,6 @@ package ipvc.tp.devhive.domain.repository
 
 import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.Material
-import kotlinx.coroutines.flow.Flow
 
 /**
  * Interface de repositório para operações relacionadas a materiais de estudo
@@ -17,6 +16,7 @@ interface MaterialRepository {
     suspend fun updateMaterial(material: Material): Result<Material>
     suspend fun deleteMaterial(materialId: String): Result<Boolean>
     fun getBookmarkedMaterials(): LiveData<List<Material>>
+    suspend fun getUserBookmarks(userId: String): LiveData<List<Material>>
     suspend fun toggleBookmark(materialId: String, bookmarked: Boolean): Result<Boolean>
     suspend fun syncPendingMaterials()
 }

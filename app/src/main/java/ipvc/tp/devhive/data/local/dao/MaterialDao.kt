@@ -1,7 +1,12 @@
 package ipvc.tp.devhive.data.local.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import ipvc.tp.devhive.data.local.entity.MaterialEntity
 import ipvc.tp.devhive.data.util.SyncStatus
 
@@ -21,6 +26,9 @@ interface MaterialDao {
 
     @Query("SELECT * FROM materials WHERE subject = :subject")
     fun getMaterialsBySubject(subject: String): LiveData<List<MaterialEntity>>
+
+    @Query("SELECT * FROM materials WHERE :userId IN (bookmarkedBy)")
+    suspend fun getUserBookmarks(userId: String): LiveData<List<MaterialEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMaterial(material: MaterialEntity)

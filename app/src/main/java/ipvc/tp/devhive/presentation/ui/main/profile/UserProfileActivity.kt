@@ -117,10 +117,10 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
         tvUserName.text = user.name
         tvUserBio.text = user.bio.ifEmpty { getString(R.string.no_bio) }
 
-        // implementação real: estes valores viriam do backend
-        tvMaterialCount.text = "12"
-        tvFollowersCount.text = "156"
-        tvFollowingCount.text = "89"
+
+        tvMaterialCount.text = "${user.contributionStats.materials}"
+        tvFollowersCount.text = "${user.contributionStats.likes}"
+        tvFollowingCount.text = "${user.contributionStats.comments}"
 
         // Carrega a imagem do perfil
         if (user.profileImageUrl.isNotEmpty()) {
