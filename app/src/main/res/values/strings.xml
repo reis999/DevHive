@@ -145,7 +145,6 @@
     <string name="group_settings">Definições do Grupo</string>
     <string name="group_cover_image">Imagem de capa do grupo</string>
     <string name="change_cover_image">Alterar Imagem</string>
-    <string name="categories">Categorias</string>
     <string name="add_category">Adicionar categoria</string>
     <string name="add_short">Adic.</string>
     <string name="manage_members">Gerir Membros</string>
@@ -260,6 +259,10 @@
     <string name="profile_updated">Perfil atualizado com sucesso</string>
     <string name="followers">Seguidores</string>
     <string name="following">A seguir</string>
+    <string name="no_materials_created_by_this_user">Nenhum material criado por este utilizador</string>
+    <string name="this_user_has_no_favorites">Este utilizador não tem materiais favoritos</string>
+    <string name="error_loading_profile">Erro ao carregar perfil</string>
+    <string name="no_bio_available">Sem biografia disponível</string>
 
     <!-- Erros e Mensagens -->
     <string name="error_login">Erro ao fazer login. Verifique suas credenciais.</string>

@@ -25,10 +25,9 @@ import ipvc.tp.devhive.domain.usecase.comment.LikeCommentUseCase
 import ipvc.tp.devhive.domain.usecase.material.CreateMaterialUseCase
 import ipvc.tp.devhive.domain.usecase.material.DeleteMaterialUseCase
 import ipvc.tp.devhive.domain.usecase.material.GetMaterialsUseCase
-import ipvc.tp.devhive.domain.usecase.material.GetUserFavoriteMaterialsUseCase
 import ipvc.tp.devhive.domain.usecase.material.ToggleBookmarkUseCase
-import ipvc.tp.devhive.domain.usecase.studygroup.CheckUserIsAdminUseCase
 import ipvc.tp.devhive.domain.usecase.material.ToggleMaterialLikeUseCase
+import ipvc.tp.devhive.domain.usecase.studygroup.CheckUserIsAdminUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.CreateStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.DeleteStudyGroupUseCase
 import ipvc.tp.devhive.domain.usecase.studygroup.GetPublicStudyGroupsUseCase
@@ -126,13 +125,6 @@ object AppModule {
         updateUserStatsUseCase: UpdateUserStatsUseCase
     ): ToggleMaterialLikeUseCase {
         return ToggleMaterialLikeUseCase(materialRepository, userRepository, updateUserStatsUseCase)
-    }
-
-    @Provides
-    fun provideGetUserFavoriteMaterialsUseCase(
-        materialRepository: MaterialRepository
-    ): GetUserFavoriteMaterialsUseCase {
-        return GetUserFavoriteMaterialsUseCase(materialRepository)
     }
 
     // Use Cases - Comment

@@ -3,20 +3,19 @@ package ipvc.tp.devhive.presentation.ui.main.material
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.app.AlertDialog
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -34,10 +33,10 @@ import ipvc.tp.devhive.presentation.ui.main.profile.UserProfileActivity
 import ipvc.tp.devhive.presentation.util.DateFormatUtils
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthState
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
+import ipvc.tp.devhive.presentation.viewmodel.comment.CommentEvent
 import ipvc.tp.devhive.presentation.viewmodel.comment.CommentViewModel
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialEvent
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
-import ipvc.tp.devhive.presentation.viewmodel.comment.CommentEvent
 import java.util.Locale
 
 @AndroidEntryPoint
@@ -279,6 +278,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             currentMaterial?.let {
                 val intent = Intent(this, UserProfileActivity::class.java)
                 intent.putExtra(UserProfileActivity.EXTRA_USER_ID, it.ownerUid)
+                intent.putExtra(UserProfileActivity.EXTRA_CURRENT_USER_ID, authViewModel.getCurrentUserId())
                 startActivity(intent)
             }
         }
@@ -355,11 +355,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     }
 
     private fun loadMaterialDetails() {
-        // Carrega o material pelo ID usando o ViewModel
         materialViewModel.getMaterialById(materialId)
-
-        // Os comentários são carregados automaticamente através do observador
-        // commentViewModel.getCommentsByMaterial(materialId) já está sendo observado
     }
 
     private fun displayMaterialDetails(material: Material) {
@@ -408,7 +404,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     }
 
     private fun displayFileInfo(material: Material) {
-        val typeText = "Tipo: ${getFileTypeDisplayName(material.type)}"
+        Log.d("MaterialDetailActivity", "Displaying file info for material: ${material.type}")
+        val typeText = "Tipo: ${material.type}"
         tvFileType.text = typeText
 
         val fileName = extractFileNameFromUrl(material.contentUrl)
@@ -439,8 +436,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             "pdf" -> getString(R.string.type_pdf)
             "video" -> getString(R.string.type_video)
             "audio" -> getString(R.string.type_audio)
-            "image" -> getString(R.string.type_image)
-            "document" -> getString(R.string.type_document)
+            "Imagem" -> getString(R.string.type_image)
+            "Documento" -> getString(R.string.type_document)
             "presentation" -> getString(R.string.type_presentation)
             "spreadsheet" -> getString(R.string.type_spreadsheet)
             "code" -> getString(R.string.type_code)
