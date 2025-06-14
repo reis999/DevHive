@@ -67,6 +67,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     private lateinit var containerFileInfo: CardView
     private lateinit var tvFileType: TextView
     private lateinit var tvFileName: TextView
+    private var hasIncrementedViews = false
 
 
     private val commentAdapter = CommentAdapter(this)
@@ -128,6 +129,11 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         materialViewModel.material.observe(this) { material ->
             material?.let {
                 displayMaterialDetails(it)
+
+                if (!hasIncrementedViews) {
+                    incrementAndUpdateViews()
+                    hasIncrementedViews = true
+                }
             }
         }
 
@@ -399,7 +405,6 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
 
         displayFileInfo(material)
 
-        // Atualiza o ícone de favorito no menu
         invalidateOptionsMenu()
     }
 
@@ -484,6 +489,20 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             "spreadsheet", getString(R.string.type_spreadsheet) -> "xlsx"
             "code", getString(R.string.type_code) -> "kt"
             else -> "file"
+        }
+    }
+
+    private fun incrementAndUpdateViews() {
+        currentMaterial?.let { material ->
+            // Atualiza a UI imediatamente
+            val newViewCount = material.views + 1
+            tvViews.text = String.format(Locale.getDefault(), "%,d", newViewCount)
+
+            // Atualiza o material atual
+            currentMaterial = material.copy(views = newViewCount)
+
+            // Incrementa no servidor/banco de dados
+            materialViewModel.incrementViews(materialId)
         }
     }
 
@@ -610,8 +629,6 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             bottomSheet.show(supportFragmentManager, "CreateCommentBottomSheet")
         } else {
             Toast.makeText(this, R.string.login_required_to_comment, Toast.LENGTH_SHORT).show()
-            // Opcionalmente, podes navegar para a tela de login
-            // navigateToLogin()
         }
     }
 
@@ -623,8 +640,6 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
             }
         } else {
             Toast.makeText(this, R.string.login_required_to_like, Toast.LENGTH_SHORT).show()
-            // Opcionalmente, podes navegar para a tela de login
-            // navigateToLogin()
         }
     }
 

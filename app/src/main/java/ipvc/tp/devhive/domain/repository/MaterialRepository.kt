@@ -19,6 +19,7 @@ interface MaterialRepository {
     fun getBookmarkedMaterials(userId: String): LiveData<List<Material>>
     suspend fun toggleBookmark(materialId: String, userId: String, isBookmarked: Boolean): Result<Boolean>
     suspend fun incrementDownloads(materialId: String): Result<Boolean>
+    suspend fun incrementViews(materialId: String): Result<Boolean>
     suspend fun toggleMaterialLike(materialId: String, userId: String, isLiked: Boolean): Result<Boolean>
     fun searchMaterials(query: String): LiveData<List<Material>>
     fun searchMaterialsBySubject(subject: String): LiveData<List<Material>>
