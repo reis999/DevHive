@@ -38,7 +38,6 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     private val profileViewModel: ProfileViewModel by viewModels()
     private val materialViewModel: MaterialViewModel by viewModels()
 
-    // Views do Layout Original
     private lateinit var toolbar: Toolbar
     private lateinit var collapsingToolbar: CollapsingToolbarLayout
     private lateinit var ivProfileImage: ImageView
@@ -49,8 +48,6 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     private lateinit var tvFollowingCount: TextView
     private lateinit var tabLayout: TabLayout
     private lateinit var recyclerViewMaterials: RecyclerView
-
-    // Views adicionadas para feedback
     private lateinit var tvNoMaterialsMessage: TextView
     private lateinit var profileLoadingProgressBar: ProgressBar
     private lateinit var materialsListProgressBar: ProgressBar
@@ -75,9 +72,9 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
         setupToolbarAndCollapsingToolbar()
 
         materialAdapter = MaterialAdapter(this, currentUserId)
-        recyclerViewMaterials.layoutManager = GridLayoutManager(this, 2) // Ou como preferir
+        recyclerViewMaterials.layoutManager = GridLayoutManager(this, 2)
         recyclerViewMaterials.adapter = materialAdapter
-        recyclerViewMaterials.isNestedScrollingEnabled = false // Importante para CollapsingToolbar
+        recyclerViewMaterials.isNestedScrollingEnabled = false
 
         setupTabs()
         loadUserProfileData()
@@ -95,20 +92,15 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
 
         // Estatísticas
         tvMaterialCount = findViewById(R.id.tv_material_count)
-        tvFollowersCount = findViewById(R.id.tv_followers_count) // Mapeado para Likes
-        tvFollowingCount = findViewById(R.id.tv_following_count) // Mapeado para Comments
+        tvFollowersCount = findViewById(R.id.tv_followers_count)
+        tvFollowingCount = findViewById(R.id.tv_following_count)
 
         tabLayout = findViewById(R.id.tab_layout)
-        recyclerViewMaterials = findViewById(R.id.recycler_view) // ID original
+        recyclerViewMaterials = findViewById(R.id.recycler_view)
 
-        // ProgressBars e TextView para "sem materiais" (precisam ser adicionadas ao XML)
-        // Se não estiverem no XML, crie-as programaticamente ou adicione-as.
-        // Por agora, vamos assumir que você as adicionará ao XML dentro do NestedScrollView,
-        // talvez envolvendo o RecyclerView e o TextView em um FrameLayout.
-        // Exemplo de como obter, assumindo que foram adicionadas:
-        profileLoadingProgressBar = findViewById(R.id.pb_profile_section_loading) // ID de exemplo
-        materialsListProgressBar = findViewById(R.id.pb_materials_section_loading) // ID de exemplo
-        tvNoMaterialsMessage = findViewById(R.id.tv_no_materials_message) // ID de exemplo
+        profileLoadingProgressBar = findViewById(R.id.pb_profile_section_loading)
+        materialsListProgressBar = findViewById(R.id.pb_materials_section_loading)
+        tvNoMaterialsMessage = findViewById(R.id.tv_no_materials_message)
 
         profileLoadingProgressBar.visibility = View.GONE
         materialsListProgressBar.visibility = View.GONE
@@ -118,8 +110,7 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
     private fun setupToolbarAndCollapsingToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        collapsingToolbar.title = " " // Título será definido dinamicamente ou pode ficar vazio
-        // para dar mais espaço ao nome do usuário no layout colapsado.
+        collapsingToolbar.title = " "
     }
 
     private fun loadUserProfileData() {
@@ -128,7 +119,7 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
 
     private fun observeViewedUserProfile() {
         profileViewModel.viewedUserProfile.observe(this) { user ->
-            profileLoadingProgressBar.visibility = View.GONE // Esconde o loader do perfil
+            profileLoadingProgressBar.visibility = View.GONE
             if (user != null) {
                 displayUserProfileInfo(user)
                 if (tabLayout.selectedTabPosition == -1) {
@@ -140,9 +131,8 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
         }
 
         profileViewModel.isLoadingViewedProfile.observe(this) { isLoading ->
-            // Você pode mostrar um loader geral ou um loader na área do CollapsingToolbar
             profileLoadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            if(isLoading) { // Esconde o conteúdo enquanto carrega
+            if(isLoading) {
                 findViewById<LinearLayout>(R.id.appBarLayout).alpha = 0.3f // Exemplo
             } else {
                 findViewById<LinearLayout>(R.id.appBarLayout).alpha = 1.0f
@@ -242,10 +232,8 @@ class UserProfileActivity : AppCompatActivity(), MaterialAdapter.OnMaterialClick
                     is ViewedProfileEvent.Error -> {
                         Toast.makeText(this, viewedEvent.message, Toast.LENGTH_LONG).show()
                         if (profileViewModel.viewedUserProfile.value == null) {
-                            // Atualiza a UI para mostrar o erro de forma mais proeminente
                             tvUserName.text = getString(R.string.error_loading_profile)
                             tvUserBio.text = viewedEvent.message
-                            // Poderia limpar/ocultar as estatísticas também
                         }
                     }
                 }

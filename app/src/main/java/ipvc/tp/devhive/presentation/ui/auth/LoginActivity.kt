@@ -89,7 +89,7 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        // Configura os listeners
+
         btnLogin.setOnClickListener {
             login()
         }
@@ -110,7 +110,6 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun login() {
-        // Valida os campos
         val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString().trim()
 

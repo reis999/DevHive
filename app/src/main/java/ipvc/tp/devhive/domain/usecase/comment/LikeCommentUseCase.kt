@@ -6,10 +6,6 @@ import ipvc.tp.devhive.domain.usecase.user.StatsAction
 import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import javax.inject.Inject
 
-
-/**
- * Caso de uso para curtir um comentário
- */
 class LikeCommentUseCase @Inject constructor(
     private val commentRepository: CommentRepository,
     private val userRepository: UserRepository,

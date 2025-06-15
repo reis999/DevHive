@@ -77,9 +77,6 @@
             android:name=".presentation.ui.main.chat.ChatRoomActivity"
             android:exported="false" />
         <activity
-            android:name=".presentation.ui.main.chat.CreateChatActivity"
-            android:exported="false" />
-        <activity
             android:name=".presentation.ui.main.chat.SelectUserActivity"
             android:exported="false" />
         <activity

@@ -128,12 +128,10 @@ class StudyGroupRepository(
     }
 
     override fun observeStudyGroupById(groupId: String): LiveData<ipvc.tp.devhive.domain.model.StudyGroup?> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshStudyGroup(groupId)
         }
 
-        // Retorna LiveData do banco local
         return studyGroupDao.observeStudyGroupById(groupId).map { entity ->
             entity?.let { StudyGroupEntity.toStudyGroup(it).toDomainStudyGroup() }
         }
@@ -152,7 +150,6 @@ class StudyGroupRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataStudyGroup = studyGroup.toDataStudyGroup()
-                // Tenta criar no Firestore
                 val result = studyGroupService.createStudyGroup(dataStudyGroup)
 
                 if (result.isSuccess) {
@@ -212,11 +209,9 @@ class StudyGroupRepository(
                     updatedAt = Timestamp.now()
                 )
 
-                // Tenta atualizar no Firestore
                 val result = studyGroupService.updateStudyGroup(updatedStudyGroup)
 
                 if (result.isSuccess) {
-                    // Se sucesso, atualiza no banco local
                     studyGroupDao.insertStudyGroup(
                         StudyGroupEntity.fromStudyGroup(
                             updatedStudyGroup,
@@ -225,7 +220,6 @@ class StudyGroupRepository(
                     )
                     Result.success(updatedStudyGroup.toDomainStudyGroup())
                 } else {
-                    // Se falhar, atualiza localmente com status pendente
                     val groupEntity = StudyGroupEntity.fromStudyGroup(
                         updatedStudyGroup,
                         SyncStatus.PENDING_UPDATE
@@ -242,15 +236,12 @@ class StudyGroupRepository(
     override suspend fun deleteStudyGroup(groupId: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Tenta deletar no Firestore
                 val result = studyGroupService.deleteStudyGroup(groupId)
 
                 if (result.isSuccess) {
-                    // Se sucesso, remove do banco local
                     studyGroupDao.deleteStudyGroupById(groupId)
                     Result.success(true)
                 } else {
-                    // Se falhar, marca como pendente de deleção
                     val group = studyGroupDao.getStudyGroupById(groupId)
                     if (group != null) {
                         val updatedGroup = group.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -259,7 +250,6 @@ class StudyGroupRepository(
                     Result.success(false)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, marca como pendente de deleção
                 val group = studyGroupDao.getStudyGroupById(groupId)
                 if (group != null) {
                     val updatedGroup = group.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -276,7 +266,6 @@ class StudyGroupRepository(
                 val result = studyGroupService.addMember(groupId, userId)
 
                 if (result.isSuccess) {
-                    // Atualiza a lista de membros localmente
                     val group = studyGroupDao.getStudyGroupById(groupId)
                     if (group != null) {
                         val updatedMembers = group.members.toMutableList()
@@ -301,7 +290,6 @@ class StudyGroupRepository(
                 val result = studyGroupService.removeMember(groupId, userId)
 
                 if (result.isSuccess) {
-                    // Atualiza a lista de membros localmente
                     val group = studyGroupDao.getStudyGroupById(groupId)
                     if (group != null) {
                         val updatedMembers = group.members.toMutableList()
@@ -318,12 +306,10 @@ class StudyGroupRepository(
     }
 
     override fun getGroupMessagesByStudyGroupId(groupId: String): LiveData<List<ipvc.tp.devhive.domain.model.GroupMessage>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshGroupMessagesByStudyGroupId(groupId)
         }
 
-        // Retorna LiveData do banco local
         return groupMessageDao.getMessagesByStudyGroupId(groupId).map { entities ->
             entities.map { GroupMessageEntity.toGroupMessage(it).toDomainGroupMessage() }
         }
@@ -391,8 +377,6 @@ class StudyGroupRepository(
                     Result.failure(serviceResult.exceptionOrNull() ?: Exception("Failed to send message to service."))
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente (se aplicável)
-                // ou apenas falha
                 Log.e("StudyGroupRepo", "Exception in sendGroupMessage: ${e.message}", e)
                 Result.failure(e)
             }
@@ -459,9 +443,9 @@ class StudyGroupRepository(
 
     private suspend fun uploadMessageAttachment(
         groupId: String,
-        messageId: String, // Para organizar no Storage
+        messageId: String,
         attachmentUri: Uri,
-        originalFileName: String? // Para tentar manter o nome original
+        originalFileName: String?
     ): Result<DomainMessageAttachment> {
         return withContext(Dispatchers.IO) {
             try {
@@ -475,15 +459,14 @@ class StudyGroupRepository(
                 attachmentRef.putFile(attachmentUri).await()
                 val downloadUrl = attachmentRef.downloadUrl.await().toString()
 
-                // Obter metadados para tamanho, se possível, ou estimar
                 val metadata = attachmentRef.metadata.await()
-                val sizeBytes = metadata?.sizeBytes ?: 0L // Ou tente obter do URI antes do upload
+                val sizeBytes = metadata?.sizeBytes ?: 0L
 
                 val displayName = originalFileName ?: fileNameInStorage
 
                 Result.success(
                     DomainMessageAttachment(
-                        id = randomUUID().toString(), // ID único para o objeto MessageAttachment
+                        id = randomUUID().toString(),
                         name = displayName,
                         type = applicationContext.contentResolver.getType(attachmentUri) ?: "application/octet-stream",
                         url = downloadUrl,

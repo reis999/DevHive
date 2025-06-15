@@ -7,9 +7,6 @@ import ipvc.tp.devhive.domain.repository.StudyGroupRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 import javax.inject.Inject
 
-/**
- * Caso de uso para sincronizar dados pendentes
- */
 class SyncDataUseCase @Inject constructor(
     private val userRepository: UserRepository,
     private val materialRepository: MaterialRepository,
@@ -19,7 +16,6 @@ class SyncDataUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke() {
-        // Sincroniza os dados na ordem correta para evitar problemas de dependência
         userRepository.syncPendingUsers()
         materialRepository.syncPendingMaterials()
         commentRepository.syncPendingComments()

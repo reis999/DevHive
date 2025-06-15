@@ -5,9 +5,6 @@ import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.repository.MaterialRepository
 import javax.inject.Inject
 
-/**
- * Caso de uso para obter materiais de estudo
- */
 class GetMaterialsUseCase @Inject constructor(private val materialRepository: MaterialRepository) {
 
     operator fun invoke(): LiveData<List<Material>> {

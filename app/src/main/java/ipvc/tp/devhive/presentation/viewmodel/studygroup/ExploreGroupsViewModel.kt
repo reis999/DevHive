@@ -30,7 +30,6 @@ class ExploreGroupsViewModel @Inject constructor(
     private val _event = MutableLiveData<Event<ExploreEvent>>()
     val event: LiveData<Event<ExploreEvent>> get() = _event
 
-    // Fonte para os grupos públicos do repositório
     private var publicGroupsSource: LiveData<List<StudyGroup>>? = null
 
     init {
@@ -104,7 +103,6 @@ class ExploreGroupsViewModel @Inject constructor(
     }
 }
 
-// Eventos para o ExploreGroupsViewModel
 sealed class ExploreEvent {
     data class JoinSuccess(val message: String) : ExploreEvent()
     data class JoinFailure(val message: String) : ExploreEvent()

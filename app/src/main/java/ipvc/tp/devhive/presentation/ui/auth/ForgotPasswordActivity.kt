@@ -59,8 +59,6 @@ class ForgotPasswordActivity : AppCompatActivity() {
         }
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
-
-        // Configura os listeners
         ivBack.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
@@ -71,7 +69,6 @@ class ForgotPasswordActivity : AppCompatActivity() {
     }
 
     private fun resetPassword() {
-        // Valida o campo de email
         val email = etEmail.text.toString().trim()
 
         if (email.isEmpty()) {
@@ -81,11 +78,8 @@ class ForgotPasswordActivity : AppCompatActivity() {
             tilEmail.error = null
         }
 
-        // Mostra o loading
         showLoading(true)
-
-        // Chama o metodo de recuperação de senha
-        authViewModel.resetPassword(email)
+        authViewModel.resetPassword()
     }
 
     private fun showLoading(isLoading: Boolean) {

@@ -29,11 +29,11 @@ class MessageAdapter(private val currentUserId: String) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (viewType == VIEW_TYPE_SENT) {
             val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_message_sent, parent, false) // Crie este layout
+                .inflate(R.layout.item_message_sent, parent, false)
             SentMessageViewHolder(view)
         } else {
             val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_message_received, parent, false) // Crie este layout
+                .inflate(R.layout.item_message_received, parent, false)
             ReceivedMessageViewHolder(view)
         }
     }
@@ -53,19 +53,17 @@ class MessageAdapter(private val currentUserId: String) :
 
         fun bind(message: Message) {
             tvMessageContent.text = message.content
-            tvMessageTime.text = DateFormatUtils.getRelativeTimeSpan(message.createdAt) // Implemente formatTime
+            tvMessageTime.text = DateFormatUtils.getRelativeTimeSpan(message.createdAt)
         }
     }
 
     inner class ReceivedMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvMessageContent: TextView = itemView.findViewById(R.id.tv_message_content_received)
         private val tvMessageTime: TextView = itemView.findViewById(R.id.tv_message_time_received)
-        // private val ivSenderAvatar: ImageView = itemView.findViewById(R.id.iv_sender_avatar_received) // Opcional
 
         fun bind(message: Message) {
             tvMessageContent.text = message.content
             tvMessageTime.text = DateFormatUtils.getRelativeTimeSpan(message.createdAt)
-            // Glide.with(itemView.context)... para avatar se tiver
         }
     }
 

@@ -2,8 +2,8 @@ package ipvc.tp.devhive.domain.usecase.material
 
 import ipvc.tp.devhive.domain.repository.MaterialRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
-import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import ipvc.tp.devhive.domain.usecase.user.StatsAction
+import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import javax.inject.Inject
 
 class ToggleMaterialLikeUseCase @Inject constructor(
@@ -14,7 +14,7 @@ class ToggleMaterialLikeUseCase @Inject constructor(
 
     suspend operator fun invoke(materialId: String, userId: String, isLiked: Boolean): Result<Boolean> {
         return try {
-            // 1. Atualiza o like do material
+            // Atualiza o like do material
             val result = materialRepository.toggleMaterialLike(materialId, userId, isLiked)
 
             if (result.isSuccess) {
@@ -38,7 +38,7 @@ class ToggleMaterialLikeUseCase @Inject constructor(
                 }
                 updateUserStatsUseCase(material.ownerUid, action)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
     }
 }

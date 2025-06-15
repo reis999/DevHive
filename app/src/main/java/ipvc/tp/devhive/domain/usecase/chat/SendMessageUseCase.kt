@@ -10,9 +10,6 @@ import java.util.UUID
 import javax.inject.Inject
 
 
-/**
- * Caso de uso para enviar uma mensagem em um chat
- */
 class SendMessageUseCase @Inject constructor(
     private val chatRepository: ChatRepository
 ) {

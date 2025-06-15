@@ -4,9 +4,6 @@ import android.os.Parcelable
 import com.google.firebase.Timestamp
 import kotlinx.parcelize.Parcelize
 
-/**
- * Modelo de domínio para representar uma mensagem
- */
 data class Message(
     val id: String,
     val chatId: String,

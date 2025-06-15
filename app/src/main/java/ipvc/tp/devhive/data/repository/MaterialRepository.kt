@@ -4,9 +4,8 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.Timestamp
-import java.util.UUID.randomUUID
+import com.google.firebase.storage.FirebaseStorage
 import ipvc.tp.devhive.data.local.dao.MaterialDao
 import ipvc.tp.devhive.data.local.entity.MaterialEntity
 import ipvc.tp.devhive.data.model.Material
@@ -17,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.UUID.randomUUID
 import ipvc.tp.devhive.domain.repository.MaterialRepository as DomainMaterialRepository
 
 class MaterialRepository(
@@ -27,12 +27,10 @@ class MaterialRepository(
 ) : DomainMaterialRepository {
 
     override fun getAllMaterials(): LiveData<List<ipvc.tp.devhive.domain.model.Material>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshMaterials()
         }
 
-        // Retorna LiveData do banco local
         return materialDao.getAllMaterials().map { entities ->
             entities.map { MaterialEntity.toMaterial(it).toDomainMaterial() }
         }
@@ -51,20 +49,15 @@ class MaterialRepository(
 
     override suspend fun getMaterialById(materialId: String): ipvc.tp.devhive.domain.model.Material? {
         return withContext(Dispatchers.IO) {
-            // Primeiro tenta obter do banco de dados local
             val localMaterial = materialDao.getMaterialById(materialId)
 
             if (localMaterial != null) {
                 MaterialEntity.toMaterial(localMaterial).toDomainMaterial()
             } else {
-                // Se não encontrar localmente, busca do Firestore
                 val remoteMaterial = materialService.getMaterialById(materialId)
 
-                // Se encontrar remotamente, salva no banco local
                 if (remoteMaterial != null) {
                     materialDao.insertMaterial(MaterialEntity.fromMaterial(remoteMaterial))
-
-                    // Incrementa visualizações
                     materialService.incrementMaterialViews(materialId)
                     remoteMaterial.toDomainMaterial()
                 } else {
@@ -75,12 +68,10 @@ class MaterialRepository(
     }
 
     override fun observeMaterialById(materialId: String): LiveData<ipvc.tp.devhive.domain.model.Material?> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshMaterial(materialId)
         }
 
-        // Retorna LiveData do banco local
         return materialDao.observeMaterialById(materialId).map { entity ->
             entity?.let { MaterialEntity.toMaterial(it).toDomainMaterial() }
         }
@@ -96,12 +87,10 @@ class MaterialRepository(
     }
 
     override fun getMaterialsByUser(userId: String): LiveData<List<ipvc.tp.devhive.domain.model.Material>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshMaterialsByUser(userId)
         }
 
-        // Retorna LiveData do banco local
         return materialDao.getMaterialsByUser(userId).map { entities ->
             entities.map { MaterialEntity.toMaterial(it).toDomainMaterial() }
         }
@@ -119,12 +108,10 @@ class MaterialRepository(
     }
 
     override fun getMaterialsBySubject(subject: String): LiveData<List<ipvc.tp.devhive.domain.model.Material>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshMaterialsBySubject(subject)
         }
 
-        // Retorna LiveData do banco local
         return materialDao.getMaterialsBySubject(subject).map { entities ->
             entities.map { MaterialEntity.toMaterial(it).toDomainMaterial() }
         }
@@ -151,12 +138,10 @@ class MaterialRepository(
     }
 
     override fun searchMaterialsWithSubject(query: String, subject: String?): LiveData<List<ipvc.tp.devhive.domain.model.Material>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshSearchWithSubject(query, subject)
         }
 
-        // Retorna LiveData do banco local com pesquisa combinada
         return materialDao.searchMaterialsWithSubject(query, subject).map { entities ->
             entities.map { MaterialEntity.toMaterial(it).toDomainMaterial() }
         }
@@ -237,10 +222,10 @@ class MaterialRepository(
     ): Result<ipvc.tp.devhive.domain.model.Material> {
         return withContext(Dispatchers.IO) {
             try {
-                var contentUrl = ""
+                val contentUrl: String
                 var thumbnailUrl = ""
 
-                // 1. Upload do arquivo principal (obrigatório)
+                // Upload do arquivo principal
                 val fileUploadResult = uploadMaterialFile(material.id, fileUri)
                 if (fileUploadResult.isSuccess) {
                     contentUrl = fileUploadResult.getOrNull()!!
@@ -252,7 +237,7 @@ class MaterialRepository(
                     )
                 }
 
-                // 2. Upload da thumbnail (opcional)
+                // Upload da thumbnail
                 if (thumbnailUri != null) {
                     val thumbnailUploadResult = uploadMaterialThumbnail(material.id, thumbnailUri)
                     if (thumbnailUploadResult.isSuccess) {
@@ -264,31 +249,26 @@ class MaterialRepository(
                     }
                 }
 
-                // 3. Atualiza o material com as URLs obtidas
                 val updatedMaterial = material.copy(
                     contentUrl = contentUrl,
                     thumbnailUrl = thumbnailUrl,
                     updatedAt = Timestamp.now()
                 )
 
-                // 4. Converte para data model e tenta criar no Firestore
                 val dataMaterial = updatedMaterial.toDataMaterial()
                 val result = materialService.createMaterial(dataMaterial)
 
                 if (result.isSuccess) {
-                    // Sucesso - salva no banco local
                     val createdMaterial = result.getOrThrow()
                     materialDao.insertMaterial(MaterialEntity.fromMaterial(createdMaterial, SyncStatus.SYNCED))
                     Result.success(createdMaterial.toDomainMaterial())
                 } else {
-                    // Falha - salva localmente com status pendente
                     val materialEntity = MaterialEntity.fromMaterial(dataMaterial, SyncStatus.PENDING_UPLOAD)
                     materialDao.insertMaterial(materialEntity)
                     Result.success(updatedMaterial)
                 }
 
             } catch (e: Exception) {
-                // Erro - salva localmente com status pendente
                 val materialEntity = MaterialEntity.fromMaterial(
                     material.toDataMaterial(),
                     SyncStatus.PENDING_UPLOAD
@@ -335,21 +315,17 @@ class MaterialRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataMaterial = material.toDataMaterial()
-                // Tenta atualizar no Firestore
                 val result = materialService.updateMaterial(dataMaterial)
 
                 if (result.isSuccess) {
-                    // Se sucesso, atualiza no banco local
                     materialDao.insertMaterial(MaterialEntity.fromMaterial(dataMaterial))
                     Result.success(material)
                 } else {
-                    // Se falhar, atualiza localmente com status pendente
                     val materialEntity = MaterialEntity.fromMaterial(dataMaterial, SyncStatus.PENDING_UPDATE)
                     materialDao.insertMaterial(materialEntity)
                     Result.success(material)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, atualiza localmente com status pendente
                 val materialEntity = MaterialEntity.fromMaterial(material.toDataMaterial(), SyncStatus.PENDING_UPDATE)
                 materialDao.insertMaterial(materialEntity)
                 Result.failure(e)
@@ -360,15 +336,12 @@ class MaterialRepository(
     override suspend fun deleteMaterial(materialId: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Tenta deletar no Firestore
                 val result = materialService.deleteMaterial(materialId)
 
                 if (result.isSuccess) {
-                    // Se sucesso, remove do banco local
                     materialDao.deleteMaterialById(materialId)
                     Result.success(true)
                 } else {
-                    // Se falhar, marca como pendente de deleção
                     val material = materialDao.getMaterialById(materialId)
                     if (material != null) {
                         val updatedMaterial = material.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -377,7 +350,6 @@ class MaterialRepository(
                     Result.success(false)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, marca como pendente de deleção
                 val material = materialDao.getMaterialById(materialId)
                 if (material != null) {
                     val updatedMaterial = material.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -391,13 +363,10 @@ class MaterialRepository(
     override suspend fun incrementDownloads(materialId: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Atualiza localmente
                 val material = materialDao.getMaterialById(materialId)
                 if (material != null) {
                     val updatedMaterial = material.copy(downloads = material.downloads + 1)
                     materialDao.updateMaterial(updatedMaterial)
-
-                    // Tenta sincronizar com o Firestore
                     materialService.incrementMaterialDownloads(materialId)
 
                     Result.success(true)
@@ -441,11 +410,9 @@ class MaterialRepository(
     override suspend fun toggleBookmark(materialId: String, userId: String, isBookmarked: Boolean): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Tenta atualizar no Firestore primeiro
                 val result = materialService.toggleMaterialBookmark(materialId, userId, isBookmarked)
 
                 if (result.isSuccess) {
-                    // Se sucesso, atualiza no banco local
                     val material = materialDao.getMaterialById(materialId)
                     if (material != null) {
                         val currentBookmarkedBy = material.bookmarkedBy.toMutableList()

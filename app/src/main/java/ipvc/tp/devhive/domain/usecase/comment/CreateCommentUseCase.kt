@@ -10,11 +10,6 @@ import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import java.util.UUID
 import javax.inject.Inject
 
-
-
-/**
- * Caso de uso para criar um novo comentário
- */
 class CreateCommentUseCase @Inject constructor(
     private val commentRepository: CommentRepository,
     private val userRepository: UserRepository,

@@ -150,23 +150,6 @@ class StudyGroupService(firestore: FirebaseFirestore) {
         }
     }
 
-    suspend fun searchPublicStudyGroups(query: String): Result<List<StudyGroup>> {
-        return try {
-            val snapshot = studyGroupsCollection
-                .whereEqualTo("isPrivate", false)
-                .orderBy("name")
-                .startAt(query)
-                .endAt(query + "\uf8ff")
-                .get()
-                .await()
-
-            val studyGroups = snapshot.documents.mapNotNull { it.toObject(StudyGroup::class.java) }
-            Result.success(studyGroups)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     suspend fun getAllPublicStudyGroups(): Result<List<StudyGroup>> {
         return try {
             val querySnapshot = studyGroupsCollection

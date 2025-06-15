@@ -4,9 +4,6 @@ import ipvc.tp.devhive.domain.repository.MaterialRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
 import javax.inject.Inject
 
-/**
- * Caso de uso para marcar/desmarcar um material como favorito
- */
 class ToggleBookmarkUseCase @Inject constructor(
     private val materialRepository: MaterialRepository,
     private val userRepository: UserRepository

@@ -22,12 +22,10 @@ class JoinStudyGroupUseCase @Inject constructor(
 
         val groupResult: Result<StudyGroup?> = when (joinMethod) {
             is JoinMethod.ByGroupId -> {
-                // Busca grupo por ID
                 val g = studyGroupRepository.getStudyGroupById(joinMethod.groupId)
                 if (g != null) Result.success(g) else Result.failure(IllegalArgumentException("Grupo não encontrado"))
             }
             is JoinMethod.ByJoinCode -> {
-                // Busca grupo pelo código de acesso diretamente
                 studyGroupRepository.getStudyGroupByJoinCode(joinMethod.joinCode)
             }
         }

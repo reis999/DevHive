@@ -2,9 +2,6 @@ package ipvc.tp.devhive.domain.model
 
 import com.google.firebase.Timestamp
 
-/**
- * Modelo de domínio para representar uma mensagem em um grupo de estudo
- */
 data class GroupMessage(
     val id: String,
     val studyGroupId: String,

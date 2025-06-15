@@ -3,9 +3,6 @@ package ipvc.tp.devhive.domain.model
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName
 
-/**
- * Modelo de domínio para representar um utilizador na aplicação
- */
 data class User(
     val id: String,
     val name: String,

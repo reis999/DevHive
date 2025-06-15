@@ -27,8 +27,6 @@ data class UserEntity(
     val commentCount: Int,
     val likeCount: Int,
     val sessionCount: Int,
-
-    // Campos para sincronização
     val syncStatus: String,
     val lastSyncedAt: Long,
     val isLocalOnly: Boolean,

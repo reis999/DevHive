@@ -2,9 +2,6 @@ package ipvc.tp.devhive.domain.model
 
 import com.google.firebase.Timestamp
 
-/**
- * Modelo de domínio para representar um material de estudo
- */
 data class Material(
     val id: String,
     val title: String,

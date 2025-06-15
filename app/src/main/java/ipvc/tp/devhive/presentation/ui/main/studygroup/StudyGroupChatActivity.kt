@@ -355,7 +355,6 @@ class StudyGroupChatActivity : AppCompatActivity() {
             .show()
     }
 
-    // --- ATUALIZADO ---
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.study_group_chat_menu, menu)
 

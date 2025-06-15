@@ -240,7 +240,7 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
         binding.etGroupNameSettings.isEnabled = isAdmin
         binding.etGroupDescriptionSettings.isEnabled = isAdmin
         binding.etNewCategorySettings.isEnabled = isAdmin
-        binding.btnManageMembersSettings.isEnabled = isAdmin // Gerir membros também deve ser para admins
+        binding.btnManageMembersSettings.isEnabled = isAdmin
 
         binding.chipGroupCategoriesSettings.children.forEach { view ->
             if (view is Chip) {
@@ -270,9 +270,8 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
                 .into(binding.ivGroupCoverSettings)
         }
 
-        // Atualizar categorias (mantendo a sua lógica de não duplicar)
         val categoriesToDisplay = group.categories.distinctBy { it.lowercase() }
-        if (currentCategories != categoriesToDisplay) { // Só atualiza se houver mudança real
+        if (currentCategories != categoriesToDisplay) {
             currentCategories.clear()
             binding.chipGroupCategoriesSettings.removeAllViews()
             categoriesToDisplay.forEach { category ->
@@ -343,7 +342,7 @@ class StudyGroupSettingsActivity : AppCompatActivity() {
                 groupId = it,
                 name = name,
                 description = description,
-                categories = ArrayList(currentCategories.distinctBy { cat -> cat.lowercase() }), // Garante categorias únicas
+                categories = ArrayList(currentCategories.distinctBy { cat -> cat.lowercase() }),
                 newImageUri = selectedImageUri
             )
         }

@@ -5,5 +5,4 @@ object SyncStatus {
     const val PENDING_UPLOAD = "PENDING_UPLOAD"
     const val PENDING_UPDATE = "PENDING_UPDATE"
     const val PENDING_DELETE = "PENDING_DELETE"
-    const val SYNC_ERROR = "SYNC_ERROR"
 }

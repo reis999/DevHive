@@ -2,9 +2,6 @@ package ipvc.tp.devhive.domain.model
 
 import com.google.firebase.Timestamp
 
-/**
- * Modelo de domínio para representar um chat direto entre dois usuários
- */
 data class Chat(
     val id: String,
     val participant1Id: String,
