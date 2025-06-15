@@ -13,6 +13,7 @@ import ipvc.tp.devhive.domain.usecase.material.CreateMaterialUseCase
 import ipvc.tp.devhive.domain.usecase.material.DeleteMaterialUseCase
 import ipvc.tp.devhive.domain.usecase.material.DownloadMaterialUseCase
 import ipvc.tp.devhive.domain.usecase.material.GetMaterialsUseCase
+import ipvc.tp.devhive.domain.usecase.material.IncrementViewsUseCase
 import ipvc.tp.devhive.domain.usecase.material.ToggleBookmarkUseCase
 import ipvc.tp.devhive.domain.usecase.material.ToggleMaterialLikeUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
@@ -27,6 +28,7 @@ class MaterialViewModel @Inject constructor(
     private val deleteMaterialUseCase: DeleteMaterialUseCase,
     private val toggleBookmarkUseCase: ToggleBookmarkUseCase,
     private val downloadMaterialUseCase: DownloadMaterialUseCase,
+    private val incrementViewsUseCase: IncrementViewsUseCase,
     private val toggleMaterialLikeUseCase: ToggleMaterialLikeUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) : ViewModel() {
@@ -261,6 +263,20 @@ class MaterialViewModel @Inject constructor(
                     _materialEvent.value = Event(MaterialEvent.DownloadFailure(exception.message ?: "Erro ao fazer download"))
                 }
             )
+        }
+    }
+
+    fun incrementViews(materialId: String) {
+        viewModelScope.launch {
+            try {
+                val result = incrementViewsUseCase(materialId)
+
+                if (result.isFailure) {
+                    android.util.Log.d("MaterialViewModel", "Failed to increment views: ${result.exceptionOrNull()?.message}")
+                }
+            } catch (e: Exception) {
+                android.util.Log.d("MaterialViewModel", "Error incrementing views: ${e.message}")
+            }
         }
     }
 

@@ -410,6 +410,26 @@ class MaterialRepository(
         }
     }
 
+    override suspend fun incrementViews(materialId: String): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val material = materialDao.getMaterialById(materialId)
+                if (material != null) {
+                    val updatedMaterial = material.copy(views = material.views + 1)
+                    materialDao.updateMaterial(updatedMaterial)
+
+                    materialService.incrementMaterialViews(materialId)
+
+                    Result.success(true)
+                } else {
+                    Result.failure(Exception("Material not found"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
     override fun getBookmarkedMaterials(userId: String): LiveData<List<ipvc.tp.devhive.domain.model.Material>> {
         return materialDao.getAllMaterials().map { entities ->
             entities
