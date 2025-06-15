@@ -8,15 +8,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.viewmodel.auth.AuthViewModel
 import ipvc.tp.devhive.presentation.viewmodel.comment.CommentViewModel
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class CreateCommentBottomSheet : BottomSheetDialogFragment() {
@@ -68,14 +64,6 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
         setupClickListeners()
         observeEvents()
 
-        // Verifica se o utilizador está autenticado
-        if (!authViewModel.isAuthenticated()) {
-            Toast.makeText(requireContext(), R.string.login_required_to_comment, Toast.LENGTH_SHORT).show()
-            dismiss()
-            return
-        }
-
-        // Foca no campo de texto
         etComment.requestFocus()
     }
 
@@ -131,17 +119,6 @@ class CreateCommentBottomSheet : BottomSheetDialogFragment() {
 
         if (commentText.length < 3) {
             etComment.error = getString(R.string.error_comment_too_short)
-            return
-        }
-
-        // Verifica se ainda está autenticado antes de submeter
-        if (!authViewModel.isAuthenticated()) {
-            Toast.makeText(
-                requireContext(),
-                R.string.login_required_to_comment,
-                Toast.LENGTH_SHORT
-            ).show()
-            dismiss()
             return
         }
 

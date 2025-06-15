@@ -1,5 +1,6 @@
 package ipvc.tp.devhive.presentation.ui.main.material
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -16,6 +17,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.cardview.widget.CardView
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -138,11 +140,11 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         }
 
         // Observa o estado de loading
-        materialViewModel.isLoadingMaterial.observe(this) { isLoading ->
+        materialViewModel.isLoadingMaterial.observe(this) {
             // TODO: Implementar loading UI se necessário
         }
 
-        materialViewModel.isDeletingMaterial.observe(this) { isDeleting ->
+        materialViewModel.isDeletingMaterial.observe(this) {
             // TODO: Mostrar progress durante eliminação se necessário
         }
 
@@ -414,9 +416,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         tvFileType.text = typeText
 
         val fileName = extractFileNameFromUrl(material.contentUrl)
-        tvFileName.text = if (fileName.isNotEmpty()) {
-            fileName
-        } else {
+        tvFileName.text = fileName.ifEmpty {
             "${material.title}.${getFileExtension(material.type)}"
         }
 
@@ -436,25 +436,12 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
         }
     }
 
-    private fun getFileTypeDisplayName(type: String): String {
-        return when (type.lowercase()) {
-            "pdf" -> getString(R.string.type_pdf)
-            "video" -> getString(R.string.type_video)
-            "audio" -> getString(R.string.type_audio)
-            "Imagem" -> getString(R.string.type_image)
-            "Documento" -> getString(R.string.type_document)
-            "presentation" -> getString(R.string.type_presentation)
-            "spreadsheet" -> getString(R.string.type_spreadsheet)
-            "code" -> getString(R.string.type_code)
-            else -> getString(R.string.type_other)
-        }
-    }
-
+    @SuppressLint("UseKtx")
     private fun extractFileNameFromUrl(url: String): String {
         return try {
             if (url.isEmpty()) return ""
 
-            val uri = Uri.parse(url)
+            val uri = url.toUri()
             val pathSegments = uri.pathSegments
 
             val lastSegment = pathSegments.lastOrNull { it.contains(".") } ?: pathSegments.lastOrNull() ?: ""
@@ -577,7 +564,7 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
 
     private fun startDownload(contentUrl: String) {
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(contentUrl))
+            val intent = Intent(Intent.ACTION_VIEW, contentUrl.toUri())
             startActivity(intent)
         } catch (e: Exception) {
             Toast.makeText(this, "Erro ao abrir download: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -624,12 +611,8 @@ class MaterialDetailActivity : AppCompatActivity(), CommentAdapter.OnCommentClic
     }
 
     private fun showAddCommentDialog() {
-        if (authViewModel.isAuthenticated()) {
-            val bottomSheet = CreateCommentBottomSheet.newInstance(materialId)
-            bottomSheet.show(supportFragmentManager, "CreateCommentBottomSheet")
-        } else {
-            Toast.makeText(this, R.string.login_required_to_comment, Toast.LENGTH_SHORT).show()
-        }
+        val bottomSheet = CreateCommentBottomSheet.newInstance(materialId)
+        bottomSheet.show(supportFragmentManager, "CreateCommentBottomSheet")
     }
 
     override fun onCommentLikeClick(comment: Comment, position: Int) {
