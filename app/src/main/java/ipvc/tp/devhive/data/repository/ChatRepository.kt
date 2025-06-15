@@ -49,16 +49,13 @@ class ChatRepository(
 
     override suspend fun getChatById(chatId: String): ipvc.tp.devhive.domain.model.Chat? {
         return withContext(Dispatchers.IO) {
-            // Primeiro tenta obter do banco de dados local
             val localChat = chatDao.getChatById(chatId)
 
             if (localChat != null) {
                 ChatEntity.toChat(localChat).toDomainChat()
             } else {
-                // Se não encontrar localmente, busca do Firestore
                 val remoteChat = chatService.getChatById(chatId)
 
-                // Se encontrar remotamente, salva no banco local
                 if (remoteChat != null) {
                     chatDao.insertChat(ChatEntity.fromChat(remoteChat))
                     remoteChat.toDomainChat()
@@ -70,12 +67,10 @@ class ChatRepository(
     }
 
     override fun observeChatById(chatId: String): LiveData<ipvc.tp.devhive.domain.model.Chat?> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshChat(chatId)
         }
 
-        // Retorna LiveData do banco local
         return chatDao.observeChatById(chatId).map { entity ->
             entity?.let { ChatEntity.toChat(it).toDomainChat() }
         }
@@ -94,30 +89,24 @@ class ChatRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataChat = chat.toDataChat()
-                // Verifica se já existe um chat entre esses dois usuários
                 val existingChat = chatService.findChatBetweenUsers(dataChat.participant1Id, dataChat.participant2Id)
                 if (existingChat != null) {
-                    // Se já existe, retorna o chat existente
                     chatDao.insertChat(ChatEntity.fromChat(existingChat))
                     return@withContext Result.success(existingChat.toDomainChat())
                 }
 
-                // Tenta criar no Firestore
                 val result = chatService.createChat(dataChat)
 
                 if (result.isSuccess) {
-                    // Se sucesso, salva no banco local
                     val createdChat = result.getOrThrow()
                     chatDao.insertChat(ChatEntity.fromChat(createdChat))
                     Result.success(createdChat.toDomainChat())
                 } else {
-                    // Se falhar, salva localmente com status pendente
                     val chatEntity = ChatEntity.fromChat(dataChat, SyncStatus.PENDING_UPLOAD)
                     chatDao.insertChat(chatEntity)
                     Result.success(chat)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente
                 val chatEntity = ChatEntity.fromChat(chat.toDataChat(), SyncStatus.PENDING_UPLOAD)
                 chatDao.insertChat(chatEntity)
                 Result.failure(e)
@@ -129,21 +118,17 @@ class ChatRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataChat = chat.toDataChat()
-                // Tenta atualizar no Firestore
                 val result = chatService.updateChat(dataChat)
 
                 if (result.isSuccess) {
-                    // Se sucesso, atualiza no banco local
                     chatDao.insertChat(ChatEntity.fromChat(dataChat))
                     Result.success(chat)
                 } else {
-                    // Se falhar, atualiza localmente com status pendente
                     val chatEntity = ChatEntity.fromChat(dataChat, SyncStatus.PENDING_UPDATE)
                     chatDao.insertChat(chatEntity)
                     Result.success(chat)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, atualiza localmente com status pendente
                 val chatEntity = ChatEntity.fromChat(chat.toDataChat(), SyncStatus.PENDING_UPDATE)
                 chatDao.insertChat(chatEntity)
                 Result.failure(e)
@@ -154,15 +139,12 @@ class ChatRepository(
     override suspend fun deleteChat(chatId: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Tenta deletar no Firestore
                 val result = chatService.deleteChat(chatId)
 
                 if (result.isSuccess) {
-                    // Se sucesso, remove do banco local
                     chatDao.deleteChatById(chatId)
                     Result.success(true)
                 } else {
-                    // Se falhar, marca como pendente de deleção
                     val chat = chatDao.getChatById(chatId)
                     if (chat != null) {
                         val updatedChat = chat.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -171,7 +153,6 @@ class ChatRepository(
                     Result.success(false)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, marca como pendente de deleção
                 val chat = chatDao.getChatById(chatId)
                 if (chat != null) {
                     val updatedChat = chat.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -183,12 +164,10 @@ class ChatRepository(
     }
 
     override fun getMessagesByChatId(chatId: String): LiveData<List<ipvc.tp.devhive.domain.model.Message>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshMessagesByChatId(chatId)
         }
 
-        // Retorna LiveData do banco local
         return messageDao.getMessagesByChatId(chatId).map { entities ->
             entities.map { MessageEntity.toMessage(it).toDomainMessage() }
         }
@@ -209,22 +188,18 @@ class ChatRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataMessage = message.toDataMessage()
-                // Tenta enviar para o Firestore
                 val result = chatService.sendMessage(chatId, dataMessage)
 
                 if (result.isSuccess) {
-                    // Se sucesso, salva no banco local
                     val sentMessage = result.getOrThrow()
                     messageDao.insertMessage(MessageEntity.fromMessage(sentMessage))
                     Result.success(sentMessage.toDomainMessage())
                 } else {
-                    // Se falhar, salva localmente com status pendente
                     val messageEntity = MessageEntity.fromMessage(dataMessage, SyncStatus.PENDING_UPLOAD)
                     messageDao.insertMessage(messageEntity)
                     Result.success(message)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente
                 val messageEntity = MessageEntity.fromMessage(message.toDataMessage(), SyncStatus.PENDING_UPLOAD)
                 messageDao.insertMessage(messageEntity)
                 Result.failure(e)

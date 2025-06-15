@@ -4,9 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.Material
 
-/**
- * Interface de repositório para operações relacionadas a materiais de estudo
- */
 interface MaterialRepository {
     fun getAllMaterials(): LiveData<List<Material>>
     suspend fun getMaterialById(materialId: String): Material?

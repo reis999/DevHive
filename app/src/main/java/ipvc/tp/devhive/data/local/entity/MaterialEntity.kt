@@ -36,8 +36,6 @@ data class MaterialEntity(
     val rating: Float,
     val reviewCount: Int,
     val lastSyncTimestamp: Long,
-
-    // Campos para sincronização
     val syncStatus: String,
     val lastSyncedAt: Long,
     val isLocalOnly: Boolean,

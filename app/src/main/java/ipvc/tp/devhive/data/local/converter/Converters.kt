@@ -57,16 +57,3 @@ class TimestampConverter {
         return value?.let { Timestamp(it / 1000, ((it % 1000) * 1000000).toInt()) }
     }
 }
-
-class MapStringAnyConverter {
-    @TypeConverter
-    fun fromString(value: String): Map<String, Any> {
-        val mapType = object : TypeToken<Map<String, Any>>() {}.type
-        return Gson().fromJson(value, mapType)
-    }
-
-    @TypeConverter
-    fun fromMap(map: Map<String, Any>): String {
-        return Gson().toJson(map)
-    }
-}

@@ -2,9 +2,6 @@ package ipvc.tp.devhive.domain.model
 
 import com.google.firebase.Timestamp
 
-/**
- * Modelo de domínio para representar um comentário
- */
 data class Comment(
     val id: String,
     val materialId: String,

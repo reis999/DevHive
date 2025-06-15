@@ -18,9 +18,9 @@ import ipvc.tp.devhive.R
 import ipvc.tp.devhive.databinding.FragmentProfileBinding
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.presentation.ui.auth.LoginActivity
-import ipvc.tp.devhive.presentation.ui.main.settings.SettingsActivity
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
+import ipvc.tp.devhive.presentation.ui.main.settings.SettingsActivity
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileEvent
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
@@ -210,7 +210,6 @@ class ProfileFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
         }
     }
 
-    // Implementação do MaterialAdapter.OnMaterialClickListener
     override fun onMaterialClick(material: Material) {
         val intent = Intent(requireContext(), MaterialDetailActivity::class.java)
         intent.putExtra(MaterialDetailActivity.EXTRA_MATERIAL_ID, material.id)

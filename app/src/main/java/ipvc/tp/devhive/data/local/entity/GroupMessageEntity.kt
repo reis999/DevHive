@@ -24,8 +24,6 @@ data class GroupMessageEntity(
     val replyToMessageId: String? = null,
     val isEdited: Boolean = false,
     val editedAt: Timestamp? = null,
-
-    // Campos para sincronização
     val syncStatus: String,
     val lastSyncedAt: Long = 0L,
     val isLocalOnly: Boolean = false,

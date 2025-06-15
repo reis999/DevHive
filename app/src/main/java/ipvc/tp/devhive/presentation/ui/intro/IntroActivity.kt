@@ -7,9 +7,9 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.button.MaterialButton
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.presentation.ui.auth.LoginActivity
-import com.google.android.material.button.MaterialButton
 
 class IntroActivity : AppCompatActivity() {
 
@@ -134,7 +134,7 @@ class IntroActivity : AppCompatActivity() {
 
     private fun updateButtonText(position: Int) {
         if (position == introSlideAdapter.itemCount - 1) {
-            btnNext.text = getString(R.string.finish) // ou R.string.get_started
+            btnNext.text = getString(R.string.finish)
         } else {
             btnNext.text = getString(R.string.next)
         }

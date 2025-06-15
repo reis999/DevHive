@@ -22,8 +22,6 @@ data class MessageEntity(
     val read: Boolean,
     val syncStatus: String,
     val lastSyncTimestamp: Long,
-
-    // Campos para sincronização
     val lastSyncedAt: Long,
     val isLocalOnly: Boolean,
     val pendingOperation: String?

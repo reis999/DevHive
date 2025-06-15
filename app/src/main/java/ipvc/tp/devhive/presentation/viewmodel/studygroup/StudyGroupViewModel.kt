@@ -109,7 +109,7 @@ class StudyGroupViewModel @Inject constructor(
 
             if (user?.id != previousUserId) {
                 hasAttemptedInitialGroupLoadForCurrentUser = false
-                _userStudyGroups.value = emptyList() // Resetar grupos se o user mudou
+                _userStudyGroups.value = emptyList()
             }
         }
     }
@@ -232,7 +232,7 @@ class StudyGroupViewModel @Inject constructor(
                     description = description,
                     categories = categories,
                     isPrivate = isPrivate,
-                    maxMembers = 50 // Ou outro valor padrão/configurável
+                    maxMembers = 50
                 )
 
                 if (result.isSuccess) {
@@ -254,15 +254,11 @@ class StudyGroupViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Envia uma mensagem de grupo, potencialmente com um anexo.
-     * O nome original do ficheiro é obtido na Activity/Fragment ao selecionar o ficheiro.
-     */
     fun sendGroupMessageWithAttachment(
         groupId: String,
         content: String,
         attachmentUri: Uri?,
-        originalAttachmentFileName: String? // Nome original do ficheiro, obtido na UI
+        originalAttachmentFileName: String?
     ) {
         val user = _currentUser.value
         if (user == null) {
@@ -271,17 +267,14 @@ class StudyGroupViewModel @Inject constructor(
         }
 
         if (content.isBlank() && attachmentUri == null) {
-            // Não faz sentido enviar uma mensagem completamente vazia
             _sendMessageResultEvent.value = Event(StudyGroupGeneralResult.Failure("A mensagem não pode estar vazia sem um anexo."))
             return
         }
 
-        _isLoading.value = true // Indica que o processo de envio (incluindo upload se houver) começou
+        _isLoading.value = true
 
         viewModelScope.launch {
             try {
-                // A lógica de upload do ficheiro (se attachmentUri não for nulo)
-                // agora está encapsulada dentro do sendGroupMessageUseCase -> StudyGroupRepository
                 val result = sendGroupMessageUseCase(
                     groupId = groupId,
                     content = content,
@@ -314,23 +307,18 @@ class StudyGroupViewModel @Inject constructor(
         currentMessagesSource?.let {
             _groupMessages.removeSource(it)
         }
-        // _isLoading.value = true; // Opcional: isLoading para mensagens, mas pode ser confuso com o isLoading geral.
-        // LiveData do Room/Firestore deve atualizar automaticamente.
         viewModelScope.launch {
             try {
-                // Supondo que getStudyGroupMessagesUseCase retorna LiveData<List<GroupMessage>>
                 val newSource: LiveData<List<GroupMessage>> = getStudyGroupMessagesUseCase(groupId)
                 currentMessagesSource = newSource
 
                 _groupMessages.addSource(newSource) { messageList ->
                     _groupMessages.value = messageList
-                    // _isLoading.value = false; // Se usou isLoading para mensagens
                 }
             } catch (e: Exception) {
                 Log.e("ViewModel", "Erro ao carregar mensagens do grupo $groupId: ${e.message}", e)
                 _groupMessages.value = emptyList()
                 _generalEvent.value = Event(StudyGroupEvent.Error(e.message ?: "Erro ao carregar mensagens"))
-                // _isLoading.value = false; // Se usou isLoading para mensagens
             }
         }
     }
@@ -368,8 +356,6 @@ class StudyGroupViewModel @Inject constructor(
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // A lógica de upload da imagem (se newImageUri não for nulo)
-                // está encapsulada dentro do updateStudyGroupUseCase -> StudyGroupRepository
                 val result = updateStudyGroupUseCase(
                     groupId = groupId,
                     name = name,
@@ -379,7 +365,7 @@ class StudyGroupViewModel @Inject constructor(
                 )
                 if (result.isSuccess) {
                     _updateGroupResultEvent.value = Event(StudyGroupGeneralResult.Success("Grupo atualizado com sucesso"))
-                    loadStudyGroupDetails(groupId) // Recarrega para refletir mudanças
+                    loadStudyGroupDetails(groupId)
                 } else {
                     _updateGroupResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao atualizar grupo."))
                 }
@@ -415,17 +401,14 @@ class StudyGroupViewModel @Inject constructor(
             _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Failure("Utilizador não autenticado."))
             return
         }
-        // Adicione aqui a lógica para verificar se o currentUserId é admin do grupo, se necessário,
-        // antes de permitir a remoção. Essa lógica pode estar no UseCase ou aqui.
 
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // Assume que RemoveMemberUseCase lida com as permissões se necessário
                 val result = removeMemberUseCase(groupId, memberIdToRemove)
                 if (result.isSuccess) {
                     _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Success("Membro removido com sucesso."))
-                    loadStudyGroupDetails(groupId) // Recarrega para refletir a lista de membros atualizada
+                    loadStudyGroupDetails(groupId)
                 } else {
                     _removeMemberResultEvent.value = Event(StudyGroupGeneralResult.Failure(result.exceptionOrNull()?.message ?: "Falha ao remover membro."))
                 }

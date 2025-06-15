@@ -6,9 +6,6 @@ import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import ipvc.tp.devhive.domain.usecase.user.StatsAction
 import javax.inject.Inject
 
-/**
- * Caso de uso para eliminar um material de estudo
- */
 class DeleteMaterialUseCase @Inject constructor(
     private val materialRepository: MaterialRepository,
     private val userRepository: UserRepository,

@@ -157,7 +157,7 @@ class ExploreGroupsFragment : Fragment(R.layout.fragment_explore_groups) {
             .setPositiveButton(getString(R.string.join)) { _, _ ->
                 val joinCode = editText.text.toString().trim()
                 if (joinCode.isNotEmpty()) {
-                    viewModel.joinPrivateGroup(joinCode) // Chama o mesmo método do ViewModel
+                    viewModel.joinPrivateGroup(joinCode)
                 } else {
                     Toast.makeText(requireContext(), R.string.join_code_cannot_be_empty, Toast.LENGTH_SHORT).show()
                 }

@@ -2,7 +2,6 @@ package ipvc.tp.devhive.presentation.util
 
 import android.content.Context
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 
@@ -25,25 +24,10 @@ fun Context.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
 }
 
 /**
- * Esconde o teclado virtual
- */
-fun View.hideKeyboard() {
-    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.hideSoftInputFromWindow(windowToken, 0)
-}
-
-/**
  * Define a visibilidade da View como VISIBLE
  */
 fun View.visible() {
     visibility = View.VISIBLE
-}
-
-/**
- * Define a visibilidade da View como INVISIBLE
- */
-fun View.invisible() {
-    visibility = View.INVISIBLE
 }
 
 /**
@@ -53,9 +37,3 @@ fun View.gone() {
     visibility = View.GONE
 }
 
-/**
- * Alterna a visibilidade da View entre VISIBLE e GONE
- */
-fun View.toggleVisibility() {
-    visibility = if (visibility == View.VISIBLE) View.GONE else View.VISIBLE
-}

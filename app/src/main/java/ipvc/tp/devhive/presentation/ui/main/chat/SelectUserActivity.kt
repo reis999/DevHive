@@ -86,7 +86,7 @@ class SelectUserActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
             recyclerView.visibility = if (users.isEmpty()) View.GONE else View.VISIBLE
         }
 
-        chatViewModel.isUserSearchLoading.observe(this) { isLoading -> // Supondo que ProfileViewModel tem `isLoading`
+        chatViewModel.isUserSearchLoading.observe(this) { isLoading ->
             progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
             if (isLoading) {
                 tvNoUsers.visibility = View.GONE
@@ -98,7 +98,7 @@ class SelectUserActivity : AppCompatActivity(), UserAdapter.OnUserClickListener 
             event?.getContentIfNotHandled()?.let { chatEvent ->
                 when (chatEvent) {
                     is ChatEvent.CreateSuccess -> {
-                        progressBar.visibility = View.GONE // Esconder progresso
+                        progressBar.visibility = View.GONE
                         Toast.makeText(this, getString(R.string.chat_created_successfully), Toast.LENGTH_SHORT).show()
                         val intent = Intent(this, ChatRoomActivity::class.java)
 

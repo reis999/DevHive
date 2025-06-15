@@ -10,7 +10,6 @@ import ipvc.tp.devhive.domain.model.Message
 import ipvc.tp.devhive.domain.model.MessageAttachment
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.domain.usecase.chat.CreateChatUseCase
-import ipvc.tp.devhive.domain.usecase.chat.DeleteChatUseCase
 import ipvc.tp.devhive.domain.usecase.chat.GetChatByIdUseCase
 import ipvc.tp.devhive.domain.usecase.chat.GetChatsByUserUseCase
 import ipvc.tp.devhive.domain.usecase.chat.GetMessagesByChatIdUseCase
@@ -26,14 +25,13 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     private val createChatUseCase: CreateChatUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
-    private val deleteChatUseCase: DeleteChatUseCase,
     private val getChatByIdUseCase: GetChatByIdUseCase,
     private val getChatsByUserUseCase: GetChatsByUserUseCase,
     private val getMessagesByChatIdUseCase: GetMessagesByChatIdUseCase,
     private val getUserByIdUseCase: GetUserByIdUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val searchUsersUseCase: SearchUsersUseCase
-    ) : ViewModel() {
+) : ViewModel() {
 
     private val _chatEvent = MutableLiveData<Event<ChatEvent>>()
     val chatEvent: LiveData<Event<ChatEvent>> = _chatEvent

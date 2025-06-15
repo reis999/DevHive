@@ -47,15 +47,6 @@ class AuthViewModel @Inject constructor(
         firebaseAuth.addAuthStateListener(authStateListener)
     }
 
-    private fun checkAuthState() {
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-        if (currentUserId != null) {
-            _authState.value = AuthState.Authenticated(currentUserId)
-        } else {
-            _authState.value = AuthState.Unauthenticated
-        }
-    }
-
     fun isAuthenticated(): Boolean {
         return firebaseAuth.currentUser != null && _authState.value is AuthState.Authenticated
     }
@@ -69,7 +60,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun refreshAuthState() {
+    private fun refreshAuthState() {
         if (firebaseAuth.currentUser != null) {
             _authState.value = AuthState.Authenticated(firebaseAuth.currentUser!!.uid)
         } else {
@@ -143,7 +134,7 @@ class AuthViewModel @Inject constructor(
                         _authEvent.value = Event(AuthEvent.LogoutSuccess)
                     },
                     onFailure = {
-                        _authState.value = currentAuthValue // Reverte para o estado autenticado anterior
+                        _authState.value = currentAuthValue
                         _authEvent.value = Event(AuthEvent.LogoutFailure(it.message ?: "Erro ao fazer logout"))
                     }
                 )
@@ -153,7 +144,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun resetPassword(email: String) {
+    fun resetPassword() {
         // TODO: Implementar a lógica para enviar um email de recuperação de senha
         _authEvent.value = Event(AuthEvent.PasswordResetSent)
     }

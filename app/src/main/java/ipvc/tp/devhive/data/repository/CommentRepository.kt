@@ -21,12 +21,10 @@ class CommentRepository(
 ) : DomainCommentRepository {
 
     override fun getCommentsByMaterial(materialId: String): LiveData<List<ipvc.tp.devhive.domain.model.Comment>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshCommentsByMaterial(materialId)
         }
 
-        // Retorna LiveData do banco local
         return commentDao.getCommentsByMaterial(materialId).map { entities ->
             entities.map { CommentEntity.toComment(it).toDomainComment() }
         }
@@ -45,16 +43,13 @@ class CommentRepository(
 
     override suspend fun getCommentById(commentId: String): ipvc.tp.devhive.domain.model.Comment? {
         return withContext(Dispatchers.IO) {
-            // Primeiro tenta obter do banco de dados local
             val localComment = commentDao.getCommentById(commentId)
 
             if (localComment != null) {
                 CommentEntity.toComment(localComment).toDomainComment()
             } else {
-                // Se não encontrar localmente, busca do Firestore
                 val remoteComment = commentService.getCommentById(commentId)
 
-                // Se encontrar remotamente, salva no banco local
                 if (remoteComment != null) {
                     commentDao.insertComment(CommentEntity.fromComment(remoteComment))
                     remoteComment.toDomainComment()
@@ -66,12 +61,10 @@ class CommentRepository(
     }
 
     override fun getRepliesByParentId(parentId: String): LiveData<List<ipvc.tp.devhive.domain.model.Comment>> {
-        // Busca do Firestore para atualizar o cache local
         appScope.launch {
             refreshRepliesByParentId(parentId)
         }
 
-        // Retorna LiveData do banco local
         return commentDao.getRepliesByParentId(parentId).map { entities ->
             entities.map { CommentEntity.toComment(it).toDomainComment() }
         }
@@ -92,22 +85,18 @@ class CommentRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataComment = comment.toDataComment()
-                // Tenta criar no Firestore
                 val result = commentService.createComment(dataComment)
 
                 if (result.isSuccess) {
-                    // Se sucesso, salva no banco local
                     val createdComment = result.getOrThrow()
                     commentDao.insertComment(CommentEntity.fromComment(createdComment))
                     Result.success(createdComment.toDomainComment())
                 } else {
-                    // Se falhar, salva localmente com status pendente
                     val commentEntity = CommentEntity.fromComment(dataComment, SyncStatus.PENDING_UPLOAD)
                     commentDao.insertComment(commentEntity)
                     Result.success(comment)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, salva localmente com status pendente
                 val commentEntity = CommentEntity.fromComment(comment.toDataComment(), SyncStatus.PENDING_UPLOAD)
                 commentDao.insertComment(commentEntity)
                 Result.failure(e)
@@ -119,21 +108,17 @@ class CommentRepository(
         return withContext(Dispatchers.IO) {
             try {
                 val dataComment = comment.toDataComment()
-                // Tenta atualizar no Firestore
                 val result = commentService.updateComment(dataComment)
 
                 if (result.isSuccess) {
-                    // Se sucesso, atualiza no banco local
                     commentDao.insertComment(CommentEntity.fromComment(dataComment))
                     Result.success(comment)
                 } else {
-                    // Se falhar, atualiza localmente com status pendente
                     val commentEntity = CommentEntity.fromComment(dataComment, SyncStatus.PENDING_UPDATE)
                     commentDao.insertComment(commentEntity)
                     Result.success(comment)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, atualiza localmente com status pendente
                 val commentEntity = CommentEntity.fromComment(comment.toDataComment(), SyncStatus.PENDING_UPDATE)
                 commentDao.insertComment(commentEntity)
                 Result.failure(e)
@@ -144,15 +129,12 @@ class CommentRepository(
     override suspend fun deleteComment(commentId: String): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Tenta deletar no Firestore
                 val result = commentService.deleteComment(commentId)
 
                 if (result.isSuccess) {
-                    // Se sucesso, remove do banco local
                     commentDao.deleteCommentById(commentId)
                     Result.success(true)
                 } else {
-                    // Se falhar, marca como pendente de deleção
                     val comment = commentDao.getCommentById(commentId)
                     if (comment != null) {
                         val updatedComment = comment.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -161,7 +143,6 @@ class CommentRepository(
                     Result.success(false)
                 }
             } catch (e: Exception) {
-                // Em caso de erro, marca como pendente de deleção
                 val comment = commentDao.getCommentById(commentId)
                 if (comment != null) {
                     val updatedComment = comment.copy(syncStatus = SyncStatus.PENDING_DELETE)
@@ -178,7 +159,6 @@ class CommentRepository(
                 val result = commentService.likeComment(commentId)
 
                 if (result.isSuccess) {
-                    // Atualiza o contador de likes localmente
                     val comment = commentDao.getCommentById(commentId)
                     if (comment != null) {
                         val updatedComment = comment.copy(likes = comment.likes + 1)
@@ -266,7 +246,6 @@ class CommentRepository(
         )
     }
 
-    // Função para converter domain.model.Attachment para data.model.Attachment
     private fun ipvc.tp.devhive.domain.model.Attachment.toDataAttachment(): Attachment {
         return Attachment(
             url = this.url,

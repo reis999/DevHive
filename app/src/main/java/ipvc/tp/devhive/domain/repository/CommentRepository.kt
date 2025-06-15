@@ -4,9 +4,6 @@ import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.Comment
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Interface de repositório para operações relacionadas a comentários
- */
 interface CommentRepository {
     fun getCommentsByMaterial(materialId: String): LiveData<List<Comment>>
     suspend fun getCommentById(commentId: String): Comment?

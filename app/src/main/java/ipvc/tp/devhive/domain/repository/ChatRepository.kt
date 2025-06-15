@@ -4,9 +4,6 @@ import androidx.lifecycle.LiveData
 import ipvc.tp.devhive.domain.model.Chat
 import ipvc.tp.devhive.domain.model.Message
 
-/**
- * Interface de repositório para operações relacionadas a chats diretos entre dois usuários
- */
 interface ChatRepository {
     fun getChatsByUser(userId: String): LiveData<List<Chat>>
     suspend fun getChatById(chatId: String): Chat?

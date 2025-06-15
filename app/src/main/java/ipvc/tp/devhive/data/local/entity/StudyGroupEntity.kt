@@ -28,8 +28,6 @@ data class StudyGroupEntity(
     val lastMessageAt: Long?,
     val lastMessagePreview: String,
     val messageCount: Int,
-
-    // Campos para sincronização
     val syncStatus: String,
     val lastSyncedAt: Long,
     val isLocalOnly: Boolean,

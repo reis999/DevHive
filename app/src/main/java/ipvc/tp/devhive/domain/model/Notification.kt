@@ -2,9 +2,6 @@ package ipvc.tp.devhive.domain.model
 
 import com.google.firebase.Timestamp
 
-/**
- * Modelo de domínio para representar uma notificação
- */
 data class Notification(
     val id: String,
     val recipientUid: String,

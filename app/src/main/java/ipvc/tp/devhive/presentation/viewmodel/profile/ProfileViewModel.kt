@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.model.User
 import ipvc.tp.devhive.domain.usecase.auth.LogoutUserUseCase
 import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
@@ -25,19 +24,15 @@ class ProfileViewModel @Inject constructor(
     private val getUserByIdUseCase: GetUserByIdUseCase,
 ) : ViewModel() {
 
-    // LiveData para o perfil do usuário
     private val _userProfile = MutableLiveData<User?>()
     val userProfile: LiveData<User?> = _userProfile
 
-    // LiveData para eventos de perfil
     private val _profileEvent = MutableLiveData<Event<ProfileEvent>>()
     val profileEvent: LiveData<Event<ProfileEvent>> = _profileEvent
 
-    // LiveData para o estado de loading
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    // --- LiveData para o USUÁRIO VISUALIZADO (usado pela UserProfileActivity) ---
     private val _viewedUserProfile = MutableLiveData<User?>()
     val viewedUserProfile: LiveData<User?> = _viewedUserProfile
 
@@ -46,9 +41,6 @@ class ProfileViewModel @Inject constructor(
 
     private val _isLoadingViewedProfile = MutableLiveData<Boolean>()
     val isLoadingViewedProfile: LiveData<Boolean> = _isLoadingViewedProfile
-
-    private var currentMaterialsSource: LiveData<List<Material>>? = null
-    private var currentFavoritesSource: LiveData<List<Material>>? = null
 
 
     fun loadUserProfile() {
@@ -138,15 +130,12 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-    }
 }
 
 sealed class ProfileEvent {
-    object ProfileLoaded : ProfileEvent()
-    object ProfileUpdated : ProfileEvent()
-    object LogoutSuccess : ProfileEvent()
+    data object ProfileLoaded : ProfileEvent()
+    data object ProfileUpdated : ProfileEvent()
+    data object LogoutSuccess : ProfileEvent()
     data class Error(val message: String) : ProfileEvent()
 }
 

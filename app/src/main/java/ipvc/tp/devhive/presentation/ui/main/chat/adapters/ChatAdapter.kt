@@ -33,11 +33,10 @@ class ChatAdapter(
         holder.bind(getItem(position))
     }
 
-    // Modifique o construtor do ViewHolder também
     inner class ChatViewHolder(
         itemView: View,
         private val currentUser: User,
-        private val clickListener: OnChatClickListener // Adicionado para o click
+        private val clickListener: OnChatClickListener
     ) : RecyclerView.ViewHolder(itemView) {
         private val ivChatImage: ImageView = itemView.findViewById(R.id.iv_chat_image)
         private val tvChatName: TextView = itemView.findViewById(R.id.tv_chat_name)

@@ -91,7 +91,7 @@ class GroupMessageAdapter(
         fun bind(message: GroupMessage) {
             binding.tvReceiverName.text = message.senderName
             binding.tvMessageContent.text = message.content
-            binding.tvTimestampReceived.text = DateFormatUtils.getRelativeTimeSpan(message.createdAt) // Verifique o ID
+            binding.tvTimestampReceived.text = DateFormatUtils.getRelativeTimeSpan(message.createdAt)
 
             if (message.senderImageUrl.isNotEmpty()) {
                 Glide.with(itemView.context)
@@ -164,7 +164,7 @@ class GroupMessageAdapter(
 
             message.attachments.firstOrNull()?.let { attachment ->
                 binding.tvAttachmentFileNameReceived.text = attachment.name
-                binding.tvAttachmentFileSizeReceived.text = formatFileSize(attachment.size) // No seu GroupMessage.Attachment, o campo é 'size' ou 'sizeBytes'? Ajuste aqui.
+                binding.tvAttachmentFileSizeReceived.text = formatFileSize(attachment.size)
 
                 binding.ivAttachmentIconReceived.visibility = View.VISIBLE
                 binding.ivAttachmentIconReceived.setImageResource(getIconForFileType(attachment.fileExtension))
@@ -201,7 +201,7 @@ class GroupMessageAdapter(
             "ppt", "pptx" -> R.drawable.ic_file_powerpoint
             "zip", "rar" -> R.drawable.ic_file_archive
             "txt" -> R.drawable.ic_file_text
-            "jpg", "jpeg", "png", "gif", "bmp", "webp" -> R.drawable.ic_file_image // Crie R.drawable.ic_file_image
+            "jpg", "jpeg", "png", "gif", "bmp", "webp" -> R.drawable.ic_file_image
             else -> R.drawable.ic_file_generic
         }
     }

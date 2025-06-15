@@ -52,7 +52,6 @@ class ChatRoomActivity : AppCompatActivity() {
 
         currentChatId = intent.getStringExtra(EXTRA_CHAT_ID)
         val initialOtherUserName = intent.getStringExtra(EXTRA_CHAT_NAME)
-        // val otherUserIdFromIntent = intent.getStringExtra(EXTRA_OTHER_USER_ID) // Se precisar
 
         if (currentChatId.isNullOrEmpty()) {
             Toast.makeText(this, "ID do Chat inválido.", Toast.LENGTH_LONG).show()
@@ -61,8 +60,8 @@ class ChatRoomActivity : AppCompatActivity() {
         }
 
         initializeViews()
-        setupToolbar(initialOtherUserName) // Passa o nome inicial se disponível
-        setupRecyclerView() // Adapter será configurado quando tivermos currentUserId
+        setupToolbar(initialOtherUserName)
+        setupRecyclerView()
 
         observeViewModel()
 
@@ -108,10 +107,10 @@ class ChatRoomActivity : AppCompatActivity() {
     private fun observeViewModel() {
         chatViewModel.currentUser.observe(this) { user ->
             if (user != null) {
-                initializeAdapterIfNeeded(user.id) // Garante que o adapter está pronto
+                initializeAdapterIfNeeded(user.id)
                 currentChatId?.let {
                     chatViewModel.loadChatDetailsAndMessages(it)
-                    chatViewModel.listenForMessages(it) // Para atualizações em tempo real
+                    chatViewModel.listenForMessages(it)
                 }
             } else {
                 Toast.makeText(this, "Usuário não autenticado.", Toast.LENGTH_LONG).show()
@@ -119,9 +118,9 @@ class ChatRoomActivity : AppCompatActivity() {
             }
         }
 
-        chatViewModel.selectedChat.observe(this) { chat ->
+        chatViewModel.selectedChat.observe(this) {
             // chat pode ser nulo se não for encontrado ou durante o carregamento
-            // Os detalhes do outro usuário serão atualizados por _otherUserDetails
+            // Os detalhes do outro user serão atualizados por _otherUserDetails
         }
 
         chatViewModel.otherUserDetails.observe(this) { otherUser ->
@@ -131,11 +130,8 @@ class ChatRoomActivity : AppCompatActivity() {
         chatViewModel.chatMessages.observe(this) { messages ->
             if (::messageAdapter.isInitialized) {
                 messageAdapter.submitList(messages) {
-                    // Rola para a última mensagem somente se a lista não estiver vazia
-                    // e, idealmente, apenas se uma nova mensagem foi adicionada pelo usuário atual
-                    // ou se é o carregamento inicial.
                     if (messages.isNotEmpty()) {
-                        recyclerViewMessages.post { // Use post para garantir que o layout esteja completo
+                        recyclerViewMessages.post {
                             recyclerViewMessages.smoothScrollToPosition(messages.size - 1)
                         }
                     }
@@ -158,17 +154,14 @@ class ChatRoomActivity : AppCompatActivity() {
                 when (chatEvent) {
                     is ChatEvent.SendMessageSuccess -> {
                         etMessage.text.clear()
-                        // A lista será atualizada pelo chatMessages.observe
-                        // O scroll já é tratado lá.
                     }
                     is ChatEvent.SendMessageFailure -> {
                         Toast.makeText(this, chatEvent.message, Toast.LENGTH_SHORT).show()
                     }
                     is ChatEvent.Error -> {
                         Toast.makeText(this, chatEvent.message, Toast.LENGTH_LONG).show()
-                        // Você pode querer finalizar a activity se for um erro crítico (ex: chat não encontrado)
                         if (chatEvent.message.contains("Chat não encontrado")) {
-                            // finish()
+                            finish()
                         }
                     }
                     else -> { /* Não tratar outros eventos aqui */ }
@@ -178,13 +171,13 @@ class ChatRoomActivity : AppCompatActivity() {
     }
 
     private fun displayOtherUserDetails(otherUser: User) {
-        tvOtherUserName.text = otherUser.name // Ou username se preferir
-        tvOtherUserStatus.text = if (otherUser.isOnline == true) getString(R.string.online) else getString(R.string.offline) // Assumindo que User tem isOnline
+        tvOtherUserName.text = otherUser.name
+        tvOtherUserStatus.text = if (otherUser.isOnline) getString(R.string.online) else getString(R.string.offline)
 
-        if (!otherUser.profileImageUrl.isNullOrEmpty()) {
+        if (otherUser.profileImageUrl.isNotEmpty()) {
             Glide.with(this)
                 .load(otherUser.profileImageUrl)
-                .placeholder(R.drawable.profile_placeholder) // Use o placeholder correto
+                .placeholder(R.drawable.profile_placeholder)
                 .error(R.drawable.profile_placeholder)
                 .circleCrop()
                 .into(ivOtherUserAvatar)
@@ -196,17 +189,13 @@ class ChatRoomActivity : AppCompatActivity() {
     private fun sendMessage() {
         val messageText = etMessage.text.toString().trim()
         if (messageText.isEmpty()) {
-            // Permitir enviar apenas anexos no futuro, se necessário.
-            // Por enquanto, uma mensagem de texto é necessária ou um anexo.
             return
         }
 
         currentChatId?.let { chatId ->
-            // O currentUserId já deve estar definido via chatViewModel.currentUser
             chatViewModel.sendMessage(
                 chatId = chatId,
                 content = messageText
-                // attachments = listaDeAnexos // Adicionar lógica de anexos depois
             )
         }
     }
@@ -214,7 +203,7 @@ class ChatRoomActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                finish() // Volta para a tela anterior
+                finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)

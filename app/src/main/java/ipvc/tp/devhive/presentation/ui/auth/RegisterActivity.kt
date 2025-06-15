@@ -105,7 +105,6 @@ class RegisterActivity : AppCompatActivity() {
         }
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
-        // Configura os listeners
         ivBack.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
@@ -120,7 +119,6 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun register() {
-        // Valida os campos
         val name = etName.text.toString().trim()
         val username = etUsername.text.toString().trim()
         val email = etEmail.text.toString().trim()

@@ -5,16 +5,12 @@ import com.google.firebase.Timestamp
 import ipvc.tp.devhive.domain.model.Material
 import ipvc.tp.devhive.domain.repository.MaterialRepository
 import ipvc.tp.devhive.domain.repository.UserRepository
-import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import ipvc.tp.devhive.domain.usecase.user.StatsAction
+import ipvc.tp.devhive.domain.usecase.user.UpdateUserStatsUseCase
 import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 
-/**
- * Caso de uso para criar um novo material de estudo com upload de arquivos
- * Segue o mesmo padrão do CreateStudyGroupUseCase
- */
 class CreateMaterialUseCase @Inject constructor(
     private val materialRepository: MaterialRepository,
     private val userRepository: UserRepository,
@@ -55,7 +51,7 @@ class CreateMaterialUseCase @Inject constructor(
             fileSize = 0,
             ownerUid = currentUser.id,
             ownerName = currentUser.name,
-            ownerImageUrl = currentUser.profileImageUrl ?: "",
+            ownerImageUrl = currentUser.profileImageUrl,
             createdAt = now,
             updatedAt = now,
             categories = categories,

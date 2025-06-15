@@ -44,9 +44,6 @@ interface StudyGroupDao {
     @Query("UPDATE study_groups SET syncStatus = :status WHERE id = :studyGroupId")
     suspend fun updateSyncStatus(studyGroupId: String, status: String)
 
-    @Query("SELECT * FROM study_groups WHERE isPrivate = 0 AND name LIKE '%' || :query || '%'")
-    suspend fun searchPublicStudyGroups(query: String): List<StudyGroupEntity>
-
     @Query("SELECT * FROM study_groups WHERE isPrivate = 0 ORDER BY name ASC")
     fun getAllPublicStudyGroups(): LiveData<List<StudyGroupEntity>>
 

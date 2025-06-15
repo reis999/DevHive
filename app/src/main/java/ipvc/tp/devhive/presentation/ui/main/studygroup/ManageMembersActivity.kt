@@ -15,6 +15,7 @@ import ipvc.tp.devhive.R
 import ipvc.tp.devhive.databinding.ActivityManageMembersBinding
 import ipvc.tp.devhive.domain.model.StudyGroup
 import ipvc.tp.devhive.domain.model.User
+import ipvc.tp.devhive.presentation.ui.main.studygroup.adapters.MemberAdapter
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupEvent
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupGeneralResult
 import ipvc.tp.devhive.presentation.viewmodel.studygroup.StudyGroupViewModel

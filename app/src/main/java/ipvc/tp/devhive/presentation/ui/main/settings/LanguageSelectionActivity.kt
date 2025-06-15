@@ -103,8 +103,7 @@ class LanguageSelectionActivity : AppCompatActivity() {
                 setCompoundDrawablesWithIntrinsicBounds(null, null, radioDrawable, null)
                 compoundDrawablePadding = (16 * resources.displayMetrics.density).toInt()
                 buttonDrawable = null
-            } catch (e: Exception) {
-                // Mantém o radio button padrão se não tiveres o drawable customizado
+            } catch (_: Exception) {
             }
         }
     }
@@ -157,15 +156,12 @@ class LanguageSelectionActivity : AppCompatActivity() {
             .show()
     }
 
-    // NOVA FUNÇÃO: Aplica mudança de idioma
     private fun applyLanguageChange(languageCode: String) {
-        // Feedback visual no botão
         btnApplyLanguage.apply {
             isEnabled = false
             text = getString(R.string.applying)
         }
 
-        // Aplica a mudança
         LocaleHelper.setAppLocale(this, languageCode)
         setResult(Activity.RESULT_OK)
         Toast.makeText(this, getString(R.string.language_changed_message), Toast.LENGTH_SHORT).show()

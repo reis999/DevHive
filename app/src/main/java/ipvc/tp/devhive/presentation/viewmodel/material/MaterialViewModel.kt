@@ -110,16 +110,8 @@ class MaterialViewModel @Inject constructor(
         return _currentUser.value?.id
     }
 
-    fun refreshCurrentUser() {
-        loadCurrentUser()
-    }
-
     fun getMaterialsByUser(userId: String): LiveData<List<Material>> {
         return getMaterialsUseCase.byUser(userId)
-    }
-
-    fun getMaterialsBySubject(subject: String): LiveData<List<Material>> {
-        return getMaterialsUseCase.bySubject(subject)
     }
 
     fun getMaterialById(materialId: String) {
@@ -314,9 +306,6 @@ class MaterialViewModel @Inject constructor(
         }
     }
 
-    fun clearMaterial() {
-        _material.value = null
-    }
 }
 
 sealed class MaterialGeneralResult {
@@ -326,7 +315,6 @@ sealed class MaterialGeneralResult {
 
 sealed class MaterialEvent {
     data class CreateSuccess(val material: Material) : MaterialEvent()
-    data class CreateFailure(val message: String) : MaterialEvent()
     data class DeleteSuccess(val materialId: String) : MaterialEvent()
     data class DeleteFailure(val message: String) : MaterialEvent()
     data class BookmarkToggled(val materialId: String, val bookmarked: Boolean) : MaterialEvent()

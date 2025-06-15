@@ -10,7 +10,6 @@ import ipvc.tp.devhive.domain.model.Comment
 import ipvc.tp.devhive.domain.usecase.comment.CreateCommentUseCase
 import ipvc.tp.devhive.domain.usecase.comment.GetCommentsUseCase
 import ipvc.tp.devhive.domain.usecase.comment.LikeCommentUseCase
-import ipvc.tp.devhive.domain.usecase.user.GetCurrentUserUseCase
 import ipvc.tp.devhive.presentation.util.Event
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,8 +18,7 @@ import javax.inject.Inject
 class CommentViewModel @Inject constructor(
     private val getCommentsUseCase: GetCommentsUseCase,
     private val createCommentUseCase: CreateCommentUseCase,
-    private val likeCommentUseCase: LikeCommentUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val likeCommentUseCase: LikeCommentUseCase
 ) : ViewModel() {
 
     private val _commentEvent = MutableLiveData<Event<CommentEvent>>()
@@ -29,23 +27,10 @@ class CommentViewModel @Inject constructor(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    /**
-     * Obtém os comentários de um material específico
-     */
     fun getCommentsByMaterial(materialId: String): LiveData<List<Comment>> {
         return getCommentsUseCase.byMaterial(materialId)
     }
 
-    /**
-     * Obtém as respostas de um comentário pai
-     */
-    fun getRepliesByParentId(parentId: String): LiveData<List<Comment>> {
-        return getCommentsUseCase.repliesByParentId(parentId)
-    }
-
-    /**
-     * Cria um novo comentário
-     */
     fun createComment(
         materialId: String,
         userUid: String,
@@ -77,9 +62,6 @@ class CommentViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Curte/descurte um comentário
-     */
     fun likeComment(commentId: String, userId: String) {
         viewModelScope.launch {
             val result = likeCommentUseCase(commentId, userId)

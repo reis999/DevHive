@@ -3,9 +3,6 @@ package ipvc.tp.devhive.domain.usecase.material
 import ipvc.tp.devhive.domain.repository.MaterialRepository
 import javax.inject.Inject
 
-/**
- * Caso de uso para fazer download de um material
- */
 class DownloadMaterialUseCase @Inject constructor(
     private val materialRepository: MaterialRepository
 ) {

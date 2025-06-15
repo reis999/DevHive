@@ -12,10 +12,10 @@ import ipvc.tp.devhive.domain.model.StudyGroup
 
 class ExploreGroupsAdapter(
     private val onGroupClickListener: (studyGroup: StudyGroup) -> Unit
-) : ListAdapter<StudyGroup, ExploreGroupsAdapter.ExploreGroupViewHolder>(StudyGroupDiffCallback()) { // Reutilize o DiffCallback
+) : ListAdapter<StudyGroup, ExploreGroupsAdapter.ExploreGroupViewHolder>(StudyGroupDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExploreGroupViewHolder {
-        val binding = ItemStudyGroupExploreBinding.inflate( // Use ViewBinding
+        val binding = ItemStudyGroupExploreBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
