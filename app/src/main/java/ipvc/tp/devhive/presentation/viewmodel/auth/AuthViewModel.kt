@@ -17,7 +17,8 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val registerUserUseCase: RegisterUserUseCase,
     private val loginUserUseCase: LoginUserUseCase,
-    private val logoutUserUseCase: LogoutUserUseCase
+    private val logoutUserUseCase: LogoutUserUseCase,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
     private val _authState = MutableLiveData<AuthState>()
@@ -26,9 +27,24 @@ class AuthViewModel @Inject constructor(
     private val _authEvent = MutableLiveData<Event<AuthEvent>>()
     val authEvent: LiveData<Event<AuthEvent>> = _authEvent
 
+    private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
+        val firebaseUser = auth.currentUser
+        if (firebaseUser != null) {
+            if (_authState.value !is AuthState.Authenticated || (_authState.value as? AuthState.Authenticated)?.userId != firebaseUser.uid) {
+                if (_authState.value is AuthState.Loading && _authEvent.value?.peekContent() is AuthEvent.LoginSuccess || _authEvent.value?.peekContent() is AuthEvent.RegisterSuccess) {
+                } else {
+                    _authState.value = AuthState.Authenticated(firebaseUser.uid)
+                }
+            }
+        } else {
+            if (_authState.value !is AuthState.Unauthenticated && _authState.value !is AuthState.Loading) {
+                _authState.value = AuthState.Unauthenticated
+            }
+        }
+    }
+
     init {
-        // Verifica se o usuário já está autenticado
-        checkAuthState()
+        firebaseAuth.addAuthStateListener(authStateListener)
     }
 
     private fun checkAuthState() {
@@ -41,20 +57,24 @@ class AuthViewModel @Inject constructor(
     }
 
     fun isAuthenticated(): Boolean {
-        return _authState.value is AuthState.Authenticated
+        return firebaseAuth.currentUser != null && _authState.value is AuthState.Authenticated
     }
 
     fun getCurrentUserId(): String? {
-        val state = _authState.value
-        return if (state is AuthState.Authenticated) {
-            state.userId
+        // Idem
+        return if (_authState.value is AuthState.Authenticated) {
+            (authState.value as AuthState.Authenticated).userId
         } else {
-            null
+            firebaseAuth.currentUser?.uid
         }
     }
 
     fun refreshAuthState() {
-        checkAuthState()
+        if (firebaseAuth.currentUser != null) {
+            _authState.value = AuthState.Authenticated(firebaseAuth.currentUser!!.uid)
+        } else {
+            _authState.value = AuthState.Unauthenticated
+        }
     }
 
     fun register(
@@ -110,12 +130,12 @@ class AuthViewModel @Inject constructor(
     }
 
     fun logout() {
-        val currentState = _authState.value
-        if (currentState is AuthState.Authenticated) {
+        val currentAuthValue = _authState.value
+        if (currentAuthValue is AuthState.Authenticated) {
             _authState.value = AuthState.Loading
 
             viewModelScope.launch {
-                val result = logoutUserUseCase(currentState.userId)
+                val result = logoutUserUseCase(currentAuthValue.userId)
 
                 result.fold(
                     onSuccess = {
@@ -123,11 +143,13 @@ class AuthViewModel @Inject constructor(
                         _authEvent.value = Event(AuthEvent.LogoutSuccess)
                     },
                     onFailure = {
-                        _authState.value = currentState
+                        _authState.value = currentAuthValue // Reverte para o estado autenticado anterior
                         _authEvent.value = Event(AuthEvent.LogoutFailure(it.message ?: "Erro ao fazer logout"))
                     }
                 )
             }
+        } else {
+            refreshAuthState()
         }
     }
 

@@ -38,7 +38,7 @@
     <string name="profile">Perfil</string>
 
     <!-- Home -->
-    <string name="welcome_back">Bem-vindo de volta, %1$s!</string>
+    <string name="welcome_back">Bem-vindo de volta!</string>
     <string name="recent_materials">Materiais recentes</string>
     <string name="your_study_groups">Seus grupos de estudo</string>
     <string name="see_all">Ver todos</string>
@@ -350,8 +350,29 @@
     <string name="sessions">Sessões</string>
     <string name="my_materials">Meus Materiais</string>
     <string name="no_materials_yet">Você ainda não compartilhou materiais</string>
-    <string name="settings">Configurações</string>
+    <string name="settings">Definições</string>
     <string name="profile_photo">Foto de Perfil</string>
     <string name="name">Nome</string>
+    <string name="language_changed_message">Linguagem Alterada</string>
+    <string name="select_language">Escolher Linguagem</string>
+    <string name="language">Linguagem</string>
+    <string name="apply">Aplicar</string>
+    <string name="intro_slides">Slides Introdução</string>
+    <string name="private_profile">Perfil Privado</string>
+    <string name="view_again">Visualizar Novamente</string>
+    <string name="goto_slides">Ir para slides</string>
+    <string name="accessibility">Acessibilidade</string>
+    <string name="delete_account">Apagar a conta</string>
+    <string name="delete_acc_question">Deseja eliminar a sua conta?</string>
+    <string name="privacy">Privacidade</string>
+    <string name="suspend_notifs">Suspender tudo</string>
+    <string name="notifications">Notificações</string>
+    <string name="restart_required_message">As alterações serão aplicadas imediatamente</string>
+    <string name="available_languages">Idiomas Disponíveis</string>
+    <string name="language_selection_description">Selecione o seu idioma preferido para personalizar a experiência</string>
+    <string name="applying">Aplicando...</string>
+    <string name="confirm_language_change_message">Alterar idioma para %1$s?</string>
+    <string name="confirm_language_change">Confirmar alteração de idioma</string>
+    <string name="apply_changes">Aplicar alterações</string>
 
 </resources>

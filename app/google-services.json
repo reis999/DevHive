@@ -12,7 +12,12 @@
           "package_name": "ipvc.tp.devhive"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "202349296779-401jjf6rucuea16e8tuahicsp6mnp4sb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBaG5fMkmDFsA87J_Yco-r24I_C0oCR21o"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "202349296779-401jjf6rucuea16e8tuahicsp6mnp4sb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

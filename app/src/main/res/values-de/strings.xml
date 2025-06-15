@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DevHive</string>
+
+    <!-- Anmeldung und Registrierung -->
+    <string name="login">Anmelden</string>
+    <string name="register">Registrieren</string>
+    <string name="email">E-Mail</string>
+    <string name="password">Passwort</string>
+    <string name="confirm_password">Passwort bestätigen</string>
+    <string name="forgot_password">Passwort vergessen?</string>
+    <string name="create_account">Konto erstellen</string>
+    <string name="already_have_account">Sie haben bereits ein Konto? Anmelden</string>
+    <string name="dont_have_account">Sie haben kein Konto? Registrieren</string>
+    <string name="reset_password">Passwort zurücksetzen</string>
+    <string name="reset_password_instructions">Geben Sie Ihre E-Mail-Adresse ein, um Anweisungen zum Zurücksetzen des Passworts zu erhalten</string>
+    <string name="send_instructions">Anweisungen senden</string>
+    <string name="back_to_login">Zurück zur Anmeldung</string>
+    <string name="email_required">E-Mail ist erforderlich</string>
+    <string name="password_required">Passwort ist erforderlich</string>
+    <string name="login_success">Anmeldung erfolgreich!</string>
+    <string name="google_login_not_implemented">Google-Anmeldung nicht implementiert</string>
+    <string name="register_success">Registrierung erfolgreich!</string>
+    <string name="name_required">Name ist erforderlich</string>
+    <string name="username_required">Benutzername ist erforderlich</string>
+    <string name="password_too_short">Das Passwort muss mindestens 6 Zeichen lang sein</string>
+    <string name="institution_required">Institution ist erforderlich</string>
+    <string name="course_required">Kurs ist erforderlich</string>
+    <string name="logout_confirmation">Möchten Sie sich wirklich abmelden?</string>
+    <string name="invalid_email">Ungültige E-Mail</string>
+    <string name="user_not_auth">Benutzer nicht authentifiziert</string>
+
+    <!-- Navigation -->
+    <string name="home">Startseite</string>
+    <string name="materials">Materialien</string>
+    <string name="study_groups">Gruppen</string>
+    <string name="chat">Chat</string>
+    <string name="profile">Profil</string>
+
+    <!-- Startseite -->
+    <string name="welcome_back">Willkommen zurück!</string>
+    <string name="recent_materials">Aktuelle Materialien</string>
+    <string name="your_study_groups">Ihre Lerngruppen</string>
+    <string name="see_all">Alle anzeigen</string>
+    <string name="search_hint">Materialien, Gruppen suchen…</string>
+
+    <string name="title_home">Startseite Titel</string>
+    <string name="title_materials">Materialien Titel</string>
+    <string name="title_chat">Chat Titel</string>
+    <string name="title_study_groups">Lerngruppen Titel</string>
+    <string name="title_profile">Profil Titel</string>
+
+    <!-- Materialien -->
+    <string name="add_material">Material hinzufügen</string>
+    <string name="material_title">Titel des Materials</string>
+    <string name="material_description">Beschreibung</string>
+    <string name="material_subject">Fach</string>
+    <string name="material_type">Materialtyp</string>
+    <string name="upload_file">Datei hochladen</string>
+    <string name="publish">Veröffentlichen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="comments">Kommentare</string>
+    <string name="add_comment">Kommentar hinzufügen</string>
+    <string name="write_comment">Schreiben Sie einen Kommentar…</string>
+    <string name="bookmark">Lesezeichen</string>
+    <string name="share">Teilen</string>
+    <string name="like">Gefällt mir</string>
+    <string name="download">Herunterladen</string>
+    <string name="views">Aufrufe</string>
+    <string name="downloads">Downloads</string>
+    <string name="bookmarks">Lesezeichen</string>
+    <string name="uploaded_by">Hochgeladen von %1$s</string>
+    <string name="uploaded_on">Hochgeladen am %1$s</string>
+    <string name="material_published">Material erfolgreich veröffentlicht</string>
+    <string name="share_material_message">Teilen des Materials \"%1$s\", erstellt von %2$s, Zugriff %3$s</string>
+    <string name="share_via">Teilen über</string>
+    <string name="search_materials">Materialien suchen</string>
+    <string name="categories">Kategorien</string>
+    <string name="make_public">Öffentlich machen</string>
+    <string name="comment_hint">Schreiben Sie Ihren Kommentar…</string>
+    <string name="character_limit">0/500</string>
+    <string name="submit_comment">Veröffentlichen</string>
+    <string name="comment_liked">Kommentar gefällt mir!</string>
+    <string name="login_required_to_comment">Sie müssen angemeldet sein, um zu kommentieren</string>
+    <string name="login_required_to_like">Sie müssen angemeldet sein, um etwas zu mögen</string>
+    <string name="material_liked">Material gefällt mir!</string>
+    <string name="material_unliked">Gefällt mir entfernt</string>
+    <string name="clear_filters">Filter löschen</string>
+    <string name="all_subjects">Alle</string>
+    <string name="no_materials_created">Keine Materialien veröffentlicht</string>
+    <string name="no_favorites_yet">Noch keine Favoriten</string>
+    <string name="my_favorites">Meine Favoriten</string>
+
+    <!-- Material hinzufügen -->
+    <string name="material_cover">Materialcover</string>
+    <string name="select_cover">Cover auswählen</string>
+    <string name="title">Titel</string>
+    <string name="description">Beschreibung</string>
+    <string name="subject">Thema</string>
+    <string name="subject_algorithms">Algorithmen und Datenstrukturen</string>
+    <string name="subject_programming">Programmierung</string>
+    <string name="subject_math">Mathematik</string>
+    <string name="subject_os">Betriebssysteme</string>
+    <string name="subject_db">Datenbanken</string>
+    <string name="subject_software_eng">Softwaretechnik</string>
+    <string name="subject_ai">Künstliche Intelligenz</string>
+    <string name="tags">Tags</string>
+    <string name="add">Hinzufügen</string>
+    <string name="type_message">Nachricht eingeben</string>
+    <string name="type_pdf">PDF</string>
+    <string name="type_video">Video</string>
+    <string name="type_audio">Audio</string>
+    <string name="type_image">Bild</string>
+    <string name="type_document">Dokument</string>
+    <string name="type_presentation">Präsentation</string>
+    <string name="type_spreadsheet">Tabellenkalkulation</string>
+    <string name="type_code">Code</string>
+    <string name="type_other">Andere</string>
+    <string name="thumbnail_selected">✓ Miniaturbild ausgewählt</string>
+    <string name="file_selected">✓ %1$s</string>
+    <string name="file_selected_generic">✓ Datei ausgewählt</string>
+    <string name="attached_file">Anhang</string>
+    <string name="no_comments">Keine Kommentare</string>
+
+    <!-- Lerngruppen -->
+    <string name="create_study_group">Lerngruppe erstellen</string>
+    <string name="join_study_group">Gruppe beitreten</string>
+    <string name="group_name">Gruppenname</string>
+    <string name="group_description">Gruppenbeschreibung</string>
+    <string name="group_categories">Kategorien</string>
+    <string name="group_is_private">Private Gruppe</string>
+    <string name="group_max_members">Maximale Anzahl der Mitglieder</string>
+    <string name="create_group">Gruppe erstellen</string>
+    <string name="join_with_code">Mit Code beitreten</string>
+    <string name="member_count">%1$d Mitglieder</string>
+    <string name="leave_group">Gruppe verlassen</string>
+    <string name="invite_members">Mitglieder einladen</string>
+    <string name="study_group_created">Gruppe erfolgreich erstellt</string>
+    <string name="no_study_groups_found">Keine Gruppen gefunden</string>
+    <string name="group_image">Gruppenbild</string>
+    <string name="create_private">Private Gruppe?</string>
+    <string name="member_count_format">%1$d Mitglieder</string>
+    <string name="group_settings">Gruppeneinstellungen</string>
+    <string name="group_cover_image">Gruppen-Titelbild</string>
+    <string name="change_cover_image">Bild ändern</string>
+    <string name="add_category">Kategorie hinzufügen</string>
+    <string name="add_short">Hinzufügen</string>
+    <string name="manage_members">Mitglieder verwalten</string>
+    <string name="save_changes">Änderungen speichern</string>
+    <string name="delete_group">Gruppe löschen</string>
+    <string name="delete_group_confirmation_title">Löschung bestätigen</string>
+    <string name="delete_group_confirmation_message">Möchten Sie diese Gruppe wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="not_admin_message">Nur Admins können die Einstellungen dieser Gruppe ändern.</string>
+    <string name="changes_saved_success">Änderungen erfolgreich gespeichert!</string>
+    <string name="group_deleted_success">Gruppe erfolgreich gelöscht.</string>
+    <string name="error_saving_changes">Fehler beim Speichern der Änderungen: %1$s</string>
+    <string name="error_deleting_group">Fehler beim Löschen der Gruppe: %1$s</string>
+    <string name="select_image_title">Bild auswählen</string>
+    <string name="placeholder_group_description">Platzhalter-Gruppe</string>
+    <string name="category_already_exists">Kategorie existiert bereits</string>
+    <string name="add_at_least_one_category">Fügen Sie mindestens eine Kategorie hinzu</string>
+    <string name="group_settings_updated">Gruppeneinstellungen aktualisiert</string>
+    <string name="group_id_not_provided">Gruppen-ID nicht angegeben</string>
+    <string name="group_no_longer_available">Gruppe nicht mehr verfügbar</string>
+    <string name="only_admin_can_access_settings">Nur Admins können auf die Einstellungen dieser Gruppe zugreifen</string>
+    <string name="error_sending_message_param">Fehler beim Senden der Nachricht: %1$s</string>
+    <string name="wait_initializing">Bitte warten Sie auf die Initialisierung</string>
+    <string name="only_admin_can_save_changes">Nur Admins können Änderungen speichern</string>
+    <string name="no_app_to_pick_image">Keine App zum Auswählen von Bildern</string>
+    <string name="only_admin_can_delete_group">Nur Admins können Gruppen löschen</string>
+    <string name="view_settings_for_group">Einstellungen für die Gruppe \"%1$s\" anzeigen</string>
+    <string name="settings_for_group">Einstellungen für die Gruppe \"%1$s\"</string>
+    <string name="implement_member_management">Funktion nicht implementiert</string>
+    <string name="please_enter_the_join_code">Bitte geben Sie den Zugangscode der Gruppe ein.</string>
+    <string name="title_explore_groups">Gruppen erkunden</string>
+    <string name="join_code_cannot_be_empty">Der Zugangscode darf nicht leer sein.</string>
+    <string name="enter_join_code">Zugangscode eingeben</string>
+    <string name="join_group_title">Gruppe beitreten</string>
+    <string name="join_public_group_confirmation">Möchten Sie der öffentlichen Gruppe \"%1$s\" wirklich beitreten?</string>
+    <string name="join_private_group_title">Private Gruppe beitreten: %1$s</string>
+    <string name="enter_join_code_for_group">Um der privaten Gruppe \"%1$s\" beizutreten, geben Sie bitte den Zugangscode ein.</string>
+    <string name="join">Beitreten</string>
+    <string name="no_public_groups_found">Keine öffentlichen Gruppen gefunden.</string>
+    <string name="join_private_group_with_code">Mit Code beitreten</string>
+    <string name="join_code_label_private">Zugangscode (Private Gruppe)</string>
+    <string name="join_code_helper_text_admin">Teilen Sie diesen Code, damit andere der Gruppe beitreten können.</string>
+    <string name="copy_join_code">Zugangscode kopieren</string>
+    <string name="join_code_copied">Zugangscode kopiert!</string>
+    <string name="join_code_not_available">Zugangscode nicht verfügbar</string>
+    <string name="leave_group_confirmation_title">Austritt bestätigen</string>
+    <string name="leave_group_confirmation_message">Möchten Sie diese Gruppe wirklich verlassen?</string>
+    <string name="you_left_group_success">Sie haben die Gruppe erfolgreich verlassen.</string>
+    <string name="error_leaving_group">Fehler beim Verlassen der Gruppe: %1$s</string>
+    <string name="member_removed_success">Mitglied erfolgreich entfernt.</string>
+    <string name="error_removing_member">Fehler beim Entfernen des Mitglieds: %1$s</string>
+    <string name="manage_members_title">Mitglieder verwalten</string>
+    <string name="kick_member">Mitglied entfernen</string>
+    <string name="kick_member_confirmation_title">Entfernung bestätigen</string>
+    <string name="kick_member_confirmation_message">Möchten Sie %1$s wirklich aus dieser Gruppe entfernen?</string>
+    <string name="cannot_kick_admin">Sie können keinen anderen Admin entfernen.</string>
+    <string name="cannot_kick_self">Sie können sich nicht selbst entfernen.</string>
+    <string name="no_members_to_manage">Es gibt keine anderen Mitglieder zu verwalten.</string>
+    <string name="admin">Admin</string>
+    <string name="member">Mitglied</string>
+    <string name="only_members_can_leave">Nur Mitglieder können die Gruppe verlassen.</string>
+    <string name="group_not_found">Gruppe nicht gefunden.</string>
+    <string name="member_list_updated">Mitgliederliste aktualisiert.</string>
+    <string name="attach_file">Datei anhängen</string>
+    <string name="file_ready_to_upload">Datei bereit zum Hochladen: %1$s</string>
+    <string name="remove_attachment">Anhang entfernen</string>
+    <string name="download_file">Datei herunterladen</string>
+    <string name="download_started_param">Download gestartet für die Datei: %1$s</string>
+    <string name="downloading_file">Datei wird heruntergeladen…</string>
+
+    <!-- Chat -->
+    <string name="new_chat">Neue Unterhaltung</string>
+    <string name="message_hint">Nachricht eingeben…</string>
+    <string name="send_message">Nachricht senden</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+    <string name="typing">Tippt…</string>
+    <string name="no_messages_yet">Noch keine Nachrichten</string>
+    <string name="start_conversation">Beginne eine Unterhaltung</string>
+    <string name="select_user">Benutzer auswählen</string>
+    <string name="creating_chat_with">Erstelle einen Chat mit %1$s</string>
+    <string name="search_users">Benutzer suchen</string>
+    <string name="no_chats_found">Keine Unterhaltungen gefunden</string>
+    <string name="chat_image">Chat-Bild</string>
+    <string name="select_user_to_chat">Benutzer zum Chat auswählen</string>
+    <string name="no_users_found">Keine Benutzer gefunden</string>
+    <string name="no_users">Keine Benutzer</string>
+    <string name="try_different_search">Versuchen Sie eine andere Suche</string>
+    <string name="no_users_found_search">Keine Benutzer gefunden</string>
+    <string name="chat_created_successfully">Chat erfolgreich erstellt</string>
+    <string name="error_creating_chat">Fehler beim Erstellen des Chats</string>
+
+    <!-- Kommentare -->
+    <string name="hint_comment">Schreiben Sie einen Kommentar…</string>
+    <string name="user_avatar">Benutzeravatar</string>
+    <string name="like_comment">Kommentar gefällt mir</string>
+
+    <!-- Profil -->
+    <string name="edit_profile">Profil bearbeiten</string>
+    <string name="logout">Abmelden</string>
+    <string name="full_name">Vollständiger Name</string>
+    <string name="username">Benutzername</string>
+    <string name="bio">Biografie</string>
+    <string name="university">Universität</string>
+    <string name="course">Kurs</string>
+    <string name="save">Speichern</string>
+    <string name="change_photo">Foto ändern</string>
+    <string name="materials_uploaded">Materialien hochgeladen</string>
+    <string name="materials_bookmarked">Favoriten</string>
+    <string name="groups_joined">Beitrittsgruppen</string>
+    <string name="no_bio">Benutzer hat keine Biografie</string>
+    <string name="favorites">Favoriten</string>
+    <string name="profile_updated">Profil erfolgreich aktualisiert</string>
+    <string name="followers">Follower</string>
+    <string name="following">Folgt</string>
+    <string name="no_materials_created_by_this_user">Keine Materialien von diesem Benutzer erstellt</string>
+    <string name="this_user_has_no_favorites">Dieser Benutzer hat keine Favoriten</string>
+    <string name="error_loading_profile">Fehler beim Laden des Profils</string>
+    <string name="no_bio_available">Keine Biografie verfügbar</string>
+
+    <!-- Fehler und Nachrichten -->
+    <string name="error_login">Fehler bei der Anmeldung. Überprüfen Sie Ihre Anmeldedaten.</string>
+    <string name="error_register">Fehler bei der Registrierung. Bitte versuchen Sie es erneut.</string>
+    <string name="error_network">Verbindungsfehler. Überprüfen Sie Ihre Internetverbindung.</string>
+    <string name="error_unknown">Ein unbekannter Fehler ist aufgetreten.</string>
+    <string name="success_login">Anmeldung erfolgreich!</string>
+    <string name="success_register">Registrierung erfolgreich!</string>
+    <string name="success_material_upload">Material erfolgreich hochgeladen!</string>
+    <string name="success_group_create">Gruppe erfolgreich erstellt!</string>
+    <string name="success_profile_update">Profil erfolgreich aktualisiert!</string>
+    <string name="password_reset_sent">Anweisungen zum Zurücksetzen des Passworts wurden an Ihre E-Mail gesendet.</string>
+    <string name="error_chat_name_empty">Der Chatname darf nicht leer sein.</string>
+    <string name="error_chat_name_too_short">Der Chatname muss mindestens 3 Zeichen lang sein.</string>
+    <string name="error_access_code_empty">Der Zugangscode darf nicht leer sein.</string>
+    <string name="error_access_code_too_short">Der Zugangscode muss mindestens 4 Zeichen lang sein.</string>
+    <string name="chat_created_success">Chat erfolgreich erstellt!</string>
+    <string name="create_chat">Chat erstellen</string>
+    <string name="error_comment_empty">Kommentar darf nicht leer sein.</string>
+    <string name="error_comment_too_short">Kommentar muss mindestens 3 Zeichen lang sein.</string>
+    <string name="comment_created_success">Kommentar erfolgreich erstellt!</string>
+    <string name="material_bookmarked">Material erfolgreich zu Favoriten hinzugefügt!</string>
+    <string name="material_bookmark_removed">Material aus Favoriten entfernt!</string>
+    <string name="error_loading_material">Fehler beim Laden des Materials.</string>
+    <string name="downloading_material">Material wird heruntergeladen…</string>
+
+    <!-- Allgemein -->
+    <string name="back">Zurück</string>
+    <string name="delete">Löschen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="search">Suchen</string>
+    <string name="loading">Wird geladen…</string>
+    <string name="error">Fehler</string>
+    <string name="success">Erfolg</string>
+    <string name="ok">OK</string>
+    <string name="permission_denied">Berechtigung verweigert</string>
+    <string name="permission_rationale">Berechtigung erforderlich für den Zugriff</string>
+    <string name="select_file">Datei auswählen</string>
+    <string name="select_file_required">Es muss eine Datei ausgewählt werden</string>
+    <string name="field_required">Feld erforderlich</string>
+    <string name="create">Erstellen</string>
+    <string name="submit">Einreichen</string>
+
+    <!-- Splash und Einführung -->
+    <string name="app_logo">DevHive-Logo</string>
+    <string name="skip">Überspringen</string>
+    <string name="next">Weiter</string>
+    <string name="finish">Fertigstellen</string>
+    <string name="get_started">Loslegen</string>
+    <string name="intro_slide_image">Einführungsfolienbild</string>
+    <string name="devhive_logo">DevHive-Logo</string>
+    <string name="next_slide">Nächste Folie</string>
+
+    <string name="intro_title_1">Willkommen bei DevHive</string>
+    <string name="intro_subtitle_1">Studieren Sie mit Ihrer Gemeinschaft</string>
+    <string name="intro_description_1">Treten Sie einem Bienenstock von Informatikstudenten bei, wo Wissen geteilt, organisiert und immer zugänglich ist.</string>
+
+    <string name="intro_title_2">Wissen teilen</string>
+    <string name="intro_description_2">Teilen Sie Lernmaterialien, Codes und Tipps mit anderen Studenten</string>
+
+    <string name="intro_title_3">In Gruppen studieren</string>
+    <string name="intro_description_3">Erstellen oder treten Sie Lerngruppen bei, um gemeinsam zu lernen</string>
+
+    <string name="intro_title_4">Investieren Sie in Ihren Erfolg!</string>
+    <string name="intro_subtitle_4">Legen Sie jetzt los!</string>
+    <string name="intro_description_4">Organisieren Sie Ihre Zukunft und seien Sie auf alle wichtigen Momente vorbereitet!</string>
+
+    <!-- Authentifizierung -->
+    <string name="login_to_continue">Melden Sie sich an, um fortzufahren</string>
+    <string name="or">oder</string>
+    <string name="continue_with_google">Mit Google fortfahren</string>
+    <string name="register_subtitle">Füllen Sie die folgenden Felder aus, um sich zu registrieren</string>
+    <string name="institution">Institution</string>
+    <string name="send">Senden</string>
+
+    <!-- Startseite -->
+    <string name="no_materials_found">Keine Materialien gefunden</string>
+    <string name="material_thumbnail">Materialminiaturbild</string>
+
+    <!-- Profil -->
+    <string name="profile_background">Profilhintergrund</string>
+    <string name="contribution_stats">Beitragsstatistiken</string>
+    <string name="likes">Gefällt mir</string>
+    <string name="sessions">Sitzungen</string>
+    <string name="my_materials">Meine Materialien</string>
+    <string name="no_materials_yet">Sie haben noch keine Materialien geteilt</string>
+    <string name="settings">Einstellungen</string>
+    <string name="profile_photo">Profilfoto</string>
+    <string name="name">Name</string>
+    <string name="language_changed_message">Geänderte Sprache</string>
+    <string name="select_language">Sprache auswählen</string>
+    <string name="language">Sprache</string>
+    <string name="apply">Anwenden</string>
+    <string name="intro_slides">Einführungsfolien</string>
+    <string name="private_profile">"Privates Profil "</string>
+    <string name="view_again">Erneut ansehen</string>
+    <string name="goto_slides">Zu den Folien</string>
+    <string name="accessibility">Acessibilidade</string>
+    <string name="delete_account">Konto löschen</string>
+    <string name="delete_acc_question">Möchten Sie Ihr Konto löschen?</string>
+    <string name="privacy">Datenschutz</string>
+    <string name="suspend_notifs">Alle aussetzen</string>
+    <string name="notifications">Benachrichtigungen</string>
+    <string name="restart_required_message">Änderungen treten sofort in Kraft</string>
+    <string name="available_languages">Verfügbare Sprachen</string>
+    <string name="language_selection_description">Wählen Sie Ihre bevorzugte Sprache, um Ihr Erlebnis zu personalisieren</string>
+    <string name="applying">Bewerben...</string>
+    <string name="confirm_language_change_message">Sprache zu %1$s ändern?</string>
+    <string name="confirm_language_change">Sprachänderung bestätigen</string>
+    <string name="apply_changes">Änderungen übernehmen</string>
+</resources>
