@@ -9,6 +9,7 @@
     android:paddingEnd="16dp"
     android:paddingBottom="4dp">
 
+    <!-- Avatar do remetente -->
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/iv_sender_avatar"
         android:layout_width="32dp"
@@ -16,8 +17,10 @@
         android:src="@drawable/placeholder_user"
         app:layout_constraintBottom_toBottomOf="@+id/message_container"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tv_receiver_name" />
+        app:layout_constraintTop_toTopOf="@+id/tv_receiver_name"
+        app:layout_constraintVertical_bias="1.0" />
 
+    <!-- Nome do remetente -->
     <TextView
         android:id="@+id/tv_receiver_name"
         android:layout_width="wrap_content"
@@ -31,20 +34,20 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:text="João Silva" />
 
+    <!-- Container da mensagem responsivo -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/message_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginEnd="80dp"
         android:background="@drawable/bg_message_received"
-        android:maxWidth="260dp"
-        android:minWidth="80dp"
         android:padding="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline_received_end"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/iv_sender_avatar"
-        app:layout_constraintTop_toBottomOf="@+id/tv_receiver_name">
+        app:layout_constraintTop_toBottomOf="@+id/tv_receiver_name"
+        app:layout_constraintWidth_max="280dp"
+        app:layout_constraintWidth_min="80dp">
 
         <TextView
             android:id="@+id/tv_message_content"
@@ -52,12 +55,13 @@
             android:layout_height="wrap_content"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
+            android:textIsSelectable="true"
             app:layout_constraintBottom_toTopOf="@+id/tv_timestamp_received"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0"
-            tools:text="Esta é uma mensagem recebida de outro usuário. Pode ser longa e ocupar várias linhas e agora deve quebrar corretamente." />
+            tools:text="Esta é uma mensagem recebida que vai se adaptar ao tamanho do conteúdo mas respeitando o max width definido." />
 
         <TextView
             android:id="@+id/tv_timestamp_received"
@@ -74,5 +78,13 @@
             tools:ignore="SmallSp"
             tools:text="14:30" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Guideline para limite de 75% da tela -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_received_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.55" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

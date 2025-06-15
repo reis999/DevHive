@@ -7,6 +7,7 @@
     android:background="@color/white"
     tools:context=".presentation.ui.main.studygroup.StudyGroupChatActivity">
 
+    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -62,6 +63,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.appcompat.widget.Toolbar>
 
+    <!-- RecyclerView com configurações para layout responsivo -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_messages"
         android:layout_width="match_parent"
@@ -69,12 +71,15 @@
         android:clipToPadding="false"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
+        android:overScrollMode="never"
+        android:scrollbars="none"
         app:layout_constraintBottom_toTopOf="@+id/message_input_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         tools:listitem="@layout/item_group_message_received" />
 
+    <!-- Container de input de mensagem -->
     <LinearLayout
         android:id="@+id/message_input_container"
         android:layout_width="match_parent"
@@ -86,6 +91,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <!-- Preview de anexo -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/attachment_preview_layout"
             android:layout_width="match_parent"
@@ -138,6 +144,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <!-- Layout de input de mensagem -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/message_input_layout"
             android:layout_width="match_parent"

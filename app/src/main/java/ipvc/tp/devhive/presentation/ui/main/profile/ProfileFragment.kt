@@ -16,12 +16,13 @@ import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import ipvc.tp.devhive.R
 import ipvc.tp.devhive.databinding.FragmentProfileBinding
-import ipvc.tp.devhive.presentation.ui.auth.LoginActivity
-import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileEvent
 import ipvc.tp.devhive.domain.model.Material
+import ipvc.tp.devhive.presentation.ui.auth.LoginActivity
+import ipvc.tp.devhive.presentation.ui.main.settings.SettingsActivity
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialAdapter
 import ipvc.tp.devhive.presentation.ui.main.material.MaterialDetailActivity
 import ipvc.tp.devhive.presentation.viewmodel.material.MaterialViewModel
+import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileEvent
 import ipvc.tp.devhive.presentation.viewmodel.profile.ProfileViewModel
 
 @AndroidEntryPoint
@@ -103,7 +104,8 @@ class ProfileFragment : Fragment(), MaterialAdapter.OnMaterialClickListener {
                     true
                 }
                 R.id.action_settings -> {
-                    // settings (later)
+                    val intent = Intent(requireContext(), SettingsActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 else -> false

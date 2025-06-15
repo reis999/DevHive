@@ -49,13 +49,10 @@ class GroupMessageAdapter(
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             VIEW_TYPE_SENT_TEXT -> {
-                // Use ViewBinding para seus layouts de texto também, se possível
-                // Assumindo que você tem ItemGroupMessageSentBinding gerado
                 val binding = ItemGroupMessageSentBinding.inflate(inflater, parent, false)
                 SentMessageViewHolder(binding)
             }
             VIEW_TYPE_RECEIVED_TEXT -> {
-                // Assumindo que você tem ItemGroupMessageReceivedBinding gerado
                 val binding = ItemGroupMessageReceivedBinding.inflate(inflater, parent, false)
                 ReceivedMessageViewHolder(binding)
             }
