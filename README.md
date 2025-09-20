@@ -29,7 +29,7 @@ DevHive is a collaborative study mobile app designed specifically for university
 
 * [Android Studio](https://developer.android.com/studio)
 * [Kotlin](https://kotlinlang.org/) 1.5+
-* A [Firebase Project](https://console.firebase.google.com/)
+* [Firebase Project](https://console.firebase.google.com/)
 
 ### Setup Instructions
 
